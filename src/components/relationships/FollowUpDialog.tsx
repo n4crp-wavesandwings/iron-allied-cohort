@@ -170,6 +170,32 @@ export function FollowUpDialog({
               </Select>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={(v) => setCategory(v as FollowUpCategory)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Uncategorized" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FOLLOW_UP_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fu_reminder">Reminder Date</Label>
+              <Input
+                id="fu_reminder"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label>Relationship</Label>
             <Select
