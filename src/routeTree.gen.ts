@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_authenticated/resolutions.index'
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 
@@ -35,6 +36,12 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedResolutionsIndexRoute =
+  AuthenticatedResolutionsIndexRouteImport.update({
+    id: '/resolutions/',
+    path: '/resolutions/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRelationshipsIndexRoute =
   AuthenticatedRelationshipsIndexRouteImport.update({
     id: '/relationships/',
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
+  '/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,6 +69,7 @@ export interface FileRoutesByTo {
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
+  '/resolutions': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,12 +79,25 @@ export interface FileRoutesById {
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
+  '/_authenticated/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/today'
+    | '/relationships/$id'
+    | '/relationships/'
+    | '/resolutions/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships'
+  to:
+    | '/'
+    | '/auth'
+    | '/today'
+    | '/relationships/$id'
+    | '/relationships'
+    | '/resolutions'
   id:
     | '__root__'
     | '/'
@@ -84,6 +106,7 @@ export interface FileRouteTypes {
     | '/_authenticated/today'
     | '/_authenticated/relationships/$id'
     | '/_authenticated/relationships/'
+    | '/_authenticated/resolutions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -122,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/resolutions/': {
+      id: '/_authenticated/resolutions/'
+      path: '/resolutions'
+      fullPath: '/resolutions/'
+      preLoaderRoute: typeof AuthenticatedResolutionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/relationships/': {
       id: '/_authenticated/relationships/'
       path: '/relationships'
@@ -143,12 +173,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
+  AuthenticatedResolutionsIndexRoute: typeof AuthenticatedResolutionsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
+  AuthenticatedResolutionsIndexRoute: AuthenticatedResolutionsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
