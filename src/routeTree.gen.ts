@@ -13,7 +13,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
-import { Route as AuthenticatedRelationshipsRouteImport } from './routes/_authenticated/relationships'
+import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
+import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -34,45 +35,55 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRelationshipsRoute =
-  AuthenticatedRelationshipsRouteImport.update({
-    id: '/relationships',
-    path: '/relationships',
+const AuthenticatedRelationshipsIndexRoute =
+  AuthenticatedRelationshipsIndexRouteImport.update({
+    id: '/relationships/',
+    path: '/relationships/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRelationshipsIdRoute =
+  AuthenticatedRelationshipsIdRouteImport.update({
+    id: '/relationships/$id',
+    path: '/relationships/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/relationships': typeof AuthenticatedRelationshipsRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/relationships': typeof AuthenticatedRelationshipsRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/relationships': typeof AuthenticatedRelationshipsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/relationships': typeof AuthenticatedRelationshipsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
+  '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/relationships' | '/today'
+  fullPaths: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/relationships' | '/today'
+  to: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/relationships'
     | '/_authenticated/today'
+    | '/_authenticated/relationships/$id'
+    | '/_authenticated/relationships/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,24 +122,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/relationships': {
-      id: '/_authenticated/relationships'
+    '/_authenticated/relationships/': {
+      id: '/_authenticated/relationships/'
       path: '/relationships'
-      fullPath: '/relationships'
-      preLoaderRoute: typeof AuthenticatedRelationshipsRouteImport
+      fullPath: '/relationships/'
+      preLoaderRoute: typeof AuthenticatedRelationshipsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relationships/$id': {
+      id: '/_authenticated/relationships/$id'
+      path: '/relationships/$id'
+      fullPath: '/relationships/$id'
+      preLoaderRoute: typeof AuthenticatedRelationshipsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedRelationshipsRoute: typeof AuthenticatedRelationshipsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
+  AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
+  AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedRelationshipsRoute: AuthenticatedRelationshipsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
+  AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
+  AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
