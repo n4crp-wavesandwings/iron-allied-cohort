@@ -17,6 +17,7 @@ import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
 import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authenticated/resolutions.$id'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
+import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -61,11 +62,17 @@ const AuthenticatedRelationshipsIdRoute =
     path: '/relationships/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
+  id: '/contacts/$id',
+  path: '/contacts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
+  '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/_authenticated/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/today'
+    | '/contacts/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
     | '/relationships/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/today'
+    | '/contacts/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
     | '/relationships'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/today'
+    | '/_authenticated/contacts/$id'
     | '/_authenticated/relationships/$id'
     | '/_authenticated/resolutions/$id'
     | '/_authenticated/relationships/'
@@ -186,11 +198,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelationshipsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contacts/$id': {
+      id: '/_authenticated/contacts/$id'
+      path: '/contacts/$id'
+      fullPath: '/contacts/$id'
+      preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
+  AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
   AuthenticatedResolutionsIdRoute: typeof AuthenticatedResolutionsIdRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
@@ -199,6 +219,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
+  AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
   AuthenticatedResolutionsIdRoute: AuthenticatedResolutionsIdRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
