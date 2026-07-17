@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Private operations tool for daily relationship and district management." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "IronAlliance27" },
+      { name: "twitter:description", content: "Private operations tool for daily relationship and district management." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/05161d22-e426-4633-9cb0-897334ee7e3e/id-preview-7614b304--cbbe57ac-1b44-4fb5-adc1-53642f72d5c5.lovable.app-1784297972072.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/05161d22-e426-4633-9cb0-897334ee7e3e/id-preview-7614b304--cbbe57ac-1b44-4fb5-adc1-53642f72d5c5.lovable.app-1784297972072.png" },
     ],
     links: [
       {
