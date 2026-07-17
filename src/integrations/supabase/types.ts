@@ -14,16 +14,316 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          entity_id: string
+          id: string
+          name: string
+          note: string | null
+          org_id: string
+          role: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          entity_id: string
+          id?: string
+          name: string
+          note?: string | null
+          org_id?: string
+          role?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          entity_id?: string
+          id?: string
+          name?: string
+          note?: string | null
+          org_id?: string
+          role?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entities: {
+        Row: {
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          district: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          status: string | null
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          district?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id?: string
+          status?: string | null
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          district?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          status?: string | null
+          type?: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_ups: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          due_date: string
+          entity_id: string | null
+          id: string
+          interaction_id: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["follow_up_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          due_date: string
+          entity_id?: string | null
+          id?: string
+          interaction_id?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["follow_up_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          due_date?: string
+          entity_id?: string | null
+          id?: string
+          interaction_id?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["follow_up_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interactions: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          entity_id: string
+          id: string
+          occurred_at: string
+          org_id: string
+          source: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          entity_id: string
+          id?: string
+          occurred_at?: string
+          org_id?: string
+          source?: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          entity_id?: string
+          id?: string
+          occurred_at?: string
+          org_id?: string
+          source?: string
+          type?: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactions_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_org_id: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      entity_type: "store" | "provider" | "merchant" | "program" | "internal"
+      follow_up_status: "open" | "done"
+      interaction_type: "meeting" | "call" | "visit" | "note"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +450,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      entity_type: ["store", "provider", "merchant", "program", "internal"],
+      follow_up_status: ["open", "done"],
+      interaction_type: ["meeting", "call", "visit", "note"],
+    },
   },
 } as const
