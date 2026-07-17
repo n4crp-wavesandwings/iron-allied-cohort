@@ -36,8 +36,6 @@ import {
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
 import { InteractionForm } from "@/components/relationships/InteractionForm";
-import { Badge as _Badge } from "@/components/ui/badge";
-void _Badge;
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
