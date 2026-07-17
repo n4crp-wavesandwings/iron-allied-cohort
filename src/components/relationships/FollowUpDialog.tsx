@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select";
 import { relationshipsQueryOptions } from "@/lib/relationships";
 import { interactionsQueryOptions, interactionTypeLabel } from "@/lib/interactions";
-import type { FollowUpRow, FollowUpStatus } from "@/lib/followups";
+import type { FollowUpRow, FollowUpStatus, FollowUpCategory } from "@/lib/followups";
+import { FOLLOW_UP_CATEGORIES } from "@/lib/followups";
 
 interface Props {
   open: boolean;
@@ -54,6 +55,8 @@ export function FollowUpDialog({
   const [status, setStatus] = useState<FollowUpStatus>("open");
   const [relId, setRelId] = useState<string | null>(entityId);
   const [intId, setIntId] = useState<string | null>(interactionId);
+  const [category, setCategory] = useState<FollowUpCategory | "">("");
+  const [reminderDate, setReminderDate] = useState<string>("");
 
   const relationships = useQuery({
     ...relationshipsQueryOptions("all"),
@@ -72,12 +75,16 @@ export function FollowUpDialog({
       setStatus(followUp.status);
       setRelId(followUp.entity_id);
       setIntId(followUp.interaction_id);
+      setCategory(((followUp as any).category as FollowUpCategory) ?? "");
+      setReminderDate((followUp as any).reminder_date ?? "");
     } else {
       setTitle("");
       setDueDate(todayInput());
       setStatus("open");
       setRelId(entityId);
       setIntId(interactionId);
+      setCategory("");
+      setReminderDate("");
     }
   }, [open, followUp, entityId, interactionId]);
 
@@ -91,6 +98,8 @@ export function FollowUpDialog({
         status,
         entity_id: relId,
         interaction_id: relId ? intId : null,
+        category: category || null,
+        reminder_date: reminderDate || null,
         completed_at:
           status === "done"
             ? followUp?.completed_at ?? new Date().toISOString()
@@ -159,6 +168,32 @@ export function FollowUpDialog({
                   <SelectItem value="done">Done</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={(v) => setCategory(v as FollowUpCategory)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Uncategorized" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FOLLOW_UP_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fu_reminder">Reminder Date</Label>
+              <Input
+                id="fu_reminder"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-2">

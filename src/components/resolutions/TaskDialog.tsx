@@ -46,6 +46,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
   const [status, setStatus] = useState<CrTaskStatus>("Open");
   const [waitingOn, setWaitingOn] = useState("");
   const [notes, setNotes] = useState("");
+  const [estimatedCompletionDate, setEstimatedCompletionDate] = useState<string>("");
+  const [actualCompletionDate, setActualCompletionDate] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +59,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
       setStatus(task.status);
       setWaitingOn(task.waiting_on ?? "");
       setNotes(task.notes ?? "");
+      setEstimatedCompletionDate((task as any).estimated_completion_date ?? "");
+      setActualCompletionDate((task as any).actual_completion_date ?? "");
     } else {
       setTaskText("");
       setOwnerName("");
@@ -65,6 +69,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
       setStatus("Open");
       setWaitingOn("");
       setNotes("");
+      setEstimatedCompletionDate("");
+      setActualCompletionDate("");
     }
   }, [open, task]);
 
@@ -81,6 +87,12 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
         status,
         waiting_on: waitingOn.trim() || null,
         notes: notes.trim() || null,
+        estimated_completion_date: estimatedCompletionDate || null,
+        actual_completion_date:
+          status === "Complete"
+            ? actualCompletionDate || (task?.actual_completion_date as string | undefined) ||
+              new Date().toISOString().slice(0, 10)
+            : actualCompletionDate || null,
         completed_at:
           status === "Complete"
             ? task?.completed_at ?? new Date().toISOString()
@@ -188,6 +200,26 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="t_est">Estimated Completion Date</Label>
+              <Input
+                id="t_est"
+                type="date"
+                value={estimatedCompletionDate}
+                onChange={(e) => setEstimatedCompletionDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="t_actual">Actual Completion Date</Label>
+              <Input
+                id="t_actual"
+                type="date"
+                value={actualCompletionDate}
+                onChange={(e) => setActualCompletionDate(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-2">

@@ -207,6 +207,9 @@ function ResolutionDetail() {
               {new Date(r.completed_date + "T00:00:00").toLocaleDateString()}
             </Field>
           )}
+          <Field label="Severity">{(r as any).severity ?? "—"}</Field>
+          <Field label="Resolution Type">{(r as any).resolution_type ?? "—"}</Field>
+          <Field label="Escalation Level">{(r as any).escalation_level ?? "—"}</Field>
         </CardContent>
       </Card>
 

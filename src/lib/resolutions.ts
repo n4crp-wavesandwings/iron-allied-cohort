@@ -18,6 +18,9 @@ export type CrRelationshipRole = Database["public"]["Enums"]["cr_relationship_ro
 export type CrTaskOwnerType = Database["public"]["Enums"]["cr_task_owner_type"];
 export type CrTaskStatus = Database["public"]["Enums"]["cr_task_status"];
 export type CrEventType = Database["public"]["Enums"]["cr_event_type"];
+export type CrSeverity = Database["public"]["Enums"]["cr_severity"];
+export type CrResolutionType = Database["public"]["Enums"]["cr_resolution_type"];
+export type CrEscalationLevel = Database["public"]["Enums"]["cr_escalation_level"];
 
 export const CR_PRIORITIES: CrPriority[] = ["Low", "Normal", "High", "Urgent"];
 export const CR_STATUSES: CrStatus[] = ["New", "In Progress", "Waiting", "Resolved", "Closed"];
@@ -31,6 +34,30 @@ export const CR_TASK_OWNER_TYPES: CrTaskOwnerType[] = [
   "Other",
 ];
 export const CR_TASK_STATUSES: CrTaskStatus[] = ["Open", "Waiting", "Complete"];
+
+export const CR_SEVERITIES: CrSeverity[] = [
+  "Customer Experience",
+  "Safety",
+  "Financial",
+  "Installation",
+  "Product",
+  "Communication",
+  "Other",
+];
+export const CR_RESOLUTION_TYPES: CrResolutionType[] = [
+  "Installation",
+  "Delivery",
+  "Product",
+  "Billing",
+  "Service",
+  "Other",
+];
+export const CR_ESCALATION_LEVELS: CrEscalationLevel[] = [
+  "Store",
+  "District",
+  "Regional",
+  "Corporate",
+];
 
 export function customerIdentifier(r: Pick<ResolutionRow, "customer_first_initial" | "customer_last_name">): string {
   return `${r.customer_first_initial}. ${r.customer_last_name}`;

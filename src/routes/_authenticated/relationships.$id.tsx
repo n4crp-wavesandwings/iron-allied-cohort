@@ -129,8 +129,22 @@ function RelationshipDetailPage() {
           <CardContent className="space-y-3 text-sm">
             <Field label="Relationship Type" value={typeLabel(r.type)} />
             <Field label="Name" value={r.name} />
+            <Field label="Legal Name" value={(r as any).legal_name ?? "—"} />
+            <Field label="DBA / Common Name" value={(r as any).dba_name ?? "—"} />
             <Field label="Status" value={r.status ?? "—"} />
+            <Field label="Active" value={(r as any).active === false ? "No" : "Yes"} />
             <Field label="District" value={r.district ?? "—"} />
+            <Field label="Territory / Market" value={(r as any).territory ?? "—"} />
+            <Field label="Primary Location" value={(r as any).primary_location ?? "—"} />
+            <Field label="Website" value={(r as any).website ?? "—"} />
+            <Field
+              label="Preferred Communication"
+              value={(r as any).preferred_communication_method ?? "—"}
+            />
+            <Field
+              label="Internal Reference #"
+              value={(r as any).internal_reference_number ?? "—"}
+            />
             <div>
               <div className="text-muted-foreground">Notes</div>
               <div className="mt-1 whitespace-pre-wrap">{r.notes ?? "—"}</div>

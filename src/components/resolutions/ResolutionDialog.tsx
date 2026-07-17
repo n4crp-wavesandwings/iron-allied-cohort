@@ -23,10 +23,16 @@ import {
 } from "@/components/ui/select";
 import { relationshipsQueryOptions } from "@/lib/relationships";
 import {
+  CR_ESCALATION_LEVELS,
   CR_PRIORITIES,
+  CR_RESOLUTION_TYPES,
+  CR_SEVERITIES,
   CR_STATUSES,
   logHistory,
+  type CrEscalationLevel,
   type CrPriority,
+  type CrResolutionType,
+  type CrSeverity,
   type CrStatus,
   type ResolutionRow,
 } from "@/lib/resolutions";
@@ -55,6 +61,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
   const [summary, setSummary] = useState("");
   const [desiredResolution, setDesiredResolution] = useState("");
   const [targetDate, setTargetDate] = useState<string>("");
+  const [severity, setSeverity] = useState<CrSeverity | "">("");
+  const [resolutionType, setResolutionType] = useState<CrResolutionType | "">("");
+  const [escalationLevel, setEscalationLevel] = useState<CrEscalationLevel | "">("");
 
   const relationships = useQuery({ ...relationshipsQueryOptions("all"), enabled: open });
 
@@ -70,6 +79,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
       setSummary(resolution.summary ?? "");
       setDesiredResolution(resolution.desired_resolution ?? "");
       setTargetDate(resolution.target_date ?? "");
+      setSeverity(((resolution as any).severity as CrSeverity) ?? "");
+      setResolutionType(((resolution as any).resolution_type as CrResolutionType) ?? "");
+      setEscalationLevel(((resolution as any).escalation_level as CrEscalationLevel) ?? "");
     } else {
       setCustomerLastName("");
       setCustomerFirstInitial("");
@@ -82,6 +94,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
       setSummary("");
       setDesiredResolution("");
       setTargetDate("");
+      setSeverity("");
+      setResolutionType("");
+      setEscalationLevel("");
     }
   }, [open, resolution]);
 
@@ -101,6 +116,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
         summary: summary.trim() || null,
         desired_resolution: desiredResolution.trim() || null,
         target_date: targetDate || null,
+        severity: severity || null,
+        resolution_type: resolutionType || null,
+        escalation_level: escalationLevel || null,
         completed_date:
           status === "Resolved" || status === "Closed"
             ? resolution?.completed_date ?? new Date().toISOString().slice(0, 10)
@@ -291,6 +309,59 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
             />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Severity</Label>
+              <Select value={severity} onValueChange={(v) => setSeverity(v as CrSeverity)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Not categorized" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CR_SEVERITIES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Resolution Type</Label>
+              <Select
+                value={resolutionType}
+                onValueChange={(v) => setResolutionType(v as CrResolutionType)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Not categorized" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CR_RESOLUTION_TYPES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Escalation Level</Label>
+            <Select
+              value={escalationLevel}
+              onValueChange={(v) => setEscalationLevel(v as CrEscalationLevel)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Not escalated" />
+              </SelectTrigger>
+              <SelectContent>
+                {CR_ESCALATION_LEVELS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {!isEdit && (
             <p className="text-xs text-muted-foreground">
