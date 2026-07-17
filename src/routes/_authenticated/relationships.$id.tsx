@@ -18,6 +18,8 @@ import {
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { relationshipQueryOptions, typeLabel } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
+import { InteractionForm } from "@/components/relationships/InteractionForm";
+import { InteractionTimeline } from "@/components/relationships/InteractionTimeline";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -115,10 +117,18 @@ function RelationshipDetailPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
+              <CardTitle className="text-base">Log Interaction</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InteractionForm entityId={r.id} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
               <CardTitle className="text-base">Timeline</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No timeline yet.</p>
+              <InteractionTimeline entityId={r.id} />
             </CardContent>
           </Card>
           <Card>
