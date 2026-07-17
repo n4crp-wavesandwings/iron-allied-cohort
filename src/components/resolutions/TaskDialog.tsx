@@ -202,6 +202,26 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
               </Select>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="t_est">Estimated Completion Date</Label>
+              <Input
+                id="t_est"
+                type="date"
+                value={estimatedCompletionDate}
+                onChange={(e) => setEstimatedCompletionDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="t_actual">Actual Completion Date</Label>
+              <Input
+                id="t_actual"
+                type="date"
+                value={actualCompletionDate}
+                onChange={(e) => setActualCompletionDate(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="t_waiting">Waiting On</Label>
             <Input
