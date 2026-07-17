@@ -6,6 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,7 +25,11 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { relationshipQueryOptions, typeLabel } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 import { InteractionForm } from "@/components/relationships/InteractionForm";
-import { InteractionTimeline } from "@/components/relationships/InteractionTimeline";
+import { RelationshipTimeline } from "@/components/relationships/RelationshipTimeline";
+import { ContactsList } from "@/components/relationships/ContactsList";
+import { RelationshipSummary } from "@/components/relationships/RelationshipSummary";
+import { ContactDialog } from "@/components/relationships/ContactDialog";
+import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -33,6 +43,9 @@ function RelationshipDetailPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [logInteractionOpen, setLogInteractionOpen] = useState(false);
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [followUpOpen, setFollowUpOpen] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -68,39 +81,50 @@ function RelationshipDetailPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild className="gap-1">
           <Link to="/relationships">
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1">
-            <Pencil className="h-4 w-4" /> Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setConfirmDelete(true)}
-            className="gap-1"
-          >
-            <Trash2 className="h-4 w-4" /> Delete
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setConfirmDelete(true)}
+          className="gap-1"
+        >
+          <Trash2 className="h-4 w-4" /> Delete
+        </Button>
       </div>
 
-      <div className="mt-6">
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">{r.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {typeLabel(r.type)} · {r.status ?? "—"}
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
+          <Button onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
+          <Button onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Section 1 — Basic Information */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Details</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Basic Information</CardTitle>
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1">
+              <Pencil className="h-4 w-4" /> Edit Information
+            </Button>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Field label="Relationship Type" value={typeLabel(r.type)} />
@@ -114,35 +138,56 @@ function RelationshipDetailPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Log Interaction</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InteractionForm entityId={r.id} />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InteractionTimeline entityId={r.id} />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Contacts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">No contacts yet.</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Section 5 — Relationship Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Relationship Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RelationshipSummary relationship={r} />
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Section 2 — Contacts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Contacts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ContactsList entityId={r.id} />
+        </CardContent>
+      </Card>
+
+      {/* Section 3 — Relationship Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Relationship Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RelationshipTimeline entityId={r.id} />
+        </CardContent>
+      </Card>
+
+      {/* Dialogs */}
       <RelationshipDialog open={editOpen} onOpenChange={setEditOpen} relationship={r} />
+
+      <Dialog open={logInteractionOpen} onOpenChange={setLogInteractionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Log Interaction</DialogTitle>
+          </DialogHeader>
+          <InteractionForm entityId={r.id} />
+        </DialogContent>
+      </Dialog>
+
+      <ContactDialog
+        open={addContactOpen}
+        onOpenChange={setAddContactOpen}
+        entityId={r.id}
+      />
+
+      <FollowUpDialog open={followUpOpen} onOpenChange={setFollowUpOpen} entityId={r.id} />
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
