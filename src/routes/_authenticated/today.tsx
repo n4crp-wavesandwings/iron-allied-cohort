@@ -45,6 +45,7 @@ function TodayPage() {
   const queryClient = useQueryClient();
   const followUps = useQuery(openDueFollowUpsQueryOptions);
   const interactions = useQuery(recentInteractionsQueryOptions);
+  const resolutionsToday = useQuery(todayResolutionsQueryOptions);
 
   const [newRelOpen, setNewRelOpen] = useState(false);
   const [newFollowUpOpen, setNewFollowUpOpen] = useState(false);
