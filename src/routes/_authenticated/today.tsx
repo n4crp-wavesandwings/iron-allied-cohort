@@ -157,6 +157,16 @@ function TodayPage() {
         </CardContent>
       </Card>
 
+      {/* Section 1b: Customer Resolutions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Customer Resolutions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResolutionsTodaySection resolutions={resolutionsToday.data ?? []} isLoading={resolutionsToday.isLoading} />
+        </CardContent>
+      </Card>
+
       {/* Section 2: Recent Interactions */}
       <Card>
         <CardHeader>
