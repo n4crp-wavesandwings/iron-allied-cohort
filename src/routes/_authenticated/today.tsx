@@ -163,7 +163,7 @@ function TodayPage() {
           <CardTitle className="text-base">Customer Resolutions</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResolutionsTodaySection resolutions={resolutionsToday.data ?? []} isLoading={resolutionsToday.isLoading} />
+          <ResolutionsTodaySection resolutions={(resolutionsToday.data ?? []) as unknown as TodayResolution[]} isLoading={resolutionsToday.isLoading} />
         </CardContent>
       </Card>
 
