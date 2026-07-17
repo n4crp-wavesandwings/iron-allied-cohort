@@ -296,11 +296,23 @@ function NewInteractionDialog({
   );
 }
 
-type TodayResolution = NonNullable<ReturnType<typeof todayResolutionsQueryOptions.queryFn>> extends Promise<infer T>
-  ? T extends Array<infer U>
-    ? U
-    : never
-  : never;
+type TodayResolutionTask = {
+  id: string;
+  task: string;
+  owner_name: string;
+  owner_type: string;
+  due_date: string | null;
+  status: string;
+};
+type TodayResolution = {
+  id: string;
+  title: string;
+  customer_first_initial: string;
+  customer_last_name: string;
+  priority: "Low" | "Normal" | "High" | "Urgent";
+  status: string;
+  tasks: TodayResolutionTask[] | null;
+};
 
 function ResolutionsTodaySection({
   resolutions,
