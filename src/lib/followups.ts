@@ -4,6 +4,15 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type FollowUpRow = Database["public"]["Tables"]["follow_ups"]["Row"];
 export type FollowUpStatus = Database["public"]["Enums"]["follow_up_status"];
+export type FollowUpCategory = Database["public"]["Enums"]["follow_up_category"];
+
+export const FOLLOW_UP_CATEGORIES: FollowUpCategory[] = [
+  "Relationship",
+  "Issue Resolution",
+  "Customer Request",
+  "Feedback",
+  "Other",
+];
 
 export const followUpsQueryOptions = (entityId: string) =>
   queryOptions({
