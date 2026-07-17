@@ -87,6 +87,12 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
         status,
         waiting_on: waitingOn.trim() || null,
         notes: notes.trim() || null,
+        estimated_completion_date: estimatedCompletionDate || null,
+        actual_completion_date:
+          status === "Complete"
+            ? actualCompletionDate || (task?.actual_completion_date as string | undefined) ||
+              new Date().toISOString().slice(0, 10)
+            : actualCompletionDate || null,
         completed_at:
           status === "Complete"
             ? task?.completed_at ?? new Date().toISOString()
