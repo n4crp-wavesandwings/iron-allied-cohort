@@ -115,8 +115,24 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
           .eq("id", contact.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("contacts").insert(payload);
+        const { data: inserted, error } = await supabase
+          .from("contacts")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        // Ensure a contact_organizations link exists (primary if first)
+        if (inserted?.id) {
+          const { count } = await supabase
+            .from("contact_organizations")
+            .select("id", { count: "exact", head: true })
+            .eq("contact_id", inserted.id);
+          await supabase.from("contact_organizations").insert({
+            contact_id: inserted.id,
+            organization_id: entityId,
+            is_primary: (count ?? 0) === 0,
+          });
+        }
       }
     },
     onSuccess: () => {
