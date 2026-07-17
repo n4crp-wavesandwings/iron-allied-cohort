@@ -46,6 +46,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
   const [status, setStatus] = useState<CrTaskStatus>("Open");
   const [waitingOn, setWaitingOn] = useState("");
   const [notes, setNotes] = useState("");
+  const [estimatedCompletionDate, setEstimatedCompletionDate] = useState<string>("");
+  const [actualCompletionDate, setActualCompletionDate] = useState<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +59,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
       setStatus(task.status);
       setWaitingOn(task.waiting_on ?? "");
       setNotes(task.notes ?? "");
+      setEstimatedCompletionDate((task as any).estimated_completion_date ?? "");
+      setActualCompletionDate((task as any).actual_completion_date ?? "");
     } else {
       setTaskText("");
       setOwnerName("");
@@ -65,6 +69,8 @@ export function TaskDialog({ open, onOpenChange, resolutionId, task = null }: Pr
       setStatus("Open");
       setWaitingOn("");
       setNotes("");
+      setEstimatedCompletionDate("");
+      setActualCompletionDate("");
     }
   }, [open, task]);
 
