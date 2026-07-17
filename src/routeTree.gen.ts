@@ -13,7 +13,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
-import { Route as AuthenticatedRelationshipsRouteImport } from './routes/_authenticated/relationships'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -34,23 +33,15 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRelationshipsRoute =
-  AuthenticatedRelationshipsRouteImport.update({
-    id: '/relationships',
-    path: '/relationships',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/relationships': typeof AuthenticatedRelationshipsRoute
   '/today': typeof AuthenticatedTodayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/relationships': typeof AuthenticatedRelationshipsRoute
   '/today': typeof AuthenticatedTodayRoute
 }
 export interface FileRoutesById {
@@ -58,21 +49,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/relationships': typeof AuthenticatedRelationshipsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/relationships' | '/today'
+  fullPaths: '/' | '/auth' | '/today'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/relationships' | '/today'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authenticated'
-    | '/auth'
-    | '/_authenticated/relationships'
-    | '/_authenticated/today'
+  to: '/' | '/auth' | '/today'
+  id: '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/today'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,23 +95,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/relationships': {
-      id: '/_authenticated/relationships'
-      path: '/relationships'
-      fullPath: '/relationships'
-      preLoaderRoute: typeof AuthenticatedRelationshipsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedRelationshipsRoute: typeof AuthenticatedRelationshipsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedRelationshipsRoute: AuthenticatedRelationshipsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
 }
 
