@@ -13,7 +13,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_authenticated/resolutions.index'
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
+import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authenticated/resolutions.$id'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -35,10 +37,22 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedResolutionsIndexRoute =
+  AuthenticatedResolutionsIndexRouteImport.update({
+    id: '/resolutions/',
+    path: '/resolutions/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRelationshipsIndexRoute =
   AuthenticatedRelationshipsIndexRouteImport.update({
     id: '/relationships/',
     path: '/relationships/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedResolutionsIdRoute =
+  AuthenticatedResolutionsIdRouteImport.update({
+    id: '/resolutions/$id',
+    path: '/resolutions/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRelationshipsIdRoute =
@@ -53,14 +67,18 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
+  '/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
+  '/resolutions': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,13 +87,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/_authenticated/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
+  '/_authenticated/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/today'
+    | '/relationships/$id'
+    | '/resolutions/$id'
+    | '/relationships/'
+    | '/resolutions/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/today' | '/relationships/$id' | '/relationships'
+  to:
+    | '/'
+    | '/auth'
+    | '/today'
+    | '/relationships/$id'
+    | '/resolutions/$id'
+    | '/relationships'
+    | '/resolutions'
   id:
     | '__root__'
     | '/'
@@ -83,7 +117,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/today'
     | '/_authenticated/relationships/$id'
+    | '/_authenticated/resolutions/$id'
     | '/_authenticated/relationships/'
+    | '/_authenticated/resolutions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -122,11 +158,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/resolutions/': {
+      id: '/_authenticated/resolutions/'
+      path: '/resolutions'
+      fullPath: '/resolutions/'
+      preLoaderRoute: typeof AuthenticatedResolutionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/relationships/': {
       id: '/_authenticated/relationships/'
       path: '/relationships'
       fullPath: '/relationships/'
       preLoaderRoute: typeof AuthenticatedRelationshipsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/resolutions/$id': {
+      id: '/_authenticated/resolutions/$id'
+      path: '/resolutions/$id'
+      fullPath: '/resolutions/$id'
+      preLoaderRoute: typeof AuthenticatedResolutionsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/relationships/$id': {
@@ -142,13 +192,17 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
+  AuthenticatedResolutionsIdRoute: typeof AuthenticatedResolutionsIdRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
+  AuthenticatedResolutionsIndexRoute: typeof AuthenticatedResolutionsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
+  AuthenticatedResolutionsIdRoute: AuthenticatedResolutionsIdRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
+  AuthenticatedResolutionsIndexRoute: AuthenticatedResolutionsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

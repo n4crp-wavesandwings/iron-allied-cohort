@@ -104,6 +104,396 @@ export type Database = {
           },
         ]
       }
+      customer_resolution_followups: {
+        Row: {
+          created_at: string
+          follow_up_id: string
+          id: string
+          org_id: string
+          resolution_id: string
+        }
+        Insert: {
+          created_at?: string
+          follow_up_id: string
+          id?: string
+          org_id?: string
+          resolution_id: string
+        }
+        Update: {
+          created_at?: string
+          follow_up_id?: string
+          id?: string
+          org_id?: string
+          resolution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_followups_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_followups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_followups_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolution_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_description: string
+          event_type: Database["public"]["Enums"]["cr_event_type"]
+          id: string
+          new_value: string | null
+          org_id: string
+          previous_value: string | null
+          resolution_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_description: string
+          event_type: Database["public"]["Enums"]["cr_event_type"]
+          id?: string
+          new_value?: string | null
+          org_id?: string
+          previous_value?: string | null
+          resolution_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_description?: string
+          event_type?: Database["public"]["Enums"]["cr_event_type"]
+          id?: string
+          new_value?: string | null
+          org_id?: string
+          previous_value?: string | null
+          resolution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_history_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_history_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolution_interactions: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_id: string
+          org_id: string
+          resolution_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_id: string
+          org_id?: string
+          resolution_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_id?: string
+          org_id?: string
+          resolution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_interactions_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_interactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_interactions_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolution_people: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          id: string
+          manual_entry: boolean
+          org_id: string
+          person_name: string
+          person_role: string
+          resolution_id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          manual_entry?: boolean
+          org_id?: string
+          person_name: string
+          person_role: string
+          resolution_id: string
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          manual_entry?: boolean
+          org_id?: string
+          person_name?: string
+          person_role?: string
+          resolution_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_people_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_people_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_people_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolution_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string
+          relationship_id: string
+          resolution_id: string
+          role: Database["public"]["Enums"]["cr_relationship_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          relationship_id: string
+          resolution_id: string
+          role: Database["public"]["Enums"]["cr_relationship_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          relationship_id?: string
+          resolution_id?: string
+          role?: Database["public"]["Enums"]["cr_relationship_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_relationships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_relationships_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_relationships_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolution_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          owner_name: string
+          owner_type: Database["public"]["Enums"]["cr_task_owner_type"]
+          resolution_id: string
+          status: Database["public"]["Enums"]["cr_task_status"]
+          task: string
+          updated_at: string
+          updated_by: string | null
+          waiting_on: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          owner_name: string
+          owner_type: Database["public"]["Enums"]["cr_task_owner_type"]
+          resolution_id: string
+          status?: Database["public"]["Enums"]["cr_task_status"]
+          task: string
+          updated_at?: string
+          updated_by?: string | null
+          waiting_on?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          owner_name?: string
+          owner_type?: Database["public"]["Enums"]["cr_task_owner_type"]
+          resolution_id?: string
+          status?: Database["public"]["Enums"]["cr_task_status"]
+          task?: string
+          updated_at?: string
+          updated_by?: string | null
+          waiting_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolution_tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolution_tasks_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_resolutions: {
+        Row: {
+          completed_date: string | null
+          created_at: string
+          created_by: string
+          customer_first_initial: string
+          customer_last_name: string
+          deleted_at: string | null
+          desired_resolution: string | null
+          id: string
+          opened_date: string
+          org_id: string
+          priority: Database["public"]["Enums"]["cr_priority"]
+          reference_number: string | null
+          status: Database["public"]["Enums"]["cr_status"]
+          summary: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string
+          customer_first_initial: string
+          customer_last_name: string
+          deleted_at?: string | null
+          desired_resolution?: string | null
+          id?: string
+          opened_date?: string
+          org_id?: string
+          priority?: Database["public"]["Enums"]["cr_priority"]
+          reference_number?: string | null
+          status?: Database["public"]["Enums"]["cr_status"]
+          summary?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string
+          customer_first_initial?: string
+          customer_last_name?: string
+          deleted_at?: string | null
+          desired_resolution?: string | null
+          id?: string
+          opened_date?: string
+          org_id?: string
+          priority?: Database["public"]["Enums"]["cr_priority"]
+          reference_number?: string | null
+          status?: Database["public"]["Enums"]["cr_status"]
+          summary?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_resolutions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string
@@ -351,6 +741,25 @@ export type Database = {
       current_org_id: { Args: never; Returns: string }
     }
     Enums: {
+      cr_event_type:
+        | "resolution_updated"
+        | "task_created"
+        | "task_completed"
+        | "status_changed"
+        | "note_added"
+        | "interaction_linked"
+        | "followup_linked"
+      cr_priority: "Low" | "Normal" | "High" | "Urgent"
+      cr_relationship_role: "Service Provider" | "Store" | "Other"
+      cr_status: "New" | "In Progress" | "Waiting" | "Resolved" | "Closed"
+      cr_task_owner_type:
+        | "Me"
+        | "Service Provider"
+        | "Store"
+        | "Associate"
+        | "Leader"
+        | "Other"
+      cr_task_status: "Open" | "Waiting" | "Complete"
       entity_type: "store" | "provider" | "merchant" | "program" | "internal"
       follow_up_status: "open" | "done"
       interaction_type: "meeting" | "call" | "visit" | "note"
@@ -481,6 +890,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      cr_event_type: [
+        "resolution_updated",
+        "task_created",
+        "task_completed",
+        "status_changed",
+        "note_added",
+        "interaction_linked",
+        "followup_linked",
+      ],
+      cr_priority: ["Low", "Normal", "High", "Urgent"],
+      cr_relationship_role: ["Service Provider", "Store", "Other"],
+      cr_status: ["New", "In Progress", "Waiting", "Resolved", "Closed"],
+      cr_task_owner_type: [
+        "Me",
+        "Service Provider",
+        "Store",
+        "Associate",
+        "Leader",
+        "Other",
+      ],
+      cr_task_status: ["Open", "Waiting", "Complete"],
       entity_type: ["store", "provider", "merchant", "program", "internal"],
       follow_up_status: ["open", "done"],
       interaction_type: ["meeting", "call", "visit", "note"],
