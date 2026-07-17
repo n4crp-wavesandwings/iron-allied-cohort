@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,12 +64,18 @@ export function ContactsList({ entityId }: { entityId: string }) {
             return (
               <li key={c.id} className="rounded-md border p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="font-medium">{contactDisplayName(c)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {[c.job_title, c.department].filter(Boolean).join(" · ") || "—"}
+                  <Link
+                    to="/contacts/$id"
+                    params={{ id: c.id }}
+                    className="flex-1 min-w-0 hover:underline"
+                  >
+                    <div className="font-medium truncate">{contactDisplayName(c)}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {[c.job_title, c.mobile_phone ?? c.office_phone]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"

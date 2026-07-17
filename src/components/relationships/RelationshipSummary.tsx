@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { contactsQueryOptions } from "@/lib/contacts";
 import { interactionsQueryOptions, interactionTypeLabel } from "@/lib/interactions";
 import { followUpsQueryOptions } from "@/lib/followups";
 import { typeLabel, type EntityRow } from "@/lib/relationships";
 
 export function RelationshipSummary({ relationship }: { relationship: EntityRow }) {
-  const contacts = useQuery(contactsQueryOptions(relationship.id));
   const interactions = useQuery(interactionsQueryOptions(relationship.id));
   const followUps = useQuery(followUpsQueryOptions(relationship.id));
 
@@ -18,7 +16,6 @@ export function RelationshipSummary({ relationship }: { relationship: EntityRow 
     <dl className="grid grid-cols-2 gap-3 text-sm">
       <SummaryField label="Type" value={typeLabel(relationship.type)} />
       <SummaryField label="Status" value={relationship.status ?? "—"} />
-      <SummaryField label="Contacts" value={String(contacts.data?.length ?? 0)} />
       <SummaryField
         label="Last Interaction"
         value={
