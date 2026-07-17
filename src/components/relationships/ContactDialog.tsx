@@ -22,7 +22,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  CONTACT_COMM_METHODS,
+  CONTACT_RELATIONSHIP_STRENGTHS,
   PREFERRED_CONTACT_METHODS,
+  type ContactCommMethod,
+  type ContactRelationshipStrength,
   type ContactRow,
   type PreferredContactMethod,
 } from "@/lib/contacts";
@@ -40,12 +44,18 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [preferredName, setPreferredName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [email, setEmail] = useState("");
   const [officePhone, setOfficePhone] = useState("");
   const [mobilePhone, setMobilePhone] = useState("");
+  const [linkedIn, setLinkedIn] = useState("");
+  const [teams, setTeams] = useState("");
   const [preferred, setPreferred] = useState<PreferredContactMethod | "">("");
+  const [prefCommV2, setPrefCommV2] = useState<ContactCommMethod | "">("");
+  const [strength, setStrength] = useState<ContactRelationshipStrength | "">("");
+  const [birthday, setBirthday] = useState("");
   const [bestTime, setBestTime] = useState("");
   const [notes, setNotes] = useState("");
   const [active, setActive] = useState(true);
@@ -54,12 +64,18 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
     if (open) {
       setFirstName(contact?.first_name ?? "");
       setLastName(contact?.last_name ?? "");
+      setPreferredName((contact as any)?.preferred_name ?? "");
       setJobTitle(contact?.job_title ?? "");
       setDepartment(contact?.department ?? "");
       setEmail(contact?.email ?? "");
       setOfficePhone(contact?.office_phone ?? "");
       setMobilePhone(contact?.mobile_phone ?? "");
+      setLinkedIn((contact as any)?.linkedin ?? "");
+      setTeams((contact as any)?.microsoft_teams ?? "");
       setPreferred((contact?.preferred_contact_method as PreferredContactMethod) ?? "");
+      setPrefCommV2(((contact as any)?.preferred_communication_method_v2 as ContactCommMethod) ?? "");
+      setStrength(((contact as any)?.relationship_strength as ContactRelationshipStrength) ?? "");
+      setBirthday((contact as any)?.birthday ?? "");
       setBestTime(contact?.best_time_to_contact ?? "");
       setNotes(contact?.note ?? "");
       setActive(contact?.active ?? true);
@@ -76,12 +92,18 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         name: `${firstName.trim()} ${lastName.trim()}`,
+        preferred_name: preferredName.trim() || null,
         job_title: jobTitle.trim() || null,
         department: department.trim() || null,
         email: email.trim() || null,
         office_phone: officePhone.trim() || null,
         mobile_phone: mobilePhone.trim() || null,
+        linkedin: linkedIn.trim() || null,
+        microsoft_teams: teams.trim() || null,
         preferred_contact_method: preferred || null,
+        preferred_communication_method_v2: prefCommV2 || null,
+        relationship_strength: strength || null,
+        birthday: birthday || null,
         best_time_to_contact: bestTime.trim() || null,
         note: notes.trim() || null,
         active,
@@ -138,6 +160,15 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="preferred_name">Preferred Name</Label>
+            <Input
+              id="preferred_name"
+              value={preferredName}
+              onChange={(e) => setPreferredName(e.target.value)}
+              placeholder="e.g. Bob (for Robert)"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="job_title">Job Title</Label>
@@ -185,7 +216,27 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Preferred Contact Method</Label>
+              <Label htmlFor="linkedin">LinkedIn</Label>
+              <Input
+                id="linkedin"
+                value={linkedIn}
+                onChange={(e) => setLinkedIn(e.target.value)}
+                placeholder="URL or username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="teams">Microsoft Teams</Label>
+              <Input
+                id="teams"
+                value={teams}
+                onChange={(e) => setTeams(e.target.value)}
+                placeholder="email or username"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Preferred Contact Method (legacy)</Label>
               <Select
                 value={preferred}
                 onValueChange={(v) => setPreferred(v as PreferredContactMethod)}
@@ -203,14 +254,61 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="best_time">Best Time To Contact</Label>
+              <Label>Preferred Communication Method</Label>
+              <Select
+                value={prefCommV2}
+                onValueChange={(v) => setPrefCommV2(v as ContactCommMethod)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTACT_COMM_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Relationship Strength</Label>
+              <Select
+                value={strength}
+                onValueChange={(v) => setStrength(v as ContactRelationshipStrength)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Not assessed" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTACT_RELATIONSHIP_STRENGTHS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="birthday">Birthday</Label>
               <Input
-                id="best_time"
-                value={bestTime}
-                onChange={(e) => setBestTime(e.target.value)}
-                placeholder="e.g. 9am-12pm"
+                id="birthday"
+                type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="best_time">Best Time To Contact</Label>
+            <Input
+              id="best_time"
+              value={bestTime}
+              onChange={(e) => setBestTime(e.target.value)}
+              placeholder="e.g. 9am-12pm"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contact_notes">Notes</Label>
