@@ -16,43 +16,73 @@ export type Database = {
     Tables: {
       contacts: {
         Row: {
+          active: boolean
+          best_time_to_contact: string | null
           contact_info: string | null
           created_at: string
           created_by: string
           deleted_at: string | null
+          department: string | null
+          email: string | null
           entity_id: string
+          first_name: string | null
           id: string
-          name: string
+          job_title: string | null
+          last_name: string | null
+          mobile_phone: string | null
+          name: string | null
           note: string | null
+          office_phone: string | null
           org_id: string
+          preferred_contact_method: string | null
           role: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          active?: boolean
+          best_time_to_contact?: string | null
           contact_info?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
+          department?: string | null
+          email?: string | null
           entity_id: string
+          first_name?: string | null
           id?: string
-          name: string
+          job_title?: string | null
+          last_name?: string | null
+          mobile_phone?: string | null
+          name?: string | null
           note?: string | null
+          office_phone?: string | null
           org_id?: string
+          preferred_contact_method?: string | null
           role?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          active?: boolean
+          best_time_to_contact?: string | null
           contact_info?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
+          department?: string | null
+          email?: string | null
           entity_id?: string
+          first_name?: string | null
           id?: string
-          name?: string
+          job_title?: string | null
+          last_name?: string | null
+          mobile_phone?: string | null
+          name?: string | null
           note?: string | null
+          office_phone?: string | null
           org_id?: string
+          preferred_contact_method?: string | null
           role?: string | null
           updated_at?: string
           updated_by?: string | null
