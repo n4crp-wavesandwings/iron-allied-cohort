@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           active: boolean
           best_time_to_contact: string | null
+          birthday: string | null
           contact_info: string | null
           created_at: string
           created_by: string
@@ -29,12 +30,21 @@ export type Database = {
           id: string
           job_title: string | null
           last_name: string | null
+          linkedin: string | null
+          microsoft_teams: string | null
           mobile_phone: string | null
           name: string | null
           note: string | null
           office_phone: string | null
           org_id: string
+          preferred_communication_method_v2:
+            | Database["public"]["Enums"]["contact_comm_method"]
+            | null
           preferred_contact_method: string | null
+          preferred_name: string | null
+          relationship_strength:
+            | Database["public"]["Enums"]["contact_relationship_strength"]
+            | null
           role: string | null
           updated_at: string
           updated_by: string | null
@@ -42,6 +52,7 @@ export type Database = {
         Insert: {
           active?: boolean
           best_time_to_contact?: string | null
+          birthday?: string | null
           contact_info?: string | null
           created_at?: string
           created_by?: string
@@ -53,12 +64,21 @@ export type Database = {
           id?: string
           job_title?: string | null
           last_name?: string | null
+          linkedin?: string | null
+          microsoft_teams?: string | null
           mobile_phone?: string | null
           name?: string | null
           note?: string | null
           office_phone?: string | null
           org_id?: string
+          preferred_communication_method_v2?:
+            | Database["public"]["Enums"]["contact_comm_method"]
+            | null
           preferred_contact_method?: string | null
+          preferred_name?: string | null
+          relationship_strength?:
+            | Database["public"]["Enums"]["contact_relationship_strength"]
+            | null
           role?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -66,6 +86,7 @@ export type Database = {
         Update: {
           active?: boolean
           best_time_to_contact?: string | null
+          birthday?: string | null
           contact_info?: string | null
           created_at?: string
           created_by?: string
@@ -77,12 +98,21 @@ export type Database = {
           id?: string
           job_title?: string | null
           last_name?: string | null
+          linkedin?: string | null
+          microsoft_teams?: string | null
           mobile_phone?: string | null
           name?: string | null
           note?: string | null
           office_phone?: string | null
           org_id?: string
+          preferred_communication_method_v2?:
+            | Database["public"]["Enums"]["contact_comm_method"]
+            | null
           preferred_contact_method?: string | null
+          preferred_name?: string | null
+          relationship_strength?:
+            | Database["public"]["Enums"]["contact_relationship_strength"]
+            | null
           role?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -356,10 +386,12 @@ export type Database = {
       }
       customer_resolution_tasks: {
         Row: {
+          actual_completion_date: string | null
           completed_at: string | null
           created_at: string
           created_by: string
           due_date: string | null
+          estimated_completion_date: string | null
           id: string
           notes: string | null
           org_id: string
@@ -373,10 +405,12 @@ export type Database = {
           waiting_on: string | null
         }
         Insert: {
+          actual_completion_date?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           due_date?: string | null
+          estimated_completion_date?: string | null
           id?: string
           notes?: string | null
           org_id?: string
@@ -390,10 +424,12 @@ export type Database = {
           waiting_on?: string | null
         }
         Update: {
+          actual_completion_date?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           due_date?: string | null
+          estimated_completion_date?: string | null
           id?: string
           notes?: string | null
           org_id?: string
@@ -432,11 +468,18 @@ export type Database = {
           customer_last_name: string
           deleted_at: string | null
           desired_resolution: string | null
+          escalation_level:
+            | Database["public"]["Enums"]["cr_escalation_level"]
+            | null
           id: string
           opened_date: string
           org_id: string
           priority: Database["public"]["Enums"]["cr_priority"]
           reference_number: string | null
+          resolution_type:
+            | Database["public"]["Enums"]["cr_resolution_type"]
+            | null
+          severity: Database["public"]["Enums"]["cr_severity"] | null
           status: Database["public"]["Enums"]["cr_status"]
           summary: string | null
           target_date: string | null
@@ -452,11 +495,18 @@ export type Database = {
           customer_last_name: string
           deleted_at?: string | null
           desired_resolution?: string | null
+          escalation_level?:
+            | Database["public"]["Enums"]["cr_escalation_level"]
+            | null
           id?: string
           opened_date?: string
           org_id?: string
           priority?: Database["public"]["Enums"]["cr_priority"]
           reference_number?: string | null
+          resolution_type?:
+            | Database["public"]["Enums"]["cr_resolution_type"]
+            | null
+          severity?: Database["public"]["Enums"]["cr_severity"] | null
           status?: Database["public"]["Enums"]["cr_status"]
           summary?: string | null
           target_date?: string | null
@@ -472,11 +522,18 @@ export type Database = {
           customer_last_name?: string
           deleted_at?: string | null
           desired_resolution?: string | null
+          escalation_level?:
+            | Database["public"]["Enums"]["cr_escalation_level"]
+            | null
           id?: string
           opened_date?: string
           org_id?: string
           priority?: Database["public"]["Enums"]["cr_priority"]
           reference_number?: string | null
+          resolution_type?:
+            | Database["public"]["Enums"]["cr_resolution_type"]
+            | null
+          severity?: Database["public"]["Enums"]["cr_severity"] | null
           status?: Database["public"]["Enums"]["cr_status"]
           summary?: string | null
           target_date?: string | null
@@ -496,46 +553,76 @@ export type Database = {
       }
       entities: {
         Row: {
+          active: boolean
           created_at: string
           created_by: string
+          dba_name: string | null
           deleted_at: string | null
           district: string | null
           id: string
+          internal_reference_number: string | null
+          legal_name: string | null
           name: string
           notes: string | null
           org_id: string
+          preferred_communication_method:
+            | Database["public"]["Enums"]["entity_comm_method"]
+            | null
+          primary_location: string | null
           status: string | null
+          territory: string | null
           type: Database["public"]["Enums"]["entity_type"]
           updated_at: string
           updated_by: string | null
+          website: string | null
         }
         Insert: {
+          active?: boolean
           created_at?: string
           created_by?: string
+          dba_name?: string | null
           deleted_at?: string | null
           district?: string | null
           id?: string
+          internal_reference_number?: string | null
+          legal_name?: string | null
           name: string
           notes?: string | null
           org_id?: string
+          preferred_communication_method?:
+            | Database["public"]["Enums"]["entity_comm_method"]
+            | null
+          primary_location?: string | null
           status?: string | null
+          territory?: string | null
           type: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
           updated_by?: string | null
+          website?: string | null
         }
         Update: {
+          active?: boolean
           created_at?: string
           created_by?: string
+          dba_name?: string | null
           deleted_at?: string | null
           district?: string | null
           id?: string
+          internal_reference_number?: string | null
+          legal_name?: string | null
           name?: string
           notes?: string | null
           org_id?: string
+          preferred_communication_method?:
+            | Database["public"]["Enums"]["entity_comm_method"]
+            | null
+          primary_location?: string | null
           status?: string | null
+          territory?: string | null
           type?: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
           updated_by?: string | null
+          website?: string | null
         }
         Relationships: [
           {
@@ -549,6 +636,7 @@ export type Database = {
       }
       follow_ups: {
         Row: {
+          category: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at: string | null
           created_at: string
           created_by: string
@@ -558,12 +646,14 @@ export type Database = {
           id: string
           interaction_id: string | null
           org_id: string
+          reminder_date: string | null
           status: Database["public"]["Enums"]["follow_up_status"]
           title: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          category?: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
@@ -573,12 +663,14 @@ export type Database = {
           id?: string
           interaction_id?: string | null
           org_id?: string
+          reminder_date?: string | null
           status?: Database["public"]["Enums"]["follow_up_status"]
           title: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          category?: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
@@ -588,6 +680,7 @@ export type Database = {
           id?: string
           interaction_id?: string | null
           org_id?: string
+          reminder_date?: string | null
           status?: Database["public"]["Enums"]["follow_up_status"]
           title?: string
           updated_at?: string
@@ -741,6 +834,16 @@ export type Database = {
       current_org_id: { Args: never; Returns: string }
     }
     Enums: {
+      contact_comm_method:
+        | "Email"
+        | "Office Phone"
+        | "Mobile Phone"
+        | "Teams"
+        | "LinkedIn"
+        | "In Person"
+        | "Other"
+      contact_relationship_strength: "Weak" | "Moderate" | "Strong" | "Critical"
+      cr_escalation_level: "Store" | "District" | "Regional" | "Corporate"
       cr_event_type:
         | "resolution_updated"
         | "task_created"
@@ -751,6 +854,21 @@ export type Database = {
         | "followup_linked"
       cr_priority: "Low" | "Normal" | "High" | "Urgent"
       cr_relationship_role: "Service Provider" | "Store" | "Other"
+      cr_resolution_type:
+        | "Installation"
+        | "Delivery"
+        | "Product"
+        | "Billing"
+        | "Service"
+        | "Other"
+      cr_severity:
+        | "Customer Experience"
+        | "Safety"
+        | "Financial"
+        | "Installation"
+        | "Product"
+        | "Communication"
+        | "Other"
       cr_status: "New" | "In Progress" | "Waiting" | "Resolved" | "Closed"
       cr_task_owner_type:
         | "Me"
@@ -760,7 +878,14 @@ export type Database = {
         | "Leader"
         | "Other"
       cr_task_status: "Open" | "Waiting" | "Complete"
+      entity_comm_method: "Email" | "Phone" | "Text" | "In Person" | "Other"
       entity_type: "store" | "provider" | "merchant" | "program" | "internal"
+      follow_up_category:
+        | "Relationship"
+        | "Issue Resolution"
+        | "Customer Request"
+        | "Feedback"
+        | "Other"
       follow_up_status: "open" | "done"
       interaction_type: "meeting" | "call" | "visit" | "note"
     }
@@ -890,6 +1015,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      contact_comm_method: [
+        "Email",
+        "Office Phone",
+        "Mobile Phone",
+        "Teams",
+        "LinkedIn",
+        "In Person",
+        "Other",
+      ],
+      contact_relationship_strength: ["Weak", "Moderate", "Strong", "Critical"],
+      cr_escalation_level: ["Store", "District", "Regional", "Corporate"],
       cr_event_type: [
         "resolution_updated",
         "task_created",
@@ -901,6 +1037,23 @@ export const Constants = {
       ],
       cr_priority: ["Low", "Normal", "High", "Urgent"],
       cr_relationship_role: ["Service Provider", "Store", "Other"],
+      cr_resolution_type: [
+        "Installation",
+        "Delivery",
+        "Product",
+        "Billing",
+        "Service",
+        "Other",
+      ],
+      cr_severity: [
+        "Customer Experience",
+        "Safety",
+        "Financial",
+        "Installation",
+        "Product",
+        "Communication",
+        "Other",
+      ],
       cr_status: ["New", "In Progress", "Waiting", "Resolved", "Closed"],
       cr_task_owner_type: [
         "Me",
@@ -911,7 +1064,15 @@ export const Constants = {
         "Other",
       ],
       cr_task_status: ["Open", "Waiting", "Complete"],
+      entity_comm_method: ["Email", "Phone", "Text", "In Person", "Other"],
       entity_type: ["store", "provider", "merchant", "program", "internal"],
+      follow_up_category: [
+        "Relationship",
+        "Issue Resolution",
+        "Customer Request",
+        "Feedback",
+        "Other",
+      ],
       follow_up_status: ["open", "done"],
       interaction_type: ["meeting", "call", "visit", "note"],
     },
