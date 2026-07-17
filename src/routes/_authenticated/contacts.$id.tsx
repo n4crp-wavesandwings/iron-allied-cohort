@@ -87,7 +87,6 @@ const orgsQuery = (id: string) =>
 
 function ContactDetailPage() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: c, isLoading } = useQuery(contactQuery(id));
   const phones = useQuery(phonesQuery(id));
