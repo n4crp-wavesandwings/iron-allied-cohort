@@ -295,3 +295,85 @@ function NewInteractionDialog({
     </Dialog>
   );
 }
+
+type TodayResolution = NonNullable<ReturnType<typeof todayResolutionsQueryOptions.queryFn>> extends Promise<infer T>
+  ? T extends Array<infer U>
+    ? U
+    : never
+  : never;
+
+function ResolutionsTodaySection({
+  resolutions,
+  isLoading,
+}: {
+  resolutions: TodayResolution[];
+  isLoading: boolean;
+}) {
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const filtered = resolutions.filter((r) => {
+    const isHighPriority = r.priority === "Urgent" || r.priority === "High";
+    const overdueTasks = (r.tasks ?? []).some(
+      (t) =>
+        (t.status === "Open" || t.status === "Waiting") &&
+        t.due_date &&
+        t.due_date < today,
+    );
+    const myTaskDueToday = (r.tasks ?? []).some(
+      (t) =>
+        t.owner_type === "Me" &&
+        (t.status === "Open" || t.status === "Waiting") &&
+        t.due_date &&
+        t.due_date <= today,
+    );
+    return isHighPriority || overdueTasks || myTaskDueToday;
+  });
+
+  if (filtered.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No urgent Customer Resolutions or overdue tasks.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {filtered.map((r) => {
+        const openTasks = (r.tasks ?? []).filter(
+          (t) => t.status === "Open" || t.status === "Waiting",
+        );
+        const nextTask =
+          openTasks.sort((a, b) => (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999"))[0] ?? null;
+        return (
+          <li key={r.id} className="flex items-start justify-between gap-3 rounded-md border p-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  {customerIdentifier(r)} — {r.title}
+                </span>
+                <Badge className={priorityBadgeClass(r.priority)}>{r.priority}</Badge>
+              </div>
+              {nextTask && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {nextTask.task}
+                  {nextTask.due_date && (
+                    <> · Due {new Date(nextTask.due_date + "T00:00:00").toLocaleDateString()}</>
+                  )}
+                </p>
+              )}
+            </div>
+            <Link
+              to="/resolutions/$id"
+              params={{ id: r.id }}
+              className="text-sm underline"
+            >
+              View
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
