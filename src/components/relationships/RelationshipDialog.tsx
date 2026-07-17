@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -21,8 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  ENTITY_COMM_METHODS,
   RELATIONSHIP_TYPES,
   STATUS_OPTIONS,
+  type EntityCommMethod,
   type EntityRow,
   type EntityType,
   type StatusOption,
@@ -43,6 +46,14 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
   const [status, setStatus] = useState<StatusOption | "">("");
   const [district, setDistrict] = useState("");
   const [notes, setNotes] = useState("");
+  const [legalName, setLegalName] = useState("");
+  const [dbaName, setDbaName] = useState("");
+  const [territory, setTerritory] = useState("");
+  const [primaryLocation, setPrimaryLocation] = useState("");
+  const [active, setActive] = useState(true);
+  const [website, setWebsite] = useState("");
+  const [prefComm, setPrefComm] = useState<EntityCommMethod | "">("");
+  const [internalRef, setInternalRef] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -51,6 +62,14 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
       setStatus((relationship?.status as StatusOption) ?? "");
       setDistrict(relationship?.district ?? "");
       setNotes(relationship?.notes ?? "");
+      setLegalName((relationship as any)?.legal_name ?? "");
+      setDbaName((relationship as any)?.dba_name ?? "");
+      setTerritory((relationship as any)?.territory ?? "");
+      setPrimaryLocation((relationship as any)?.primary_location ?? "");
+      setActive((relationship as any)?.active ?? true);
+      setWebsite((relationship as any)?.website ?? "");
+      setPrefComm(((relationship as any)?.preferred_communication_method as EntityCommMethod) ?? "");
+      setInternalRef((relationship as any)?.internal_reference_number ?? "");
     }
   }, [open, relationship]);
 
@@ -65,6 +84,14 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
         status,
         district: district.trim() || null,
         notes: notes.trim() || null,
+        legal_name: legalName.trim() || null,
+        dba_name: dbaName.trim() || null,
+        territory: territory.trim() || null,
+        primary_location: primaryLocation.trim() || null,
+        active,
+        website: website.trim() || null,
+        preferred_communication_method: prefComm || null,
+        internal_reference_number: internalRef.trim() || null,
       };
       if (isEdit && relationship) {
         const { error } = await supabase
@@ -87,7 +114,7 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Relationship" : "New Relationship"}</DialogTitle>
         </DialogHeader>
@@ -117,27 +144,93 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
             <Label htmlFor="name">Name *</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
-          <div className="space-y-2">
-            <Label>Status *</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as StatusOption)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="legal_name">Legal Name</Label>
+              <Input id="legal_name" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dba_name">DBA / Common Name</Label>
+              <Input id="dba_name" value={dbaName} onChange={(e) => setDbaName(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Status *</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as StatusOption)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end gap-2 pb-2">
+              <Checkbox
+                id="rel_active"
+                checked={active}
+                onCheckedChange={(v) => setActive(v === true)}
+              />
+              <Label htmlFor="rel_active" className="cursor-pointer">
+                Active
+              </Label>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input id="district" value={district} onChange={(e) => setDistrict(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="territory">Territory / Market</Label>
+              <Input id="territory" value={territory} onChange={(e) => setTerritory(e.target.value)} />
+            </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="district">District</Label>
+            <Label htmlFor="primary_location">Primary Location</Label>
             <Input
-              id="district"
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
+              id="primary_location"
+              value={primaryLocation}
+              onChange={(e) => setPrimaryLocation(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Preferred Communication Method</Label>
+              <Select value={prefComm} onValueChange={(v) => setPrefComm(v as EntityCommMethod)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENTITY_COMM_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="internal_ref">Internal Reference Number</Label>
+            <Input
+              id="internal_ref"
+              value={internalRef}
+              onChange={(e) => setInternalRef(e.target.value)}
             />
           </div>
           <div className="space-y-2">

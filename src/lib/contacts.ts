@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 export type ContactRow = Database["public"]["Tables"]["contacts"]["Row"];
+export type ContactCommMethod = Database["public"]["Enums"]["contact_comm_method"];
+export type ContactRelationshipStrength =
+  Database["public"]["Enums"]["contact_relationship_strength"];
 
 export const PREFERRED_CONTACT_METHODS = [
   "Email",
@@ -10,6 +13,23 @@ export const PREFERRED_CONTACT_METHODS = [
   "Mobile Phone",
 ] as const;
 export type PreferredContactMethod = (typeof PREFERRED_CONTACT_METHODS)[number];
+
+export const CONTACT_COMM_METHODS: ContactCommMethod[] = [
+  "Email",
+  "Office Phone",
+  "Mobile Phone",
+  "Teams",
+  "LinkedIn",
+  "In Person",
+  "Other",
+];
+
+export const CONTACT_RELATIONSHIP_STRENGTHS: ContactRelationshipStrength[] = [
+  "Weak",
+  "Moderate",
+  "Strong",
+  "Critical",
+];
 
 export const contactsQueryOptions = (entityId: string) =>
   queryOptions({

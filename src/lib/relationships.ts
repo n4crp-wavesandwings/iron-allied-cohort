@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type EntityType = Database["public"]["Enums"]["entity_type"];
 export type EntityRow = Database["public"]["Tables"]["entities"]["Row"];
+export type EntityCommMethod = Database["public"]["Enums"]["entity_comm_method"];
 
 export const RELATIONSHIP_TYPES: { value: EntityType; label: string }[] = [
   { value: "store", label: "Store" },
@@ -15,6 +16,14 @@ export const RELATIONSHIP_TYPES: { value: EntityType; label: string }[] = [
 
 export const STATUS_OPTIONS = ["Active", "Inactive", "Prospect", "Archived"] as const;
 export type StatusOption = (typeof STATUS_OPTIONS)[number];
+
+export const ENTITY_COMM_METHODS: EntityCommMethod[] = [
+  "Email",
+  "Phone",
+  "Text",
+  "In Person",
+  "Other",
+];
 
 export function typeLabel(t: EntityType): string {
   return RELATIONSHIP_TYPES.find((r) => r.value === t)?.label ?? t;
