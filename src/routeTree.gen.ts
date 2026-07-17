@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_authenticated/resolutions.index'
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
+import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authenticated/resolutions.$id'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -48,6 +49,12 @@ const AuthenticatedRelationshipsIndexRoute =
     path: '/relationships/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedResolutionsIdRoute =
+  AuthenticatedResolutionsIdRouteImport.update({
+    id: '/resolutions/$id',
+    path: '/resolutions/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRelationshipsIdRoute =
   AuthenticatedRelationshipsIdRouteImport.update({
     id: '/relationships/$id',
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -68,6 +76,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -78,6 +87,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
+  '/_authenticated/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/_authenticated/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/today'
     | '/relationships/$id'
+    | '/resolutions/$id'
     | '/relationships/'
     | '/resolutions/'
   fileRoutesByTo: FileRoutesByTo
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/today'
     | '/relationships/$id'
+    | '/resolutions/$id'
     | '/relationships'
     | '/resolutions'
   id:
@@ -105,6 +117,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/today'
     | '/_authenticated/relationships/$id'
+    | '/_authenticated/resolutions/$id'
     | '/_authenticated/relationships/'
     | '/_authenticated/resolutions/'
   fileRoutesById: FileRoutesById
@@ -159,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelationshipsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/resolutions/$id': {
+      id: '/_authenticated/resolutions/$id'
+      path: '/resolutions/$id'
+      fullPath: '/resolutions/$id'
+      preLoaderRoute: typeof AuthenticatedResolutionsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/relationships/$id': {
       id: '/_authenticated/relationships/$id'
       path: '/relationships/$id'
@@ -172,6 +192,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
+  AuthenticatedResolutionsIdRoute: typeof AuthenticatedResolutionsIdRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
   AuthenticatedResolutionsIndexRoute: typeof AuthenticatedResolutionsIndexRoute
 }
@@ -179,6 +200,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
+  AuthenticatedResolutionsIdRoute: AuthenticatedResolutionsIdRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
   AuthenticatedResolutionsIndexRoute: AuthenticatedResolutionsIndexRoute,
 }

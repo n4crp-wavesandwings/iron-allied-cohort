@@ -52,6 +52,13 @@ function AuthedLayout() {
               >
                 Relationships
               </Link>
+              <Link
+                to="/resolutions"
+                className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground"
+                activeProps={{ className: "rounded-md px-3 py-1.5 bg-secondary text-foreground" }}
+              >
+                Resolutions
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-2">
