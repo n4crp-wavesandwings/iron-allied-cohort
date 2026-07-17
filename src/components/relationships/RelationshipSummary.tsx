@@ -18,7 +18,6 @@ export function RelationshipSummary({ relationship }: { relationship: EntityRow 
     <dl className="grid grid-cols-2 gap-3 text-sm">
       <SummaryField label="Type" value={typeLabel(relationship.type)} />
       <SummaryField label="Status" value={relationship.status ?? "—"} />
-      <SummaryField label="Contacts" value={String(contacts.data?.length ?? 0)} />
       <SummaryField
         label="Last Interaction"
         value={
