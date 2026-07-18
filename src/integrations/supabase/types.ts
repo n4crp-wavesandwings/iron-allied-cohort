@@ -2869,6 +2869,7 @@ export type Database = {
       }
       stores: {
         Row: {
+          address: string | null
           city: string | null
           created_at: string
           created_by: string | null
@@ -2882,11 +2883,14 @@ export type Database = {
           retailer_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["location_status"]
+          store_manager: string | null
           store_number: string
           updated_at: string
           updated_by: string | null
+          zip: string | null
         }
         Insert: {
+          address?: string | null
           city?: string | null
           created_at?: string
           created_by?: string | null
@@ -2900,11 +2904,14 @@ export type Database = {
           retailer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["location_status"]
+          store_manager?: string | null
           store_number: string
           updated_at?: string
           updated_by?: string | null
+          zip?: string | null
         }
         Update: {
+          address?: string | null
           city?: string | null
           created_at?: string
           created_by?: string | null
@@ -2918,9 +2925,11 @@ export type Database = {
           retailer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["location_status"]
+          store_manager?: string | null
           store_number?: string
           updated_at?: string
           updated_by?: string | null
+          zip?: string | null
         }
         Relationships: [
           {
