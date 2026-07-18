@@ -92,13 +92,14 @@ export const resolutionsListQueryOptions = queryOptions({
     const { data, error } = await supabase
       .from("customer_resolutions")
       .select(
-        "*, relationships:customer_resolution_relationships(id,role,relationship_id,entity:entities(id,name,type)), tasks:customer_resolution_tasks(id,task,owner_name,owner_type,due_date,status,waiting_on)",
+        "*, category:resolution_categories(id,name), priority_lookup:resolution_priorities(id,name,sort_order,severity_color), status_lookup:resolution_statuses(id,name,sort_order,is_closed), provider:entities!customer_resolutions_service_provider_id_fkey(id,name), store:stores(id,store_number,name), relationships:customer_resolution_relationships(id,role,relationship_id,entity:entities(id,name,type)), tasks:customer_resolution_tasks(id,task,owner_name,owner_type,due_date,status,waiting_on)",
       )
       .is("deleted_at", null);
     if (error) throw error;
     return data ?? [];
   },
 });
+
 
 export const resolutionDetailQueryOptions = (id: string) =>
   queryOptions({
