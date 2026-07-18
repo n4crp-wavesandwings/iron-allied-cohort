@@ -57,6 +57,8 @@ function ResolutionDetail() {
   const people = useQuery(resolutionPeopleQueryOptions(id));
   const tasks = useQuery(resolutionTasksQueryOptions(id));
   const history = useQuery(resolutionHistoryQueryOptions(id));
+  const statusHistory = useQuery(resolutionStatusHistoryQuery(id));
+  const linkedEngagements = useQuery(resolutionEngagementsQuery(id));
 
   const [editOpen, setEditOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
@@ -69,6 +71,7 @@ function ResolutionDetail() {
   const [markResolvedOpen, setMarkResolvedOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
 
   const markTaskDone = useMutation({
     mutationFn: async (task: ResolutionTaskRow) => {
