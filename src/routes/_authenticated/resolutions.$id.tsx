@@ -506,6 +506,7 @@ function ResolutionDetail() {
               {(linkedEngagements.data ?? []).map((row: any) => {
                 const e = row.engagement;
                 if (!e) return null;
+                const label = e.engagement_type?.name ?? "Engagement";
                 return (
                   <li key={row.id} className="rounded-md border p-3">
                     <div className="flex items-center justify-between gap-2">
@@ -514,15 +515,15 @@ function ResolutionDetail() {
                         params={{ id: e.id }}
                         className="text-sm font-medium hover:underline"
                       >
-                        {e.summary || "(no summary)"}
+                        {label}
                       </Link>
                       <span className="text-xs text-muted-foreground">
                         {e.occurred_at ? new Date(e.occurred_at).toLocaleString() : ""}
                       </span>
                     </div>
-                    {e.notes && (
+                    {e.note && (
                       <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
-                        {e.notes}
+                        {e.note}
                       </p>
                     )}
                   </li>
