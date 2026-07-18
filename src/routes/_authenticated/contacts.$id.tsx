@@ -11,6 +11,9 @@ import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
+import { engagementsByContactQuery } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
