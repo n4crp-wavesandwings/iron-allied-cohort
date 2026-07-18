@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { myStoresQuery } from "@/lib/me";
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,11 +20,19 @@ import {
 } from "@/lib/locations";
 import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
-export const Route = createFileRoute("/_authenticated/locations")({ component: LocationsPage });
+export const Route = createFileRoute("/_authenticated/locations")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: (s.tab as string) || undefined,
+    mine: s.mine ? 1 : 0,
+  }),
+  component: LocationsPage,
+});
 
 type Level = "region" | "market" | "district" | "store";
 
 function LocationsPage() {
+  const search = Route.useSearch();
+  const initialTab = search.tab === "stores" ? "stores" : search.tab === "markets" ? "markets" : search.tab === "districts" ? "districts" : "regions";
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
@@ -34,7 +44,7 @@ function LocationsPage() {
           <Link to="/stores/import"><Upload className="h-4 w-4 mr-1" />Import Stores</Link>
         </Button>
       </div>
-      <Tabs defaultValue="regions">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="regions">Regions</TabsTrigger>
           <TabsTrigger value="markets">Markets</TabsTrigger>
@@ -44,10 +54,11 @@ function LocationsPage() {
         <TabsContent value="regions"><RegionsTab /></TabsContent>
         <TabsContent value="markets"><MarketsTab /></TabsContent>
         <TabsContent value="districts"><DistrictsTab /></TabsContent>
-        <TabsContent value="stores"><StoresTab /></TabsContent>
+        <TabsContent value="stores"><StoresTab initialMine={search.mine === 1} /></TabsContent>
       </Tabs>
     </div>
   );
+
 }
 
 function useCrud(table: string, invalidate: string[]) {
@@ -178,8 +189,9 @@ function DistrictsTab() {
   );
 }
 
-function StoresTab() {
+function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
   const { data: stores = [] } = useQuery(storesQuery);
+  const { data: myStores = [] } = useQuery(myStoresQuery);
   const { data: districts = [] } = useQuery(districtsQuery);
   const { data: markets = [] } = useQuery(marketsQuery);
   const { data: regions = [] } = useQuery(regionsQuery);
@@ -187,45 +199,132 @@ function StoresTab() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Store | null>(null);
   const [search, setSearch] = useState("");
+  const [mine, setMine] = useState<boolean>(initialMine);
+  useEffect(() => { setMine(initialMine); }, [initialMine]);
   const districtMap = useMemo(() => new Map(districts.map((d) => [d.id, d])), [districts]);
   const marketMap = useMemo(() => new Map(markets.map((m) => [m.id, m])), [markets]);
   const regionMap = useMemo(() => new Map(regions.map((r) => [r.id, r.name])), [regions]);
+  const myIds = useMemo(() => new Set(myStores.map((s) => s.id)), [myStores]);
 
-  const filtered = stores.filter((s) =>
+  const base = mine ? stores.filter((s) => myIds.has(s.id)) : stores;
+  const filtered = base.filter((s) =>
     !search || s.store_number.includes(search) || (s.name ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
+  // Group by district when in "My Stores" mode
+  const groups = useMemo(() => {
+    if (!mine) return null;
+    const m = new Map<string, { district: string; stores: typeof filtered }>();
+    for (const s of filtered) {
+      const d = districtMap.get(s.district_id);
+      const key = d?.name ?? "—";
+      if (!m.has(key)) m.set(key, { district: key, stores: [] });
+      m.get(key)!.stores.push(s);
+    }
+    return Array.from(m.values()).sort((a, b) => a.district.localeCompare(b.district));
+  }, [mine, filtered, districtMap]);
+
+  const telHref = (p: string | null) => (p ? `tel:${p.replace(/[^\d+]/g, "")}` : undefined);
+  const mapHref = (s: Store) => {
+    const parts = [(s as any).address, s.city, s.state, (s as any).zip].filter(Boolean).join(", ");
+    if (!parts) return undefined;
+    return `https://maps.google.com/?q=${encodeURIComponent(parts)}`;
+  };
+
   return (
     <Card className="mt-4">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Stores</CardTitle>
-        <div className="flex gap-2">
-          <Input placeholder="Search by number or name…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="gap-1"><Plus className="h-4 w-4" /> New Store</Button>
+      <CardHeader className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">Stores</CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex overflow-hidden rounded-md border">
+              <button
+                type="button"
+                onClick={() => setMine(false)}
+                className={`px-3 py-1.5 text-xs ${!mine ? "bg-accent font-medium" : "text-muted-foreground"}`}
+              >All Stores</button>
+              <button
+                type="button"
+                onClick={() => setMine(true)}
+                className={`px-3 py-1.5 text-xs ${mine ? "bg-accent font-medium" : "text-muted-foreground"}`}
+              >My Stores{myStores.length ? ` (${myStores.length})` : ""}</button>
+            </div>
+            <Input placeholder="Search by number or name…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-64" />
+            <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="gap-1"><Plus className="h-4 w-4" /> New Store</Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <table className="w-full text-sm">
-          <thead className="text-muted-foreground text-left"><tr><th className="py-2">Store #</th><th>Name</th><th>District</th><th>Market</th><th>Region</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            {filtered.map((s) => {
-              const d = districtMap.get(s.district_id);
-              const m = d ? marketMap.get(d.market_id) : null;
-              return (
-                <tr key={s.id} className="border-t border-border">
-                  <td className="py-2 font-medium">{s.store_number}</td>
-                  <td>{s.name ?? "—"}</td>
-                  <td>{d?.name ?? "—"}</td>
-                  <td>{m?.name ?? "—"}</td>
-                  <td>{m ? regionMap.get(m.region_id) ?? "—" : "—"}</td>
-                  <td>{s.status}</td>
-                  <td className="text-right"><Button variant="ghost" size="sm" onClick={() => { setEditing(s); setOpen(true); }}><Pencil className="h-4 w-4" /></Button></td>
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && <tr><td colSpan={7} className="py-4 text-muted-foreground">No stores.</td></tr>}
-          </tbody>
-        </table>
+        {mine ? (
+          groups && groups.length > 0 ? (
+            <div className="space-y-4">
+              {groups.map((g) => (
+                <div key={g.district}>
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    District {g.district}
+                  </div>
+                  <ul className="divide-y rounded-md border">
+                    {g.stores.map((s) => {
+                      const href = mapHref(s as any);
+                      const tel = telHref(s.main_phone);
+                      return (
+                        <li key={s.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">#{s.store_number}</span>
+                              <span className="truncate">{s.name ?? ""}</span>
+                            </div>
+                            {href ? (
+                              <a href={href} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-xs text-primary underline">
+                                {[(s as any).address, s.city, s.state, (s as any).zip].filter(Boolean).join(", ")}
+                              </a>
+                            ) : (
+                              <div className="text-xs text-muted-foreground">{s.city ?? "—"}</div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            {tel && (
+                              <Button asChild size="sm" variant="outline" className="h-10">
+                                <a href={tel}>Call</a>
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-4 text-sm text-muted-foreground">No stores match your personal coverage yet.</p>
+          )
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="text-muted-foreground text-left"><tr><th className="py-2">Store #</th><th>Name</th><th>District</th><th>Market</th><th>Region</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {filtered.map((s) => {
+                const d = districtMap.get(s.district_id);
+                const m = d ? marketMap.get(d.market_id) : null;
+                return (
+                  <tr key={s.id} className="border-t border-border">
+                    <td className="py-2 font-medium">{s.store_number}</td>
+                    <td>{s.name ?? "—"}</td>
+                    <td>{d?.name ?? "—"}</td>
+                    <td>{m?.name ?? "—"}</td>
+                    <td>{m ? regionMap.get(m.region_id) ?? "—" : "—"}</td>
+                    <td>{s.status}</td>
+                    <td className="text-right"><Button variant="ghost" size="sm" onClick={() => { setEditing(s); setOpen(true); }}><Pencil className="h-4 w-4" /></Button></td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && <tr><td colSpan={7} className="py-4 text-muted-foreground">No stores.</td></tr>}
+            </tbody>
+          </table>
+        )}
       </CardContent>
       <NodeDialog open={open} onOpenChange={setOpen} level="store" record={editing}
         onSave={(v) => mut.mutate({ id: editing?.id, values: v }, { onSuccess: () => setOpen(false) })} />

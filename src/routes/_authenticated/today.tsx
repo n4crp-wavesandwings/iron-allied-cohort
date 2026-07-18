@@ -28,6 +28,9 @@ import { RelationshipDialog } from "@/components/relationships/RelationshipDialo
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { recentEngagementsQuery } from "@/lib/engagements";
+import { MyStoresCard } from "@/components/today/MyStoresCard";
+import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
+
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -257,6 +260,15 @@ function TodayPage() {
 
       {/* Quick Starts */}
       <QuickStartsStrip />
+
+      {/* My Stores glance card */}
+      <MyStoresCard />
+
+      {/* Provider Quick-Engage */}
+      <CollapsibleCard cardKey="providers_quick" title="👷 Providers — Quick Engage">
+        <ProviderQuickEngage />
+      </CollapsibleCard>
+
 
       {/* Focus areas */}
       <CollapsibleCard cardKey="followup" title="🔄 Follow-up" count={sorted.length}>
