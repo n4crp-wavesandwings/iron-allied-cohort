@@ -476,33 +476,6 @@ function ResolutionDetail() {
       <Card>
         <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => {
-              setEditingTask(null);
-              setTaskOpen(true);
-            }}
-          >
-            + Add Task
-          </Button>
-          <Button variant="outline" onClick={() => setNoteOpen(true)}>+ Add Update</Button>
-          <Button variant="outline" onClick={() => setStatusOpen(true)}>Change Status</Button>
-          <Button variant="outline" onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
-          <Button variant="default" onClick={() => setMarkResolvedOpen(true)}>Mark Resolved</Button>
-        </CardContent>
-      </Card>
-
-      {/* Section H: History */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">History</CardTitle></CardHeader>
-        <CardContent>
-          {(history.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No history yet.</p>
-          ) : (
-            <ul className="space-y-2">
-      {/* Section G: Quick Actions */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
           <Button onClick={() => setEngagementOpen(true)}>+ Log Engagement</Button>
           <Button
             variant="outline"
