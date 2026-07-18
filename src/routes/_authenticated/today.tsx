@@ -8,26 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import {
   openDueFollowUpsQueryOptions,
   recentInteractionsQueryOptions,
   formatDueLabel,
 } from "@/lib/followups";
 import { interactionTypeLabel } from "@/lib/interactions";
-import { relationshipsQueryOptions } from "@/lib/relationships";
 import {
   customerIdentifier,
   priorityBadgeClass,
@@ -35,7 +20,6 @@ import {
 } from "@/lib/resolutions";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
-import { InteractionForm } from "@/components/relationships/InteractionForm";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { recentEngagementsQuery } from "@/lib/engagements";
@@ -52,9 +36,7 @@ function TodayPage() {
 
   const [newRelOpen, setNewRelOpen] = useState(false);
   const [newFollowUpOpen, setNewFollowUpOpen] = useState(false);
-  const [newInteractionOpen, setNewInteractionOpen] = useState(false);
   const [newEngagementOpen, setNewEngagementOpen] = useState(false);
-  const [interactionEntity, setInteractionEntity] = useState<string>("");
   const recentEngagements = useQuery(recentEngagementsQuery);
 
   const markDone = useMutation({
