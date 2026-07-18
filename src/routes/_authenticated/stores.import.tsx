@@ -187,7 +187,7 @@ function StoresImportPage() {
             main_phone: row.main_phone,
             store_manager: row.store_manager,
           };
-          const { error } = await supabase.from("stores").insert(payload as any);
+          const { error } = await (supabase.from("stores") as any).insert(payload);
           if (error) throw error;
           inserted++;
         }

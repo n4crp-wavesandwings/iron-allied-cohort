@@ -17,6 +17,7 @@ import { Route as AuthenticatedLocationsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_authenticated/resolutions.index'
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
 import { Route as AuthenticatedEngagementsIndexRouteImport } from './routes/_authenticated/engagements.index'
+import { Route as AuthenticatedStoresImportRouteImport } from './routes/_authenticated/stores.import'
 import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authenticated/resolutions.$id'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 import { Route as AuthenticatedProgramsIdRouteImport } from './routes/_authenticated/programs.$id'
@@ -65,6 +66,12 @@ const AuthenticatedEngagementsIndexRoute =
     path: '/engagements/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStoresImportRoute =
+  AuthenticatedStoresImportRouteImport.update({
+    id: '/stores/import',
+    path: '/stores/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedResolutionsIdRoute =
   AuthenticatedResolutionsIdRouteImport.update({
     id: '/resolutions/$id',
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/stores/import': typeof AuthenticatedStoresImportRoute
   '/engagements/': typeof AuthenticatedEngagementsIndexRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions/': typeof AuthenticatedResolutionsIndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/stores/import': typeof AuthenticatedStoresImportRoute
   '/engagements': typeof AuthenticatedEngagementsIndexRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions': typeof AuthenticatedResolutionsIndexRoute
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/_authenticated/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/_authenticated/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/_authenticated/stores/import': typeof AuthenticatedStoresImportRoute
   '/_authenticated/engagements/': typeof AuthenticatedEngagementsIndexRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/_authenticated/resolutions/': typeof AuthenticatedResolutionsIndexRoute
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/programs/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
+    | '/stores/import'
     | '/engagements/'
     | '/relationships/'
     | '/resolutions/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/programs/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
+    | '/stores/import'
     | '/engagements'
     | '/relationships'
     | '/resolutions'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/programs/$id'
     | '/_authenticated/relationships/$id'
     | '/_authenticated/resolutions/$id'
+    | '/_authenticated/stores/import'
     | '/_authenticated/engagements/'
     | '/_authenticated/relationships/'
     | '/_authenticated/resolutions/'
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEngagementsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/stores/import': {
+      id: '/_authenticated/stores/import'
+      path: '/stores/import'
+      fullPath: '/stores/import'
+      preLoaderRoute: typeof AuthenticatedStoresImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/resolutions/$id': {
       id: '/_authenticated/resolutions/$id'
       path: '/resolutions/$id'
@@ -294,6 +314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProgramsIdRoute: typeof AuthenticatedProgramsIdRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
   AuthenticatedResolutionsIdRoute: typeof AuthenticatedResolutionsIdRoute
+  AuthenticatedStoresImportRoute: typeof AuthenticatedStoresImportRoute
   AuthenticatedEngagementsIndexRoute: typeof AuthenticatedEngagementsIndexRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
   AuthenticatedResolutionsIndexRoute: typeof AuthenticatedResolutionsIndexRoute
@@ -307,6 +328,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProgramsIdRoute: AuthenticatedProgramsIdRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
   AuthenticatedResolutionsIdRoute: AuthenticatedResolutionsIdRoute,
+  AuthenticatedStoresImportRoute: AuthenticatedStoresImportRoute,
   AuthenticatedEngagementsIndexRoute: AuthenticatedEngagementsIndexRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
   AuthenticatedResolutionsIndexRoute: AuthenticatedResolutionsIndexRoute,
