@@ -186,6 +186,18 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const [followUpDue, setFollowUpDue] = useState(todayISO());
   const [inlinePersonOpen, setInlinePersonOpen] = useState(false);
 
+  // Job-site companion state
+  const [jsVisitTypeId, setJsVisitTypeId] = useState<string>("");
+  const [jsProgramId, setJsProgramId] = useState<string>("");
+  const [jsProviderId, setJsProviderId] = useState<string>("");
+  const [jsCustFirstInitial, setJsCustFirstInitial] = useState("");
+  const [jsCustLastName, setJsCustLastName] = useState("");
+  const [jsPoNumber, setJsPoNumber] = useState("");
+  const [jsOrderNumber, setJsOrderNumber] = useState("");
+  const [jsCheckedIds, setJsCheckedIds] = useState<string[]>([]);
+  const [jsOppIds, setJsOppIds] = useState<string[]>([]);
+  const [jsOppNotes, setJsOppNotes] = useState<Record<string, string>>({});
+
   // Reset on open
   useEffect(() => {
     if (open) {
