@@ -65,6 +65,57 @@ function todayISO(): string {
   return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
 }
 
+/**
+ * Ensure a custom tag exists for the current org (case-insensitive, trimmed).
+ * Returns the tag id. Reuses existing seeded/custom tags when the name matches.
+ */
+async function ensureCustomTag(
+  rawName: string,
+  existing: { id: string; name: string }[],
+): Promise<string | null> {
+  const name = rawName.trim();
+  if (!name) return null;
+  const norm = name.toLowerCase();
+  const match = existing.find((t) => t.name.trim().toLowerCase() === norm);
+  if (match) return match.id;
+
+  // Resolve current org id
+  const { data: prof, error: pErr } = await supabase
+    .from("profiles")
+    .select("org_id")
+    .maybeSingle();
+  if (pErr || !prof?.org_id) {
+    toast.error("Could not determine your organization.");
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("engagement_tags")
+    .insert({
+      org_id: prof.org_id,
+      name,
+      group: "Custom",
+      is_custom: true,
+      active: true,
+      sort_order: 999,
+    } as any)
+    .select("id")
+    .single();
+
+  if (error) {
+    // Unique-index race: re-fetch by case-insensitive match
+    const { data: existingRow } = await supabase
+      .from("engagement_tags")
+      .select("id,name")
+      .ilike("name", name)
+      .limit(1)
+      .maybeSingle();
+    if (existingRow?.id) return existingRow.id;
+    toast.error(error.message);
+    return null;
+  }
+  return (data as any).id as string;
+
 export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const qc = useQueryClient();
 
