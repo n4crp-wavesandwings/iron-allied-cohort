@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
+import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
