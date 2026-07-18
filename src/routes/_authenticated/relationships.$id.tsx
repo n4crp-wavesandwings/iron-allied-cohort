@@ -194,6 +194,27 @@ function RelationshipDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Engagements */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Engagements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {engagements.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{ entityId: r.id }}
+      />
+
+
       {/* Dialogs */}
       <RelationshipDialog open={editOpen} onOpenChange={setEditOpen} relationship={r} />
 
