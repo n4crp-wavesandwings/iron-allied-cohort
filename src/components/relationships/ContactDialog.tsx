@@ -154,10 +154,28 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Contact" : "Add Contact"}</DialogTitle>
+          <DialogTitle>
+            {isEdit
+              ? "Edit Contact"
+              : createdId
+                ? `Coverage — ${firstName} ${lastName}`
+                : "Add Contact"}
+          </DialogTitle>
         </DialogHeader>
+        {createdId ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Assign this contact&apos;s district/store coverage now, or skip and add it later
+              from the contact page.
+            </p>
+            <CoveragePanel mode={{ kind: "contact", contactId: createdId }} />
+            <DialogFooter>
+              <Button onClick={() => onOpenChange(false)}>Done</Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <form
           className="space-y-3"
           onSubmit={(e) => {
