@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { engagementDetailQuery, contactLabel, engagementTypeLabel } from "@/lib/engagements";
+import { jobSiteVisitByEngagementQuery } from "@/lib/jobsite";
 
 export const Route = createFileRoute("/_authenticated/engagements/$id")({
   component: EngagementDetail,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/engagements/$id")({
 function EngagementDetail() {
   const { id } = Route.useParams();
   const { data: e, isLoading } = useQuery(engagementDetailQuery(id));
+  const { data: jsv } = useQuery(jobSiteVisitByEngagementQuery(id));
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!e) {
