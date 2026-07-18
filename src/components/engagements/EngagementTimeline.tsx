@@ -24,6 +24,9 @@ export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
                     {engagementTypeLabel(e)}
+                    {e.job_site_visit?.visit_type?.name
+                      ? ` — ${e.job_site_visit.visit_type.name}`
+                      : ""}
                   </Badge>
                   {primaryLabel && (
                     <span className="text-sm font-medium truncate">{primaryLabel}</span>

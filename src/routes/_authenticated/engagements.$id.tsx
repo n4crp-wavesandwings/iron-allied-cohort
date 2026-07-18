@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { engagementDetailQuery, contactLabel, engagementTypeLabel } from "@/lib/engagements";
+import { jobSiteVisitByEngagementQuery } from "@/lib/jobsite";
 
 export const Route = createFileRoute("/_authenticated/engagements/$id")({
   component: EngagementDetail,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/engagements/$id")({
 function EngagementDetail() {
   const { id } = Route.useParams();
   const { data: e, isLoading } = useQuery(engagementDetailQuery(id));
+  const { data: jsv } = useQuery(jobSiteVisitByEngagementQuery(id));
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!e) {
@@ -159,6 +161,72 @@ function EngagementDetail() {
             )}
           </CardContent>
         </Card>
+
+        {jsv && (
+          <Card className="md:col-span-2 border-primary/40 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Job-Site Visit{jsv.visit_type ? ` — ${jsv.visit_type.name}` : ""}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Customer (minimal)</div>
+                  <div>
+                    {[jsv.customer_first_initial, jsv.customer_last_name].filter(Boolean).join(". ") || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Program / Provider</div>
+                  <div>
+                    {jsv.program?.name ?? "—"}
+                    {jsv.service_provider ? ` · ${jsv.service_provider.name}` : ""}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">PO #</div>
+                  <div>{jsv.po_number ?? "—"}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Order #</div>
+                  <div>{jsv.order_number ?? "—"}</div>
+                </div>
+              </div>
+
+              {(["Compliance", "Customer Experience"] as const).map((grp) => {
+                const rows = (jsv.checks ?? []).filter((c) => c.item?.group === grp);
+                if (!rows.length) return null;
+                return (
+                  <div key={grp}>
+                    <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">{grp}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {rows.map((c) => (
+                        <Badge key={c.checklist_item_id} variant={c.checked ? "default" : "outline"} className="text-xs">
+                          {c.checked ? "✓ " : ""}{c.item?.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {(jsv.opportunities?.length ?? 0) > 0 && (
+                <div>
+                  <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Opportunities Identified</div>
+                  <ul className="space-y-1">
+                    {jsv.opportunities.map((o) => (
+                      <li key={o.opportunity_item_id} className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">{o.item?.name}</Badge>
+                        {o.note && <span className="text-xs text-muted-foreground">{o.note}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {(e.follow_ups?.length ?? 0) > 0 && (
           <Card className="md:col-span-2">

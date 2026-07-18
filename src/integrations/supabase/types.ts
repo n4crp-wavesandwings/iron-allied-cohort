@@ -1511,6 +1511,311 @@ export type Database = {
           },
         ]
       }
+      job_site_checklist_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          group: string
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group: string
+          id?: string
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group?: string
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_checklist_items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_site_opportunity_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_opportunity_items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_site_visit_checks: {
+        Row: {
+          checked: boolean
+          checklist_item_id: string
+          created_at: string
+          id: string
+          job_site_visit_id: string
+          org_id: string
+        }
+        Insert: {
+          checked?: boolean
+          checklist_item_id: string
+          created_at?: string
+          id?: string
+          job_site_visit_id: string
+          org_id: string
+        }
+        Update: {
+          checked?: boolean
+          checklist_item_id?: string
+          created_at?: string
+          id?: string
+          job_site_visit_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_visit_checks_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "job_site_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visit_checks_job_site_visit_id_fkey"
+            columns: ["job_site_visit_id"]
+            isOneToOne: false
+            referencedRelation: "job_site_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visit_checks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_site_visit_opportunities: {
+        Row: {
+          created_at: string
+          id: string
+          job_site_visit_id: string
+          note: string | null
+          opportunity_item_id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_site_visit_id: string
+          note?: string | null
+          opportunity_item_id: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_site_visit_id?: string
+          note?: string | null
+          opportunity_item_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_visit_opportunities_job_site_visit_id_fkey"
+            columns: ["job_site_visit_id"]
+            isOneToOne: false
+            referencedRelation: "job_site_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visit_opportunities_opportunity_item_id_fkey"
+            columns: ["opportunity_item_id"]
+            isOneToOne: false
+            referencedRelation: "job_site_opportunity_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visit_opportunities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_site_visit_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_visit_types_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_site_visits: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_first_initial: string | null
+          customer_last_name: string | null
+          deleted_at: string | null
+          engagement_id: string
+          id: string
+          order_number: string | null
+          org_id: string
+          po_number: string | null
+          program_id: string | null
+          service_provider_id: string | null
+          updated_at: string
+          visit_notes: string | null
+          visit_type_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_first_initial?: string | null
+          customer_last_name?: string | null
+          deleted_at?: string | null
+          engagement_id: string
+          id?: string
+          order_number?: string | null
+          org_id: string
+          po_number?: string | null
+          program_id?: string | null
+          service_provider_id?: string | null
+          updated_at?: string
+          visit_notes?: string | null
+          visit_type_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_first_initial?: string | null
+          customer_last_name?: string | null
+          deleted_at?: string | null
+          engagement_id?: string
+          id?: string
+          order_number?: string | null
+          org_id?: string
+          po_number?: string | null
+          program_id?: string | null
+          service_provider_id?: string | null
+          updated_at?: string
+          visit_notes?: string | null
+          visit_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_site_visits_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: true
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visits_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visits_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visits_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visits_visit_type_id_fkey"
+            columns: ["visit_type_id"]
+            isOneToOne: false
+            referencedRelation: "job_site_visit_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       markets: {
         Row: {
           code: string | null
