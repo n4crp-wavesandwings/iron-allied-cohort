@@ -941,7 +941,9 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
           open={inlinePersonOpen}
           onOpenChange={setInlinePersonOpen}
           defaultEntityId={primaryOrgId}
+          defaultStoreId={storeId}
           entities={entities.data ?? []}
+          stores={stores.data ?? []}
           onCreated={(id) => {
             setPeopleIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
             qc.invalidateQueries({ queryKey: ["contacts", "all"] });
