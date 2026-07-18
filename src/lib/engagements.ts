@@ -74,26 +74,28 @@ export const programsQuery = queryOptions({
 
 export type EngagementListItem = EngagementRow & {
   type: { id: string; name: string } | null;
+  types: { engagement_type_id: string; type: { id: string; name: string } | null }[];
   outcome: { id: string; name: string } | null;
   store: { id: string; store_number: string; name: string | null } | null;
   people: { contact_id: string; contact: { id: string; first_name: string | null; last_name: string | null; name: string | null } | null }[];
   organizations: { entity_id: string; entity: { id: string; name: string } | null }[];
   programs: { program_id: string; program: { id: string; name: string } | null }[];
   stores: { store_id: string; store: { id: string; store_number: string; name: string | null } | null }[];
-  tags: { tag_id: string; tag: { id: string; name: string; group: string | null } | null }[];
+  tags: { tag_id: string; tag: { id: string; name: string; group: string | null; is_custom?: boolean } | null }[];
   follow_ups: { id: string; title: string; due_date: string; status: string }[];
 };
 
 const engagementSelect = `
   *,
   type:engagement_types(id,name),
+  types:engagement_type_links(engagement_type_id, type:engagement_types(id,name)),
   outcome:engagement_outcomes(id,name),
   store:stores(id,store_number,name),
   people:engagement_people(contact_id, contact:contacts(id,first_name,last_name,name)),
   organizations:engagement_organizations(entity_id, entity:entities(id,name)),
   programs:engagement_programs(program_id, program:programs(id,name)),
   stores:engagement_stores(store_id, store:stores(id,store_number,name)),
-  tags:engagement_tag_links(tag_id, tag:engagement_tags(id,name,"group")),
+  tags:engagement_tag_links(tag_id, tag:engagement_tags(id,name,"group",is_custom)),
   follow_ups(id,title,due_date,status)
 `;
 
