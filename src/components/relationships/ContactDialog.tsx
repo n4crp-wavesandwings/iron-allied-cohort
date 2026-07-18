@@ -391,5 +391,3 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
     </Dialog>
   );
 }
-  );
-}
