@@ -272,6 +272,11 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
               </div>
               <div className="space-y-2">
                 <Label>Store</Label>
+                <Input
+                  placeholder="Search by store # or name…"
+                  value={storeSearch}
+                  onChange={(e) => setStoreSearch(e.target.value)}
+                />
                 <Select
                   value={storeId ?? NONE}
                   onValueChange={(v) => setStoreId(v === NONE ? null : v)}
@@ -281,13 +286,22 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>None</SelectItem>
-                    {(relationships.data ?? [])
-                      .filter((r) => r.type === "store")
-                      .map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
+                    {(storesData.data ?? [])
+                      .filter((s) => {
+                        if (!storeSearch) return true;
+                        const q = storeSearch.toLowerCase();
+                        return s.store_number.toLowerCase().includes(q) || (s.name ?? "").toLowerCase().includes(q);
+                      })
+                      .slice(0, 100)
+                      .map((s) => {
+                        const d = (districtsData.data ?? []).find((x) => x.id === s.district_id);
+                        const label = `Store ${s.store_number}${s.name ? " — " + s.name : s.city ? " — " + s.city : ""}${d ? " — District " + d.name : ""}`;
+                        return (
+                          <SelectItem key={s.id} value={s.id}>
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
