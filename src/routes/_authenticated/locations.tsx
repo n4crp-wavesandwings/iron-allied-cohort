@@ -298,6 +298,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       if (!storeNumber.trim()) return toast.error("Store number required");
       if (!parentId) return toast.error("Parent district required");
       v.store_number = storeNumber.trim(); v.name = name || null; v.city = city || null; v.state = stateVal || null; v.main_phone = mainPhone || null;
+      v.address = address || null; v.zip = zip || null; v.store_manager = storeManager || null;
       v.district_id = parentId;
     } else {
       if (!name.trim()) return toast.error("Name required");
