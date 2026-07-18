@@ -395,6 +395,54 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
         } as any);
         if (fErr) throw fErr;
       }
+
+      // Job-Site Visit companion
+      if (isJobSite) {
+        const firstInitial = jsCustFirstInitial.trim().slice(0, 1).toUpperCase();
+        const { data: jsv, error: jsvErr } = await supabase
+          .from("job_site_visits")
+          .insert({
+            org_id: orgId,
+            engagement_id: engagementId,
+            visit_type_id: jsVisitTypeId || null,
+            program_id: jsProgramId || null,
+            service_provider_id: jsProviderId || null,
+            customer_first_initial: firstInitial || null,
+            customer_last_name: jsCustLastName.trim() || null,
+            po_number: jsPoNumber.trim() || null,
+            order_number: jsOrderNumber.trim() || null,
+            visit_notes: null, // reuse engagement note
+            created_by: userId,
+          } as any)
+          .select("id")
+          .single();
+        if (jsvErr) throw jsvErr;
+        const jsvId = (jsv as any).id as string;
+
+        if (jsCheckedIds.length) {
+          const { error: cErr } = await supabase.from("job_site_visit_checks").insert(
+            jsCheckedIds.map((cid) => ({
+              org_id: orgId,
+              job_site_visit_id: jsvId,
+              checklist_item_id: cid,
+              checked: true,
+            })) as any,
+          );
+          if (cErr) throw cErr;
+        }
+        if (jsOppIds.length) {
+          const { error: oErr } = await supabase.from("job_site_visit_opportunities").insert(
+            jsOppIds.map((oid) => ({
+              org_id: orgId,
+              job_site_visit_id: jsvId,
+              opportunity_item_id: oid,
+              note: jsOppNotes[oid]?.trim() || null,
+            })) as any,
+          );
+          if (oErr) throw oErr;
+        }
+      }
+
       return engagementId;
     },
     onSuccess: () => {
