@@ -355,7 +355,25 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
                 <div className="space-y-2"><Label>Zip</Label><Input value={zip} onChange={(e) => setZip(e.target.value)} /></div>
                 <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
               </div>
-              <div className="space-y-2"><Label>Store Manager</Label><Input value={storeManager} onChange={(e) => setStoreManager(e.target.value)} /></div>
+              {record?.id ? (
+                <PersonField
+                  label="Store Manager"
+                  roleLabel="Store Manager"
+                  defaultChannel="Internal"
+                  linkTarget={{ kind: "store", storeId: record.id }}
+                  value={storeManagerPerson ?? (storeManager ? { id: "__text__", name: storeManager } : null)}
+                  onChange={(v) => {
+                    setStoreManagerPerson(v);
+                    setStoreManager(v?.name ?? "");
+                  }}
+                  placeholder={storeManager ? `Currently: ${storeManager} — tap to change` : "Search a person by name…"}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Label>Store Manager</Label>
+                  <p className="text-xs text-muted-foreground">Save the store first, then assign a manager from your contacts.</p>
+                </div>
+              )}
             </>
           ) : (
             <>
