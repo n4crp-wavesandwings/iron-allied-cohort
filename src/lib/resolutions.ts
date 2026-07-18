@@ -60,14 +60,18 @@ export const CR_ESCALATION_LEVELS: CrEscalationLevel[] = [
 ];
 
 export function customerIdentifier(r: Pick<ResolutionRow, "customer_first_initial" | "customer_last_name">): string {
-  return `${r.customer_first_initial}. ${r.customer_last_name}`;
+  const initial = r.customer_first_initial ?? "";
+  const last = r.customer_last_name ?? "";
+  if (!initial && !last) return "—";
+  return `${initial}${initial ? "." : ""} ${last}`.trim();
 }
 
-export function priorityRank(p: CrPriority): number {
+export function priorityRank(p: CrPriority | null | undefined): number {
+  if (!p) return 99;
   return { Urgent: 0, High: 1, Normal: 2, Low: 3 }[p];
 }
 
-export function priorityBadgeClass(p: CrPriority): string {
+export function priorityBadgeClass(p: CrPriority | null | undefined): string {
   switch (p) {
     case "Urgent":
       return "bg-destructive text-destructive-foreground";
@@ -76,6 +80,8 @@ export function priorityBadgeClass(p: CrPriority): string {
     case "Normal":
       return "bg-secondary text-secondary-foreground";
     case "Low":
+      return "bg-muted text-muted-foreground";
+    default:
       return "bg-muted text-muted-foreground";
   }
 }
@@ -86,13 +92,14 @@ export const resolutionsListQueryOptions = queryOptions({
     const { data, error } = await supabase
       .from("customer_resolutions")
       .select(
-        "*, relationships:customer_resolution_relationships(id,role,relationship_id,entity:entities(id,name,type)), tasks:customer_resolution_tasks(id,task,owner_name,owner_type,due_date,status,waiting_on)",
+        "*, category:resolution_categories(id,name), priority_lookup:resolution_priorities(id,name,sort_order,severity_color), status_lookup:resolution_statuses(id,name,sort_order,is_closed), provider:entities!customer_resolutions_service_provider_id_fkey(id,name), store:stores(id,store_number,name), relationships:customer_resolution_relationships(id,role,relationship_id,entity:entities(id,name,type)), tasks:customer_resolution_tasks(id,task,owner_name,owner_type,due_date,status,waiting_on)",
       )
       .is("deleted_at", null);
     if (error) throw error;
     return data ?? [];
   },
 });
+
 
 export const resolutionDetailQueryOptions = (id: string) =>
   queryOptions({

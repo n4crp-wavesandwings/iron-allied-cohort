@@ -709,26 +709,38 @@ export type Database = {
       }
       customer_resolutions: {
         Row: {
+          category_id: string | null
+          closed_at: string | null
+          commitments: string | null
           completed_date: string | null
           created_at: string
           created_by: string
-          customer_first_initial: string
-          customer_last_name: string
+          customer_first_initial: string | null
+          customer_last_name: string | null
           deleted_at: string | null
           desired_resolution: string | null
           escalation_level:
             | Database["public"]["Enums"]["cr_escalation_level"]
             | null
+          general_issue: string | null
           id: string
+          opened_at: string
           opened_date: string
+          order_number: string | null
           org_id: string
-          priority: Database["public"]["Enums"]["cr_priority"]
+          owner: string | null
+          po_number: string | null
+          priority: Database["public"]["Enums"]["cr_priority"] | null
+          priority_id: string | null
+          program_id: string | null
           reference_number: string | null
           resolution_type:
             | Database["public"]["Enums"]["cr_resolution_type"]
             | null
+          service_provider_id: string | null
           severity: Database["public"]["Enums"]["cr_severity"] | null
-          status: Database["public"]["Enums"]["cr_status"]
+          status: Database["public"]["Enums"]["cr_status"] | null
+          status_id: string | null
           store_id: string | null
           summary: string | null
           target_date: string | null
@@ -737,26 +749,38 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          category_id?: string | null
+          closed_at?: string | null
+          commitments?: string | null
           completed_date?: string | null
           created_at?: string
           created_by?: string
-          customer_first_initial: string
-          customer_last_name: string
+          customer_first_initial?: string | null
+          customer_last_name?: string | null
           deleted_at?: string | null
           desired_resolution?: string | null
           escalation_level?:
             | Database["public"]["Enums"]["cr_escalation_level"]
             | null
+          general_issue?: string | null
           id?: string
+          opened_at?: string
           opened_date?: string
+          order_number?: string | null
           org_id?: string
-          priority?: Database["public"]["Enums"]["cr_priority"]
+          owner?: string | null
+          po_number?: string | null
+          priority?: Database["public"]["Enums"]["cr_priority"] | null
+          priority_id?: string | null
+          program_id?: string | null
           reference_number?: string | null
           resolution_type?:
             | Database["public"]["Enums"]["cr_resolution_type"]
             | null
+          service_provider_id?: string | null
           severity?: Database["public"]["Enums"]["cr_severity"] | null
-          status?: Database["public"]["Enums"]["cr_status"]
+          status?: Database["public"]["Enums"]["cr_status"] | null
+          status_id?: string | null
           store_id?: string | null
           summary?: string | null
           target_date?: string | null
@@ -765,26 +789,38 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          category_id?: string | null
+          closed_at?: string | null
+          commitments?: string | null
           completed_date?: string | null
           created_at?: string
           created_by?: string
-          customer_first_initial?: string
-          customer_last_name?: string
+          customer_first_initial?: string | null
+          customer_last_name?: string | null
           deleted_at?: string | null
           desired_resolution?: string | null
           escalation_level?:
             | Database["public"]["Enums"]["cr_escalation_level"]
             | null
+          general_issue?: string | null
           id?: string
+          opened_at?: string
           opened_date?: string
+          order_number?: string | null
           org_id?: string
-          priority?: Database["public"]["Enums"]["cr_priority"]
+          owner?: string | null
+          po_number?: string | null
+          priority?: Database["public"]["Enums"]["cr_priority"] | null
+          priority_id?: string | null
+          program_id?: string | null
           reference_number?: string | null
           resolution_type?:
             | Database["public"]["Enums"]["cr_resolution_type"]
             | null
+          service_provider_id?: string | null
           severity?: Database["public"]["Enums"]["cr_severity"] | null
-          status?: Database["public"]["Enums"]["cr_status"]
+          status?: Database["public"]["Enums"]["cr_status"] | null
+          status_id?: string | null
           store_id?: string | null
           summary?: string | null
           target_date?: string | null
@@ -794,10 +830,45 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "customer_resolutions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "resolution_categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "customer_resolutions_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolutions_priority_id_fkey"
+            columns: ["priority_id"]
+            isOneToOne: false
+            referencedRelation: "resolution_priorities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolutions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolutions_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolutions_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "resolution_statuses"
             referencedColumns: ["id"]
           },
           {
@@ -2159,6 +2230,234 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "regions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resolution_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resolution_categories_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resolution_engagements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_resolution_id: string
+          engagement_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_resolution_id: string
+          engagement_id: string
+          id?: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_resolution_id?: string
+          engagement_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resolution_engagements_customer_resolution_id_fkey"
+            columns: ["customer_resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resolution_engagements_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resolution_engagements_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resolution_priorities: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          severity_color: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          severity_color?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          severity_color?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resolution_priorities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resolution_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          customer_resolution_id: string
+          from_status_id: string | null
+          id: string
+          org_id: string
+          to_status_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          customer_resolution_id: string
+          from_status_id?: string | null
+          id?: string
+          org_id: string
+          to_status_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          customer_resolution_id?: string
+          from_status_id?: string | null
+          id?: string
+          org_id?: string
+          to_status_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resolution_status_history_customer_resolution_id_fkey"
+            columns: ["customer_resolution_id"]
+            isOneToOne: false
+            referencedRelation: "customer_resolutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resolution_status_history_from_status_id_fkey"
+            columns: ["from_status_id"]
+            isOneToOne: false
+            referencedRelation: "resolution_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resolution_status_history_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resolution_status_history_to_status_id_fkey"
+            columns: ["to_status_id"]
+            isOneToOne: false
+            referencedRelation: "resolution_statuses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resolution_statuses: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          is_closed: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resolution_statuses_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"

@@ -56,6 +56,7 @@ interface Props {
     entityId?: string;
     storeId?: string;
     contactId?: string;
+    resolutionId?: string;
   };
 }
 
@@ -382,6 +383,17 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       const results = await Promise.all(inserts);
       for (const r of results) if (r.error) throw r.error;
 
+      // Link to a Customer Resolution if provided
+      if (defaults?.resolutionId) {
+        const { error: reErr } = await supabase.from("resolution_engagements").insert({
+          org_id: orgId,
+          customer_resolution_id: defaults.resolutionId,
+          engagement_id: engagementId,
+          created_by: userId,
+        } as any);
+        if (reErr) throw reErr;
+      }
+
       // Optional follow-up
       if (wantFollowUp && followUpTitle.trim()) {
         const { error: fErr } = await supabase.from("follow_ups").insert({
@@ -448,6 +460,10 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["engagements"] });
       qc.invalidateQueries({ queryKey: ["follow_ups"] });
+      if (defaults?.resolutionId) {
+        qc.invalidateQueries({ queryKey: ["resolutions", defaults.resolutionId] });
+        qc.invalidateQueries({ queryKey: ["resolutions", "list"] });
+      }
       toast.success("Engagement saved");
       onOpenChange(false);
     },

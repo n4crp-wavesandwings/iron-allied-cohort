@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.customer_resolutions_status_trigger() FROM PUBLIC, anon, authenticated;

@@ -31,12 +31,17 @@ import {
   type ResolutionPersonRow,
   type ResolutionTaskRow,
 } from "@/lib/resolutions";
+import {
+  resolutionEngagementsQuery,
+  resolutionStatusHistoryQuery,
+} from "@/lib/resolutionLookups";
 import { ResolutionDialog } from "@/components/resolutions/ResolutionDialog";
 import { TaskDialog } from "@/components/resolutions/TaskDialog";
 import { PersonDialog } from "@/components/resolutions/PersonDialog";
 import { NoteDialog } from "@/components/resolutions/NoteDialog";
 import { StatusChangeDialog } from "@/components/resolutions/StatusChangeDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 
 export const Route = createFileRoute("/_authenticated/resolutions/$id")({
   component: ResolutionDetail,
@@ -52,6 +57,8 @@ function ResolutionDetail() {
   const people = useQuery(resolutionPeopleQueryOptions(id));
   const tasks = useQuery(resolutionTasksQueryOptions(id));
   const history = useQuery(resolutionHistoryQueryOptions(id));
+  const statusHistory = useQuery(resolutionStatusHistoryQuery(id));
+  const linkedEngagements = useQuery(resolutionEngagementsQuery(id));
 
   const [editOpen, setEditOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
@@ -64,6 +71,7 @@ function ResolutionDetail() {
   const [markResolvedOpen, setMarkResolvedOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
 
   const markTaskDone = useMutation({
     mutationFn: async (task: ResolutionTaskRow) => {
@@ -193,25 +201,53 @@ function ResolutionDetail() {
         <CardHeader><CardTitle className="text-base">Resolution</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <Field label="Customer">{customerIdentifier(r)}</Field>
+          <Field label="Category">{(r as any).category?.name ?? "—"}</Field>
           <Field label="Reference #">{r.reference_number ?? "—"}</Field>
           <Field label="Priority">
-            <Badge className={priorityBadgeClass(r.priority)}>{r.priority}</Badge>
+            {(r as any).priority_lookup ? (
+              <Badge
+                variant="outline"
+                style={{
+                  borderColor: (r as any).priority_lookup.severity_color ?? undefined,
+                  color: (r as any).priority_lookup.severity_color ?? undefined,
+                }}
+              >
+                {(r as any).priority_lookup.name}
+              </Badge>
+            ) : r.priority ? (
+              <Badge className={priorityBadgeClass(r.priority)}>{r.priority}</Badge>
+            ) : "—"}
           </Field>
-          <Field label="Status"><Badge variant="outline">{r.status}</Badge></Field>
-          <Field label="Opened">{new Date(r.opened_date + "T00:00:00").toLocaleDateString()}</Field>
-          <Field label="Target">
-            {r.target_date ? new Date(r.target_date + "T00:00:00").toLocaleDateString() : "—"}
+          <Field label="Status">
+            <Badge variant="outline">
+              {(r as any).status_lookup?.name ?? r.status ?? "—"}
+            </Badge>
           </Field>
-          {r.completed_date && (
-            <Field label="Completed">
-              {new Date(r.completed_date + "T00:00:00").toLocaleDateString()}
+          <Field label="Opened">
+            {(r as any).opened_at
+              ? new Date((r as any).opened_at).toLocaleDateString()
+              : r.opened_date
+                ? new Date(r.opened_date + "T00:00:00").toLocaleDateString()
+                : "—"}
+          </Field>
+          <Field label="Closed">
+            {(r as any).closed_at
+              ? new Date((r as any).closed_at).toLocaleDateString()
+              : "—"}
+          </Field>
+          <Field label="PO #">{(r as any).po_number ?? "—"}</Field>
+          <Field label="Order #">{(r as any).order_number ?? "—"}</Field>
+          <Field label="Program">{(r as any).program?.name ?? "—"}</Field>
+          <Field label="General Issue">{(r as any).general_issue ?? "—"}</Field>
+          <Field label="Owner">{(r as any).owner ?? "—"}</Field>
+          <div className="md:col-span-3">
+            <Field label="Commitments">
+              <p className="whitespace-pre-wrap text-sm">{(r as any).commitments ?? "—"}</p>
             </Field>
-          )}
-          <Field label="Severity">{(r as any).severity ?? "—"}</Field>
-          <Field label="Resolution Type">{(r as any).resolution_type ?? "—"}</Field>
-          <Field label="Escalation Level">{(r as any).escalation_level ?? "—"}</Field>
+          </div>
         </CardContent>
       </Card>
+
 
       {/* Section B: Related Relationships */}
       <Card>
@@ -440,7 +476,9 @@ function ResolutionDetail() {
       <Card>
         <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
+          <Button onClick={() => setEngagementOpen(true)}>+ Log Engagement</Button>
           <Button
+            variant="outline"
             onClick={() => {
               setEditingTask(null);
               setTaskOpen(true);
@@ -455,12 +493,78 @@ function ResolutionDetail() {
         </CardContent>
       </Card>
 
+      {/* Section: Linked Engagements Thread */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Engagement Thread</CardTitle></CardHeader>
+        <CardContent>
+          {(linkedEngagements.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No engagements linked yet. Use "Log Engagement" to capture a call, visit, or note.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {(linkedEngagements.data ?? []).map((row: any) => {
+                const e = row.engagement;
+                if (!e) return null;
+                const label = e.engagement_type?.name ?? "Engagement";
+                return (
+                  <li key={row.id} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        to="/engagements/$id"
+                        params={{ id: e.id }}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {label}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {e.occurred_at ? new Date(e.occurred_at).toLocaleString() : ""}
+                      </span>
+                    </div>
+                    {e.note && (
+                      <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
+                        {e.note}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section: Status History Trail */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Status History</CardTitle></CardHeader>
+        <CardContent>
+          {(statusHistory.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No status changes yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(statusHistory.data ?? []).map((h: any) => (
+                <li key={h.id} className="rounded-md border-l-2 border-l-primary bg-muted/30 p-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>
+                      {h.from_status?.name ?? "—"} → <strong>{h.to_status?.name ?? "—"}</strong>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(h.changed_at).toLocaleString()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Section H: History */}
       <Card>
-        <CardHeader><CardTitle className="text-base">History</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Activity Log</CardTitle></CardHeader>
         <CardContent>
           {(history.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No history yet.</p>
+            <p className="text-sm text-muted-foreground">No activity yet.</p>
           ) : (
             <ul className="space-y-2">
               {(history.data ?? []).map((h) => (
@@ -486,6 +590,7 @@ function ResolutionDetail() {
         </CardContent>
       </Card>
 
+
       <ResolutionDialog open={editOpen} onOpenChange={setEditOpen} resolution={r} />
       <TaskDialog
         open={taskOpen}
@@ -506,6 +611,16 @@ function ResolutionDetail() {
         open={followUpOpen}
         onOpenChange={setFollowUpOpen}
         entityId={provider?.relationship_id ?? store?.relationship_id ?? null}
+      />
+
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{
+          resolutionId: id,
+          entityId: provider?.relationship_id ?? undefined,
+          storeId: store?.relationship_id ?? undefined,
+        }}
       />
 
       <AlertDialog open={markResolvedOpen} onOpenChange={setMarkResolvedOpen}>
