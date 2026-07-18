@@ -35,6 +35,7 @@ import { RelationshipDialog } from "@/components/relationships/RelationshipDialo
 import { programsListQuery, type ProgramWithParent, contactLabel } from "@/lib/programs";
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
+import { NewProviderDialog } from "@/components/relationships/NewProviderDialog";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
