@@ -135,6 +135,9 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const districts = useQuery(districtsQuery);
   const markets = useQuery(marketsQuery);
   const regions = useQuery(regionsQuery);
+  const jsVisitTypes = useQuery(jobSiteVisitTypesQuery);
+  const jsChecklist = useQuery(jobSiteChecklistItemsQuery);
+  const jsOpportunities = useQuery(jobSiteOpportunityItemsQuery);
 
   const contacts = useQuery({
     queryKey: ["contacts", "all"],
