@@ -83,6 +83,7 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
       setSeverity(((resolution as any).severity as CrSeverity) ?? "");
       setResolutionType(((resolution as any).resolution_type as CrResolutionType) ?? "");
       setEscalationLevel(((resolution as any).escalation_level as CrEscalationLevel) ?? "");
+      setStoreId(((resolution as any).store_id as string) ?? null);
     } else {
       setCustomerLastName("");
       setCustomerFirstInitial("");
