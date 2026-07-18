@@ -9,8 +9,9 @@ export type EntityCommMethod = Database["public"]["Enums"]["entity_comm_method"]
 // Program and Merchant are first-class entities of their own.
 // - Programs live in `programs`.
 // - Merchants are contacts with is_merchant = true.
+// Numbered stores live in `stores` (location hierarchy) and are managed under /locations,
+// not as generic-company relationship records.
 export const RELATIONSHIP_TYPES: { value: EntityType; label: string }[] = [
-  { value: "store", label: "Store" },
   { value: "provider", label: "Provider" },
   { value: "internal", label: "Internal" },
 ];
