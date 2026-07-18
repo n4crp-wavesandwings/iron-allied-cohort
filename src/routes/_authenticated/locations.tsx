@@ -253,6 +253,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
   const [address, setAddress] = useState("");
   const [zip, setZip] = useState("");
   const [storeManager, setStoreManager] = useState("");
+  const [storeManagerPerson, setStoreManagerPerson] = useState<PersonValue>(null);
 
   useMemo(() => {
     if (open) {
