@@ -1445,6 +1445,190 @@ export type Database = {
           },
         ]
       }
+      follow_up_organizations: {
+        Row: {
+          created_at: string
+          entity_id: string
+          follow_up_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          follow_up_id: string
+          id?: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          follow_up_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_organizations_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_organizations_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_organizations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_up_people: {
+        Row: {
+          contact_id: string
+          created_at: string
+          follow_up_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          follow_up_id: string
+          id?: string
+          org_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          follow_up_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_people_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_people_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_people_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_up_programs: {
+        Row: {
+          created_at: string
+          follow_up_id: string
+          id: string
+          org_id: string
+          program_id: string
+        }
+        Insert: {
+          created_at?: string
+          follow_up_id: string
+          id?: string
+          org_id: string
+          program_id: string
+        }
+        Update: {
+          created_at?: string
+          follow_up_id?: string
+          id?: string
+          org_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_programs_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_programs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_up_stores: {
+        Row: {
+          created_at: string
+          follow_up_id: string
+          id: string
+          org_id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          follow_up_id: string
+          id?: string
+          org_id: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          follow_up_id?: string
+          id?: string
+          org_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_stores_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_stores_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_stores_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_ups: {
         Row: {
           assigned_to: string | null
@@ -1459,6 +1643,7 @@ export type Database = {
           id: string
           interaction_id: string | null
           org_id: string
+          priority: Database["public"]["Enums"]["follow_up_priority"]
           reminder_date: string | null
           status: Database["public"]["Enums"]["follow_up_status"]
           title: string
@@ -1478,6 +1663,7 @@ export type Database = {
           id?: string
           interaction_id?: string | null
           org_id?: string
+          priority?: Database["public"]["Enums"]["follow_up_priority"]
           reminder_date?: string | null
           status?: Database["public"]["Enums"]["follow_up_status"]
           title: string
@@ -1497,6 +1683,7 @@ export type Database = {
           id?: string
           interaction_id?: string | null
           org_id?: string
+          priority?: Database["public"]["Enums"]["follow_up_priority"]
           reminder_date?: string | null
           status?: Database["public"]["Enums"]["follow_up_status"]
           title?: string
@@ -2299,6 +2486,65 @@ export type Database = {
           },
         ]
       }
+      quick_starts: {
+        Row: {
+          active: boolean
+          body: string
+          channel: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          icon: string | null
+          id: string
+          is_favorite: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          icon?: string | null
+          id?: string
+          is_favorite?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          icon?: string | null
+          id?: string
+          is_favorite?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_starts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regions: {
         Row: {
           code: string | null
@@ -2790,7 +3036,8 @@ export type Database = {
         | "Customer Request"
         | "Feedback"
         | "Other"
-      follow_up_status: "open" | "done"
+      follow_up_priority: "Low" | "Medium" | "High" | "Critical"
+      follow_up_status: "open" | "done" | "in_progress" | "completed"
       interaction_type: "meeting" | "call" | "visit" | "note"
       location_status: "Active" | "Inactive"
     }
@@ -2980,7 +3227,8 @@ export const Constants = {
         "Feedback",
         "Other",
       ],
-      follow_up_status: ["open", "done"],
+      follow_up_priority: ["Low", "Medium", "High", "Critical"],
+      follow_up_status: ["open", "done", "in_progress", "completed"],
       interaction_type: ["meeting", "call", "visit", "note"],
       location_status: ["Active", "Inactive"],
     },
