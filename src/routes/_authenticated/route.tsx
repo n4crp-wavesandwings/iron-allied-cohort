@@ -28,6 +28,9 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthedLayout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const [relOpen, setRelOpen] = useState(false);
+  const [followUpOpen, setFollowUpOpen] = useState(false);
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
@@ -49,6 +52,13 @@ function AuthedLayout() {
                 activeProps={{ className: "rounded-md px-3 py-1.5 bg-secondary text-foreground" }}
               >
                 Today
+              </Link>
+              <Link
+                to="/engagements"
+                className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground"
+                activeProps={{ className: "rounded-md px-3 py-1.5 bg-secondary text-foreground" }}
+              >
+                Engagements
               </Link>
               <Link
                 to="/relationships"
@@ -74,16 +84,25 @@ function AuthedLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setEngagementOpen(true)} className="gap-1">
+              <Plus className="h-4 w-4" /> New Engagement
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" className="gap-1">
+                <Button size="sm" variant="outline" className="gap-1">
                   <Plus className="h-4 w-4" /> Quick Add
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled>New Interaction</DropdownMenuItem>
-                <DropdownMenuItem disabled>New Follow-up</DropdownMenuItem>
-                <DropdownMenuItem disabled>New Relationship</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setEngagementOpen(true)}>
+                  New Engagement
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setFollowUpOpen(true)}>
+                  New Follow-up
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setRelOpen(true)}>
+                  New Relationship
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button size="sm" variant="ghost" onClick={handleSignOut}>
@@ -95,6 +114,11 @@ function AuthedLayout() {
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Outlet />
       </main>
+
+      <EngagementDialog open={engagementOpen} onOpenChange={setEngagementOpen} />
+      <RelationshipDialog open={relOpen} onOpenChange={setRelOpen} />
+      <FollowUpDialog open={followUpOpen} onOpenChange={setFollowUpOpen} />
     </div>
   );
 }
+
