@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Bell } from "lucide-react";
 import type { EngagementListItem } from "@/lib/engagements";
-import { contactLabel } from "@/lib/engagements";
+import { contactLabel, engagementTypeLabel } from "@/lib/engagements";
 
 export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
   if (!items.length) {
