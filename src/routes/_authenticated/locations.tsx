@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Upload } from "lucide-react";
 import {
   regionsQuery, marketsQuery, districtsQuery, storesQuery,
   type Region, type Market, type District, type Store,
@@ -24,9 +24,14 @@ type Level = "region" | "market" | "district" | "store";
 function LocationsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Locations</h1>
-        <p className="text-sm text-muted-foreground">Region → Market → District → Store hierarchy. All records are editable and re-parentable.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Locations</h1>
+          <p className="text-sm text-muted-foreground">Region → Market → District → Store hierarchy. All records are editable and re-parentable.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/stores/import"><Upload className="h-4 w-4 mr-1" />Import Stores</Link>
+        </Button>
       </div>
       <Tabs defaultValue="regions">
         <TabsList>
