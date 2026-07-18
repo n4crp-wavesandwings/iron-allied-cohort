@@ -30,6 +30,7 @@ import {
   type ContactRow,
   type PreferredContactMethod,
 } from "@/lib/contacts";
+import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
 interface Props {
   open: boolean;
@@ -41,6 +42,7 @@ interface Props {
 export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) {
   const isEdit = !!contact;
   const queryClient = useQueryClient();
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -79,6 +81,7 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
       setBestTime(contact?.best_time_to_contact ?? "");
       setNotes(contact?.note ?? "");
       setActive(contact?.active ?? true);
+      setCreatedId(null);
     }
   }, [open, contact]);
 
@@ -114,6 +117,7 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
           .update(payload)
           .eq("id", contact.id);
         if (error) throw error;
+        return contact.id;
       } else {
         const { data: inserted, error } = await supabase
           .from("contacts")
@@ -133,22 +137,45 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
             is_primary: (count ?? 0) === 0,
           });
         }
+        return inserted!.id as string;
       }
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["contacts", entityId] });
       toast.success(isEdit ? "Contact updated" : "Contact added");
-      onOpenChange(false);
+      if (isEdit) {
+        onOpenChange(false);
+      } else {
+        setCreatedId(id);
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Contact" : "Add Contact"}</DialogTitle>
+          <DialogTitle>
+            {isEdit
+              ? "Edit Contact"
+              : createdId
+                ? `Coverage — ${firstName} ${lastName}`
+                : "Add Contact"}
+          </DialogTitle>
         </DialogHeader>
+        {createdId ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Assign this contact&apos;s district/store coverage now, or skip and add it later
+              from the contact page.
+            </p>
+            <CoveragePanel mode={{ kind: "contact", contactId: createdId }} />
+            <DialogFooter>
+              <Button onClick={() => onOpenChange(false)}>Done</Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -355,10 +382,11 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
               Cancel
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Add Contact"}
+              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Save & Continue to Coverage"}
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
