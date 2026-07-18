@@ -343,11 +343,16 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
             <>
               <div className="space-y-2"><Label>Store Number *</Label><Input value={storeNumber} onChange={(e) => setStoreNumber(e.target.value)} /></div>
               <div className="space-y-2"><Label>Store Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2"><Label>City</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2 col-span-2"><Label>City</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
                 <div className="space-y-2"><Label>State</Label><Input value={stateVal} onChange={(e) => setStateVal(e.target.value)} /></div>
               </div>
-              <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label>Zip</Label><Input value={zip} onChange={(e) => setZip(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
+              </div>
+              <div className="space-y-2"><Label>Store Manager</Label><Input value={storeManager} onChange={(e) => setStoreManager(e.target.value)} /></div>
             </>
           ) : (
             <>
