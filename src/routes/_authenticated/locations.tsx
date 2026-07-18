@@ -269,6 +269,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       setAddress((record as any)?.address ?? "");
       setZip((record as any)?.zip ?? "");
       setStoreManager((record as any)?.store_manager ?? "");
+      setStoreManagerPerson(null);
     }
   }, [open, record]);
 
