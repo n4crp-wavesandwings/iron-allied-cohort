@@ -24,7 +24,7 @@ import {
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { relationshipQueryOptions, typeLabel } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
-import { InteractionForm } from "@/components/relationships/InteractionForm";
+
 import { RelationshipTimeline } from "@/components/relationships/RelationshipTimeline";
 import { ContactsList } from "@/components/relationships/ContactsList";
 import { RelationshipSummary } from "@/components/relationships/RelationshipSummary";
@@ -47,7 +47,7 @@ function RelationshipDetailPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [logInteractionOpen, setLogInteractionOpen] = useState(false);
+  
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [engagementOpen, setEngagementOpen] = useState(false);
@@ -118,7 +118,7 @@ function RelationshipDetailPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Button onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
-          <Button variant="outline" onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
+          
           <Button variant="outline" onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
           <Button variant="outline" onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
         </CardContent>
@@ -218,14 +218,6 @@ function RelationshipDetailPage() {
       {/* Dialogs */}
       <RelationshipDialog open={editOpen} onOpenChange={setEditOpen} relationship={r} />
 
-      <Dialog open={logInteractionOpen} onOpenChange={setLogInteractionOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Log Interaction</DialogTitle>
-          </DialogHeader>
-          <InteractionForm entityId={r.id} />
-        </DialogContent>
-      </Dialog>
 
       <ContactDialog
         open={addContactOpen}

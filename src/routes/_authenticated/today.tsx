@@ -243,15 +243,6 @@ function TodayPage() {
         <CardContent className="flex flex-wrap gap-2">
           <Button onClick={() => setNewEngagementOpen(true)}>+ New Engagement</Button>
           <Button variant="outline" onClick={() => setNewRelOpen(true)}>+ New Relationship</Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setInteractionEntity("");
-              setNewInteractionOpen(true);
-            }}
-          >
-            + New Interaction
-          </Button>
           <Button variant="outline" onClick={() => setNewFollowUpOpen(true)}>+ New Follow-Up</Button>
         </CardContent>
       </Card>
@@ -259,12 +250,6 @@ function TodayPage() {
       <EngagementDialog open={newEngagementOpen} onOpenChange={setNewEngagementOpen} />
       <RelationshipDialog open={newRelOpen} onOpenChange={setNewRelOpen} />
       <FollowUpDialog open={newFollowUpOpen} onOpenChange={setNewFollowUpOpen} />
-      <NewInteractionDialog
-        open={newInteractionOpen}
-        onOpenChange={setNewInteractionOpen}
-        entityId={interactionEntity}
-        onEntityChange={setInteractionEntity}
-      />
 
     </div>
   );
