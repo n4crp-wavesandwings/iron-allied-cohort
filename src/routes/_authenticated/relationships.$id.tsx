@@ -34,6 +34,7 @@ import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByEntityQuery } from "@/lib/engagements";
+import { ProviderPrograms } from "@/components/relationships/ProviderPrograms";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
