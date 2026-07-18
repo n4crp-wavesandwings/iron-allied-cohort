@@ -382,11 +382,14 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
               Cancel
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Add Contact"}
+              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Save & Continue to Coverage"}
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
   );
 }
