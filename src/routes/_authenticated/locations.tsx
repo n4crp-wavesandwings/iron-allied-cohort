@@ -292,7 +292,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       if (!name.trim()) return toast.error("Name required");
       v.name = name.trim();
       if (level !== "region") { if (!parentId) return toast.error("Parent required"); (v as any)[parentField!] = parentId; }
-      if (level !== "store") v.code = code || null;
+      if (level === "region" || level === "market") v.code = code || null;
     }
     onSave(v);
   };
