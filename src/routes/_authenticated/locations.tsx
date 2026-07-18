@@ -16,6 +16,7 @@ import {
   regionsQuery, marketsQuery, districtsQuery, storesQuery,
   type Region, type Market, type District, type Store,
 } from "@/lib/locations";
+import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
 export const Route = createFileRoute("/_authenticated/locations")({ component: LocationsPage });
 
@@ -252,6 +253,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
   const [address, setAddress] = useState("");
   const [zip, setZip] = useState("");
   const [storeManager, setStoreManager] = useState("");
+  const [storeManagerPerson, setStoreManagerPerson] = useState<PersonValue>(null);
 
   useMemo(() => {
     if (open) {
@@ -267,6 +269,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       setAddress((record as any)?.address ?? "");
       setZip((record as any)?.zip ?? "");
       setStoreManager((record as any)?.store_manager ?? "");
+      setStoreManagerPerson(null);
     }
   }, [open, record]);
 
@@ -352,7 +355,25 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
                 <div className="space-y-2"><Label>Zip</Label><Input value={zip} onChange={(e) => setZip(e.target.value)} /></div>
                 <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
               </div>
-              <div className="space-y-2"><Label>Store Manager</Label><Input value={storeManager} onChange={(e) => setStoreManager(e.target.value)} /></div>
+              {record?.id ? (
+                <PersonField
+                  label="Store Manager"
+                  roleLabel="Store Manager"
+                  defaultChannel="Internal"
+                  linkTarget={{ kind: "store", storeId: record.id }}
+                  value={storeManagerPerson ?? (storeManager ? { id: "__text__", name: storeManager } : null)}
+                  onChange={(v) => {
+                    setStoreManagerPerson(v);
+                    setStoreManager(v?.name ?? "");
+                  }}
+                  placeholder={storeManager ? `Currently: ${storeManager} — tap to change` : "Search a person by name…"}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Label>Store Manager</Label>
+                  <p className="text-xs text-muted-foreground">Save the store first, then assign a manager from your contacts.</p>
+                </div>
+              )}
             </>
           ) : (
             <>
