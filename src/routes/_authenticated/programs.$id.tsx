@@ -8,6 +8,7 @@ import {
   programDetailQuery,
   programMerchantsQuery,
   programsListQuery,
+  contactLabel,
 } from "@/lib/programs";
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 
