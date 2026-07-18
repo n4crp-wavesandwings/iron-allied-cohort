@@ -1107,6 +1107,7 @@ export type Database = {
           created_at: string
           group: string | null
           id: string
+          is_custom: boolean
           name: string
           org_id: string
           sort_order: number
@@ -1117,6 +1118,7 @@ export type Database = {
           created_at?: string
           group?: string | null
           id?: string
+          is_custom?: boolean
           name: string
           org_id?: string
           sort_order?: number
@@ -1127,12 +1129,52 @@ export type Database = {
           created_at?: string
           group?: string | null
           id?: string
+          is_custom?: boolean
           name?: string
           org_id?: string
           sort_order?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      engagement_type_links: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          engagement_type_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          engagement_type_id: string
+          id?: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          engagement_type_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_type_links_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_type_links_engagement_type_id_fkey"
+            columns: ["engagement_type_id"]
+            isOneToOne: false
+            referencedRelation: "engagement_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engagement_types: {
         Row: {
