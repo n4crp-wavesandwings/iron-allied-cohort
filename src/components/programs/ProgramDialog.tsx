@@ -23,9 +23,10 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  merchantEntitiesQuery,
+  merchantContactsQuery,
   programMerchantsQuery,
   programsListQuery,
+  contactLabel,
   type ProgramWithParent,
 } from "@/lib/programs";
 
@@ -40,7 +41,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
   const isEdit = !!program;
 
   const { data: allPrograms = [] } = useQuery(programsListQuery);
-  const { data: merchants = [] } = useQuery(merchantEntitiesQuery);
+  const { data: merchants = [] } = useQuery(merchantContactsQuery);
   const { data: currentLinks = [] } = useQuery({
     ...programMerchantsQuery(program?.id ?? ""),
     enabled: !!program?.id,
@@ -51,7 +52,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
   const [subCategory, setSubCategory] = useState("");
   const [status, setStatus] = useState<string>("Active");
   const [notes, setNotes] = useState("");
-  const [primaryMerchantId, setPrimaryMerchantId] = useState<string>("none");
+  const [primaryContactId, setPrimaryContactId] = useState<string>("none");
   const [secondaryIds, setSecondaryIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -61,15 +62,13 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     setSubCategory(program?.sub_category ?? "");
     setStatus(program?.status ?? "Active");
     setNotes(program?.notes ?? "");
-    const primary = currentLinks.find(
-      (l) => l.is_current && l.role === "Primary",
-    );
-    setPrimaryMerchantId(primary?.merchant_id ?? "none");
+    const primary = currentLinks.find((l) => l.is_current && l.role === "Primary");
+    setPrimaryContactId(primary?.contact_id ?? "none");
     setSecondaryIds(
       new Set(
         currentLinks
           .filter((l) => l.is_current && l.role === "Secondary")
-          .map((l) => l.merchant_id),
+          .map((l) => l.contact_id),
       ),
     );
   }, [open, program, currentLinks]);
@@ -78,7 +77,6 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Program name is required");
 
-      // 1. Upsert program
       let programId = program?.id;
       const payload = {
         name: name.trim(),
@@ -88,16 +86,10 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
         notes: notes.trim() || null,
       };
       if (isEdit && programId) {
-        const { error } = await supabase
-          .from("programs")
-          .update(payload)
-          .eq("id", programId);
+        const { error } = await supabase.from("programs").update(payload).eq("id", programId);
         if (error) throw error;
       } else {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("org_id")
-          .single();
+        const { data: profile } = await supabase.from("profiles").select("org_id").single();
         if (!profile?.org_id) throw new Error("No organization");
         const { data, error } = await supabase
           .from("programs")
@@ -110,75 +102,55 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
 
       if (!programId) return;
 
-      // 2. Reconcile merchants
-      const desiredPrimary =
-        primaryMerchantId === "none" ? null : primaryMerchantId;
+      const desiredPrimary = primaryContactId === "none" ? null : primaryContactId;
       const desiredSecondary = new Set(secondaryIds);
-      // Never allow a merchant to be both roles simultaneously on the same program.
       if (desiredPrimary) desiredSecondary.delete(desiredPrimary);
 
       const now = new Date().toISOString().slice(0, 10);
 
-      // Existing current links
-      const currentPrimary = currentLinks.find(
-        (l) => l.is_current && l.role === "Primary",
-      );
+      const currentPrimary = currentLinks.find((l) => l.is_current && l.role === "Primary");
       const currentSecondaries = currentLinks.filter(
         (l) => l.is_current && l.role === "Secondary",
       );
 
-      // Close out the current primary if it changed
-      if (currentPrimary && currentPrimary.merchant_id !== desiredPrimary) {
+      if (currentPrimary && currentPrimary.contact_id !== desiredPrimary) {
         await supabase
           .from("program_merchants" as any)
           .update({ is_current: false, end_date: now })
           .eq("id", currentPrimary.id);
       }
-      // Insert new primary if different
-      if (
-        desiredPrimary &&
-        (!currentPrimary || currentPrimary.merchant_id !== desiredPrimary)
-      ) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("org_id")
-          .single();
+      if (desiredPrimary && (!currentPrimary || currentPrimary.contact_id !== desiredPrimary)) {
+        const { data: profile } = await supabase.from("profiles").select("org_id").single();
         await supabase.from("program_merchants" as any).insert({
           org_id: profile?.org_id,
           program_id: programId,
-          merchant_id: desiredPrimary,
+          contact_id: desiredPrimary,
           role: "Primary",
           is_current: true,
           start_date: now,
         });
       }
 
-      // Secondaries: close removed, add new
       for (const sec of currentSecondaries) {
-        if (!desiredSecondary.has(sec.merchant_id)) {
+        if (!desiredSecondary.has(sec.contact_id)) {
           await supabase
             .from("program_merchants" as any)
             .update({ is_current: false, end_date: now })
             .eq("id", sec.id);
         }
       }
-      const existingSecondaryIds = new Set(
-        currentSecondaries.map((s) => s.merchant_id),
-      );
+      const existingSecondaryIds = new Set(currentSecondaries.map((s) => s.contact_id));
       const toAdd: string[] = [];
-      for (const m of desiredSecondary) {
-        if (!existingSecondaryIds.has(m)) toAdd.push(m);
+      for (const c of desiredSecondary) {
+        if (!existingSecondaryIds.has(c)) toAdd.push(c);
       }
       if (toAdd.length) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("org_id")
-          .single();
+        const { data: profile } = await supabase.from("profiles").select("org_id").single();
         await supabase.from("program_merchants" as any).insert(
-          toAdd.map((mid) => ({
+          toAdd.map((cid) => ({
             org_id: profile?.org_id,
             program_id: programId,
-            merchant_id: mid,
+            contact_id: cid,
             role: "Secondary",
             is_current: true,
             start_date: now,
@@ -191,6 +163,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["programs"] });
       qc.invalidateQueries({ queryKey: ["program-merchants"] });
+      qc.invalidateQueries({ queryKey: ["contact-program-merchants"] });
       toast.success(isEdit ? "Program updated" : "Program created");
       onOpenChange(false);
     },
@@ -214,8 +187,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Program" : "New Program"}</DialogTitle>
           <DialogDescription>
-            A Program is a category of installation work (e.g. HVAC, Carpet,
-            Water Heaters) — not a company.
+            A Program is a category of installation work (e.g. HVAC, Carpet, Water Heaters) — not a company.
           </DialogDescription>
         </DialogHeader>
 
@@ -273,10 +245,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
 
           <div>
             <Label>Primary Merchant</Label>
-            <Select
-              value={primaryMerchantId}
-              onValueChange={setPrimaryMerchantId}
-            >
+            <Select value={primaryContactId} onValueChange={setPrimaryContactId}>
               <SelectTrigger>
                 <SelectValue placeholder="None" />
               </SelectTrigger>
@@ -284,15 +253,14 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
                 <SelectItem value="none">None</SelectItem>
                 {merchants.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.name}
+                    {contactLabel(m)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {merchants.length === 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                No merchants yet — create a Relationship of type "Merchant"
-                first.
+                No merchants yet — create one from the Merchant tab on Relationships.
               </p>
             )}
           </div>
@@ -301,9 +269,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
             <Label>Secondary Merchants</Label>
             <div className="mt-2 space-y-2 rounded-md border border-border p-3 max-h-40 overflow-y-auto">
               {merchants.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  No merchants available.
-                </p>
+                <p className="text-xs text-muted-foreground">No merchants available.</p>
               ) : (
                 merchants.map((m) => (
                   <label
@@ -313,13 +279,11 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
                     <Checkbox
                       checked={secondaryIds.has(m.id)}
                       onCheckedChange={() => toggleSecondary(m.id)}
-                      disabled={m.id === primaryMerchantId}
+                      disabled={m.id === primaryContactId}
                     />
-                    <span>{m.name}</span>
-                    {m.id === primaryMerchantId && (
-                      <span className="text-xs text-muted-foreground">
-                        (Primary)
-                      </span>
+                    <span>{contactLabel(m)}</span>
+                    {m.id === primaryContactId && (
+                      <span className="text-xs text-muted-foreground">(Primary)</span>
                     )}
                   </label>
                 ))
