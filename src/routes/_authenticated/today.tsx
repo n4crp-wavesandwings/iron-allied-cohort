@@ -221,14 +221,30 @@ function TodayPage() {
         </CardContent>
       </Card>
 
+      {/* Recent Engagements */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Recent Engagements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recentEngagements.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <EngagementTimeline items={(recentEngagements.data ?? []).slice(0, 10)} />
+          )}
+        </CardContent>
+      </Card>
+
       {/* Section 3: Quick Add Buttons */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Quick Add</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button onClick={() => setNewRelOpen(true)}>+ New Relationship</Button>
+          <Button onClick={() => setNewEngagementOpen(true)}>+ New Engagement</Button>
+          <Button variant="outline" onClick={() => setNewRelOpen(true)}>+ New Relationship</Button>
           <Button
+            variant="outline"
             onClick={() => {
               setInteractionEntity("");
               setNewInteractionOpen(true);
@@ -236,10 +252,11 @@ function TodayPage() {
           >
             + New Interaction
           </Button>
-          <Button onClick={() => setNewFollowUpOpen(true)}>+ New Follow-Up</Button>
+          <Button variant="outline" onClick={() => setNewFollowUpOpen(true)}>+ New Follow-Up</Button>
         </CardContent>
       </Card>
 
+      <EngagementDialog open={newEngagementOpen} onOpenChange={setNewEngagementOpen} />
       <RelationshipDialog open={newRelOpen} onOpenChange={setNewRelOpen} />
       <FollowUpDialog open={newFollowUpOpen} onOpenChange={setNewFollowUpOpen} />
       <NewInteractionDialog
@@ -248,6 +265,7 @@ function TodayPage() {
         entityId={interactionEntity}
         onEntityChange={setInteractionEntity}
       />
+
     </div>
   );
 }
