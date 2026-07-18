@@ -216,6 +216,16 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       setWantFollowUp(false);
       setFollowUpTitle("");
       setFollowUpDue(todayISO());
+      setJsVisitTypeId("");
+      setJsProgramId("");
+      setJsProviderId("");
+      setJsCustFirstInitial("");
+      setJsCustLastName("");
+      setJsPoNumber("");
+      setJsOrderNumber("");
+      setJsCheckedIds([]);
+      setJsOppIds([]);
+      setJsOppNotes({});
     }
   }, [open, defaults?.storeId, defaults?.entityId, defaults?.contactId]);
 
