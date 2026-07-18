@@ -193,3 +193,12 @@ export function contactLabel(c: { first_name?: string | null; last_name?: string
   if (parts.length) return parts.join(" ");
   return c.name ?? "Unnamed";
 }
+
+export function engagementTypeLabel(e: {
+  types?: { type: { id: string; name: string } | null }[];
+  type?: { id: string; name: string } | null;
+}): string {
+  const names = (e.types ?? []).map((t) => t.type?.name).filter(Boolean) as string[];
+  if (names.length) return names.join(" + ");
+  return e.type?.name ?? "Engagement";
+}
