@@ -32,14 +32,25 @@ import {
   type EntityType,
 } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
-import { programsListQuery, type ProgramWithParent } from "@/lib/programs";
+import { programsListQuery, type ProgramWithParent, contactLabel } from "@/lib/programs";
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
+import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
 });
 
-type Filter = EntityType | "all" | "program";
+type Filter = EntityType | "all" | "program" | "merchant";
+
+type MerchantListRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  name: string | null;
+  job_title: string | null;
+  active: boolean;
+  primary_programs: { id: string; name: string }[];
+};
 
 function RelationshipsListPage() {
   const [filter, setFilter] = useState<Filter>("all");
@@ -51,17 +62,59 @@ function RelationshipsListPage() {
   const [editingProgram, setEditingProgram] = useState<ProgramWithParent | null>(null);
   const [deleteProgramTarget, setDeleteProgramTarget] = useState<ProgramWithParent | null>(null);
 
+  const [merchantDialogOpen, setMerchantDialogOpen] = useState(false);
+  const [editingMerchant, setEditingMerchant] = useState<MerchantEditable>(null);
+  const [deleteMerchantTarget, setDeleteMerchantTarget] = useState<MerchantListRow | null>(null);
+
   const queryClient = useQueryClient();
 
   const isProgramTab = filter === "program";
+  const isMerchantTab = filter === "merchant";
 
   const { data: rows = [], isLoading } = useQuery({
-    ...relationshipsQueryOptions(filter === "program" ? "all" : (filter as EntityType | "all")),
-    enabled: !isProgramTab,
+    ...relationshipsQueryOptions(
+      filter === "program" || filter === "merchant"
+        ? "all"
+        : (filter as EntityType | "all"),
+    ),
+    enabled: !isProgramTab && !isMerchantTab,
   });
   const { data: programs = [], isLoading: programsLoading } = useQuery({
     ...programsListQuery,
     enabled: isProgramTab,
+  });
+
+  const { data: merchants = [], isLoading: merchantsLoading } = useQuery({
+    queryKey: ["merchants", "list"],
+    enabled: isMerchantTab,
+    queryFn: async (): Promise<MerchantListRow[]> => {
+      const { data: contacts, error } = await supabase
+        .from("contacts")
+        .select("id, first_name, last_name, name, job_title, active")
+        .eq("is_merchant" as any, true)
+        .is("deleted_at", null)
+        .order("last_name", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      const ids = (contacts ?? []).map((c: any) => c.id);
+      let primaryMap = new Map<string, { id: string; name: string }[]>();
+      if (ids.length) {
+        const { data: links } = await supabase
+          .from("program_merchants" as any)
+          .select("contact_id, program:program_id(id, name)")
+          .in("contact_id", ids)
+          .eq("is_current", true)
+          .eq("role", "Primary");
+        (links ?? []).forEach((l: any) => {
+          const arr = primaryMap.get(l.contact_id) ?? [];
+          if (l.program) arr.push(l.program);
+          primaryMap.set(l.contact_id, arr);
+        });
+      }
+      return (contacts ?? []).map((c: any) => ({
+        ...c,
+        primary_programs: primaryMap.get(c.id) ?? [],
+      }));
+    },
   });
 
   const deleteMutation = useMutation({
@@ -96,15 +149,41 @@ function RelationshipsListPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMerchantMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("contacts")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["merchants"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      toast.success("Merchant removed");
+      setDeleteMerchantTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const openCreate = () => {
     if (isProgramTab) {
       setEditingProgram(null);
       setProgramDialogOpen(true);
+    } else if (isMerchantTab) {
+      setEditingMerchant(null);
+      setMerchantDialogOpen(true);
     } else {
       setEditing(null);
       setDialogOpen(true);
     }
   };
+
+  const createLabel = isProgramTab
+    ? "New Program"
+    : isMerchantTab
+      ? "New Merchant"
+      : "Create Relationship";
 
   return (
     <div>
@@ -117,7 +196,7 @@ function RelationshipsListPage() {
         </div>
         <Button onClick={openCreate} className="gap-1">
           <Plus className="h-4 w-4" />
-          {isProgramTab ? "New Program" : "Create Relationship"}
+          {createLabel}
         </Button>
       </div>
 
@@ -129,6 +208,7 @@ function RelationshipsListPage() {
               {t.label}
             </TabsTrigger>
           ))}
+          <TabsTrigger value="merchant">Merchant</TabsTrigger>
           <TabsTrigger value="program">Program</TabsTrigger>
         </TabsList>
       </Tabs>
@@ -199,6 +279,87 @@ function RelationshipsListPage() {
               )}
             </TableBody>
           </Table>
+        ) : isMerchantTab ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Job Title</TableHead>
+                <TableHead>Primary Program(s)</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[140px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {merchantsLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
+                    Loading…
+                  </TableCell>
+                </TableRow>
+              ) : merchants.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-10">
+                    No merchants yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                merchants.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>
+                      <Link
+                        to="/contacts/$id"
+                        params={{ id: m.id }}
+                        className="font-medium hover:underline"
+                      >
+                        {contactLabel(m)}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {m.job_title ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {m.primary_programs.length === 0
+                        ? "—"
+                        : m.primary_programs.map((p) => p.name).join(", ")}
+                    </TableCell>
+                    <TableCell>{m.active ? "Active" : "Inactive"}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditingMerchant({
+                            id: m.id,
+                            first_name: m.first_name,
+                            last_name: m.last_name,
+                            job_title: m.job_title,
+                            email: null,
+                            office_phone: null,
+                            mobile_phone: null,
+                            note: null,
+                            active: m.active,
+                          });
+                          setMerchantDialogOpen(true);
+                        }}
+                        aria-label="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteMerchantTarget(m)}
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         ) : (
           <Table>
             <TableHeader>
@@ -224,43 +385,45 @@ function RelationshipsListPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      <Link
-                        to="/relationships/$id"
-                        params={{ id: r.id }}
-                        className="font-medium hover:underline"
-                      >
-                        {r.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{typeLabel(r.type)}</TableCell>
-                    <TableCell>{r.status ?? "—"}</TableCell>
-                    <TableCell>{r.district ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditing(r);
-                          setDialogOpen(true);
-                        }}
-                        aria-label="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setDeleteTarget(r)}
-                        aria-label="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                rows
+                  .filter((r) => r.type !== "merchant")
+                  .map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <Link
+                          to="/relationships/$id"
+                          params={{ id: r.id }}
+                          className="font-medium hover:underline"
+                        >
+                          {r.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{typeLabel(r.type)}</TableCell>
+                      <TableCell>{r.status ?? "—"}</TableCell>
+                      <TableCell>{r.district ?? "—"}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditing(r);
+                            setDialogOpen(true);
+                          }}
+                          aria-label="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(r)}
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
               )}
             </TableBody>
           </Table>
@@ -279,13 +442,18 @@ function RelationshipsListPage() {
         program={editingProgram}
       />
 
+      <MerchantDialog
+        open={merchantDialogOpen}
+        onOpenChange={setMerchantDialogOpen}
+        contact={editingMerchant}
+      />
+
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this relationship?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget?.name} will be hidden from all views. This can be reversed later
-              by an administrator.
+              {deleteTarget?.name} will be hidden from all views.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -316,6 +484,31 @@ function RelationshipsListPage() {
               onClick={() =>
                 deleteProgramTarget &&
                 deleteProgramMutation.mutate(deleteProgramTarget.id)
+              }
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!deleteMerchantTarget}
+        onOpenChange={(o) => !o && setDeleteMerchantTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove this merchant?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteMerchantTarget ? contactLabel(deleteMerchantTarget) : ""} will be hidden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                deleteMerchantTarget &&
+                deleteMerchantMutation.mutate(deleteMerchantTarget.id)
               }
             >
               Delete

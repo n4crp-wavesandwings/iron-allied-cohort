@@ -8,6 +8,7 @@ import {
   programDetailQuery,
   programMerchantsQuery,
   programsListQuery,
+  contactLabel,
 } from "@/lib/programs";
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 
@@ -82,13 +83,13 @@ function ProgramDetailPage() {
         <div className="mt-3 space-y-3 text-sm">
           <div>
             <div className="text-xs uppercase text-muted-foreground">Primary</div>
-            {currentPrimary?.merchant ? (
+            {currentPrimary?.contact ? (
               <Link
-                to="/relationships/$id"
-                params={{ id: currentPrimary.merchant.id }}
+                to="/contacts/$id"
+                params={{ id: currentPrimary.contact.id }}
                 className="font-medium hover:underline"
               >
-                {currentPrimary.merchant.name}
+                {contactLabel(currentPrimary.contact)}
               </Link>
             ) : (
               <span className="text-muted-foreground">None</span>
@@ -102,13 +103,13 @@ function ProgramDetailPage() {
               <ul className="mt-1 space-y-1">
                 {currentSecondaries.map((s) => (
                   <li key={s.id}>
-                    {s.merchant ? (
+                    {s.contact ? (
                       <Link
-                        to="/relationships/$id"
-                        params={{ id: s.merchant.id }}
+                        to="/contacts/$id"
+                        params={{ id: s.contact.id }}
                         className="hover:underline"
                       >
-                        {s.merchant.name}
+                        {contactLabel(s.contact)}
                       </Link>
                     ) : (
                       "—"
@@ -128,7 +129,7 @@ function ProgramDetailPage() {
             {history.map((h) => (
               <li key={h.id} className="flex flex-wrap gap-2 text-muted-foreground">
                 <span className="font-medium text-foreground">
-                  {h.merchant?.name ?? "—"}
+                  {contactLabel(h.contact)}
                 </span>
                 <span>· {h.role}</span>
                 <span>· {h.start_date ?? "?"} → {h.end_date ?? "?"}</span>

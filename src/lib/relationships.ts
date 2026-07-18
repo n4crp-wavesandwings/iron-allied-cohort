@@ -6,12 +6,12 @@ export type EntityType = Database["public"]["Enums"]["entity_type"];
 export type EntityRow = Database["public"]["Tables"]["entities"]["Row"];
 export type EntityCommMethod = Database["public"]["Enums"]["entity_comm_method"];
 
-// Program is its own first-class entity — not an organization.
-// It has its own form and lives in the `programs` table.
+// Program and Merchant are first-class entities of their own.
+// - Programs live in `programs`.
+// - Merchants are contacts with is_merchant = true.
 export const RELATIONSHIP_TYPES: { value: EntityType; label: string }[] = [
   { value: "store", label: "Store" },
   { value: "provider", label: "Provider" },
-  { value: "merchant", label: "Merchant" },
   { value: "internal", label: "Internal" },
 ];
 

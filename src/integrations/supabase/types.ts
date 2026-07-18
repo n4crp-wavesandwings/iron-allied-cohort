@@ -273,9 +273,10 @@ export type Database = {
           deleted_at: string | null
           department: string | null
           email: string | null
-          entity_id: string
+          entity_id: string | null
           first_name: string | null
           id: string
+          is_merchant: boolean
           job_title: string | null
           last_name: string | null
           linkedin: string | null
@@ -307,9 +308,10 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           email?: string | null
-          entity_id: string
+          entity_id?: string | null
           first_name?: string | null
           id?: string
+          is_merchant?: boolean
           job_title?: string | null
           last_name?: string | null
           linkedin?: string | null
@@ -341,9 +343,10 @@ export type Database = {
           deleted_at?: string | null
           department?: string | null
           email?: string | null
-          entity_id?: string
+          entity_id?: string | null
           first_name?: string | null
           id?: string
+          is_merchant?: boolean
           job_title?: string | null
           last_name?: string | null
           linkedin?: string | null
@@ -2147,13 +2150,13 @@ export type Database = {
       }
       program_merchants: {
         Row: {
+          contact_id: string
           created_at: string
           created_by: string | null
           deleted_at: string | null
           end_date: string | null
           id: string
           is_current: boolean
-          merchant_id: string
           notes: string | null
           org_id: string
           program_id: string
@@ -2163,13 +2166,13 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          contact_id: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           end_date?: string | null
           id?: string
           is_current?: boolean
-          merchant_id: string
           notes?: string | null
           org_id?: string
           program_id: string
@@ -2179,13 +2182,13 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          contact_id?: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           end_date?: string | null
           id?: string
           is_current?: boolean
-          merchant_id?: string
           notes?: string | null
           org_id?: string
           program_id?: string
@@ -2196,10 +2199,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "program_merchants_contact_fk"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "program_merchants_merchant_id_fkey"
-            columns: ["merchant_id"]
+            columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_merchants_program_fk"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
           {

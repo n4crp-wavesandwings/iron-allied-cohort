@@ -21,7 +21,7 @@ export type ProgramMerchantRow = {
   id: string;
   org_id: string;
   program_id: string;
-  merchant_id: string;
+  contact_id: string;
   role: "Primary" | "Secondary";
   is_current: boolean;
   start_date: string | null;
@@ -60,21 +60,34 @@ export const programDetailQuery = (id: string) =>
         .is("deleted_at", null)
         .maybeSingle();
       if (error) throw error;
-      return data as (ProgramWithParent | null);
+      return data as ProgramWithParent | null;
     },
   });
 
-export type ProgramMerchantWithEntity = ProgramMerchantRow & {
-  merchant: { id: string; name: string } | null;
+export type MerchantContact = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  name: string | null;
+};
+
+export function contactLabel(c: MerchantContact | null | undefined): string {
+  if (!c) return "—";
+  const full = [c.first_name, c.last_name].filter(Boolean).join(" ").trim();
+  return full || c.name || "—";
+}
+
+export type ProgramMerchantWithContact = ProgramMerchantRow & {
+  contact: MerchantContact | null;
 };
 
 export const programMerchantsQuery = (programId: string) =>
   queryOptions({
     queryKey: ["program-merchants", programId],
-    queryFn: async (): Promise<ProgramMerchantWithEntity[]> => {
+    queryFn: async (): Promise<ProgramMerchantWithContact[]> => {
       const { data, error } = await supabase
         .from("program_merchants" as any)
-        .select("*, merchant:merchant_id(id, name)")
+        .select("*, contact:contact_id(id, first_name, last_name, name)")
         .eq("program_id", programId)
         .order("is_current", { ascending: false })
         .order("role", { ascending: true })
@@ -84,16 +97,31 @@ export const programMerchantsQuery = (programId: string) =>
     },
   });
 
-export const merchantEntitiesQuery = queryOptions({
-  queryKey: ["entities", "merchants"],
-  queryFn: async () => {
+export const merchantContactsQuery = queryOptions({
+  queryKey: ["contacts", "merchants"],
+  queryFn: async (): Promise<MerchantContact[]> => {
     const { data, error } = await supabase
-      .from("entities")
-      .select("id, name")
-      .eq("type", "merchant")
+      .from("contacts")
+      .select("id, first_name, last_name, name")
+      .eq("is_merchant" as any, true)
       .is("deleted_at", null)
-      .order("name");
+      .order("last_name", { ascending: true, nullsFirst: false });
     if (error) throw error;
-    return (data as { id: string; name: string }[]) ?? [];
+    return (data as any) ?? [];
   },
 });
+
+export const contactProgramMerchantsQuery = (contactId: string) =>
+  queryOptions({
+    queryKey: ["contact-program-merchants", contactId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("program_merchants" as any)
+        .select("*, program:program_id(id, name, status)")
+        .eq("contact_id", contactId)
+        .order("is_current", { ascending: false })
+        .order("role", { ascending: true });
+      if (error) throw error;
+      return (data as any[]) ?? [];
+    },
+  });
