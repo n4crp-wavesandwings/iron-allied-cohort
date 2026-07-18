@@ -201,25 +201,53 @@ function ResolutionDetail() {
         <CardHeader><CardTitle className="text-base">Resolution</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <Field label="Customer">{customerIdentifier(r)}</Field>
+          <Field label="Category">{(r as any).category?.name ?? "—"}</Field>
           <Field label="Reference #">{r.reference_number ?? "—"}</Field>
           <Field label="Priority">
-            <Badge className={priorityBadgeClass(r.priority)}>{r.priority}</Badge>
+            {(r as any).priority_lookup ? (
+              <Badge
+                variant="outline"
+                style={{
+                  borderColor: (r as any).priority_lookup.severity_color ?? undefined,
+                  color: (r as any).priority_lookup.severity_color ?? undefined,
+                }}
+              >
+                {(r as any).priority_lookup.name}
+              </Badge>
+            ) : r.priority ? (
+              <Badge className={priorityBadgeClass(r.priority)}>{r.priority}</Badge>
+            ) : "—"}
           </Field>
-          <Field label="Status"><Badge variant="outline">{r.status}</Badge></Field>
-          <Field label="Opened">{new Date(r.opened_date + "T00:00:00").toLocaleDateString()}</Field>
-          <Field label="Target">
-            {r.target_date ? new Date(r.target_date + "T00:00:00").toLocaleDateString() : "—"}
+          <Field label="Status">
+            <Badge variant="outline">
+              {(r as any).status_lookup?.name ?? r.status ?? "—"}
+            </Badge>
           </Field>
-          {r.completed_date && (
-            <Field label="Completed">
-              {new Date(r.completed_date + "T00:00:00").toLocaleDateString()}
+          <Field label="Opened">
+            {(r as any).opened_at
+              ? new Date((r as any).opened_at).toLocaleDateString()
+              : r.opened_date
+                ? new Date(r.opened_date + "T00:00:00").toLocaleDateString()
+                : "—"}
+          </Field>
+          <Field label="Closed">
+            {(r as any).closed_at
+              ? new Date((r as any).closed_at).toLocaleDateString()
+              : "—"}
+          </Field>
+          <Field label="PO #">{(r as any).po_number ?? "—"}</Field>
+          <Field label="Order #">{(r as any).order_number ?? "—"}</Field>
+          <Field label="Program">{(r as any).program?.name ?? "—"}</Field>
+          <Field label="General Issue">{(r as any).general_issue ?? "—"}</Field>
+          <Field label="Owner">{(r as any).owner ?? "—"}</Field>
+          <div className="md:col-span-3">
+            <Field label="Commitments">
+              <p className="whitespace-pre-wrap text-sm">{(r as any).commitments ?? "—"}</p>
             </Field>
-          )}
-          <Field label="Severity">{(r as any).severity ?? "—"}</Field>
-          <Field label="Resolution Type">{(r as any).resolution_type ?? "—"}</Field>
-          <Field label="Escalation Level">{(r as any).escalation_level ?? "—"}</Field>
+          </div>
         </CardContent>
       </Card>
+
 
       {/* Section B: Related Relationships */}
       <Card>
