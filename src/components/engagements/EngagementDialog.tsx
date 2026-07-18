@@ -470,7 +470,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
             </section>
           )}
 
-          {/* 6. Tags */}
+          {/* 6. Tags — seeded + custom, unified display */}
           <section className="space-y-2">
             <Label>Category Tags</Label>
             <div className="space-y-2">
@@ -498,6 +498,44 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Input
+                value={customTagInput}
+                onChange={(e) => setCustomTagInput(e.target.value)}
+                placeholder="Add a tag (e.g. Birmingham expansion) and press Enter"
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const val = customTagInput.trim();
+                    if (!val) return;
+                    const id = await ensureCustomTag(val, tags.data ?? []);
+                    if (id) {
+                      setTagIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+                      setCustomTagInput("");
+                      qc.invalidateQueries({ queryKey: ["engagement_tags"] });
+                    }
+                  }
+                }}
+                className="max-w-sm"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const val = customTagInput.trim();
+                  if (!val) return;
+                  const id = await ensureCustomTag(val, tags.data ?? []);
+                  if (id) {
+                    setTagIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+                    setCustomTagInput("");
+                    qc.invalidateQueries({ queryKey: ["engagement_tags"] });
+                  }
+                }}
+              >
+                Add tag
+              </Button>
             </div>
           </section>
 
