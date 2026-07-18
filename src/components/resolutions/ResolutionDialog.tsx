@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { relationshipsQueryOptions } from "@/lib/relationships";
+import { storesQuery, districtsQuery } from "@/lib/locations";
 import {
   CR_ESCALATION_LEVELS,
   CR_PRIORITIES,
@@ -66,6 +67,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
   const [escalationLevel, setEscalationLevel] = useState<CrEscalationLevel | "">("");
 
   const relationships = useQuery({ ...relationshipsQueryOptions("all"), enabled: open });
+  const storesData = useQuery({ ...storesQuery, enabled: open });
+  const districtsData = useQuery({ ...districtsQuery, enabled: open });
+  const [storeSearch, setStoreSearch] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +86,7 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
       setSeverity(((resolution as any).severity as CrSeverity) ?? "");
       setResolutionType(((resolution as any).resolution_type as CrResolutionType) ?? "");
       setEscalationLevel(((resolution as any).escalation_level as CrEscalationLevel) ?? "");
+      setStoreId(((resolution as any).store_id as string) ?? null);
     } else {
       setCustomerLastName("");
       setCustomerFirstInitial("");
@@ -119,6 +124,7 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
         severity: severity || null,
         resolution_type: resolutionType || null,
         escalation_level: escalationLevel || null,
+        store_id: storeId,
         completed_date:
           status === "Resolved" || status === "Closed"
             ? resolution?.completed_date ?? new Date().toISOString().slice(0, 10)
@@ -144,11 +150,10 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
 
       const newId = data.id;
 
-      // Link relationships
-      const links: { resolution_id: string; relationship_id: string; role: "Service Provider" | "Store" }[] = [];
+      // Link Service Provider (Store is now stored on store_id, not the relationship link)
+      const links: { resolution_id: string; relationship_id: string; role: "Service Provider" }[] = [];
       if (serviceProviderId)
         links.push({ resolution_id: newId, relationship_id: serviceProviderId, role: "Service Provider" });
-      if (storeId) links.push({ resolution_id: newId, relationship_id: storeId, role: "Store" });
       if (links.length) {
         const { error: relErr } = await supabase
           .from("customer_resolution_relationships")
@@ -267,6 +272,11 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
               </div>
               <div className="space-y-2">
                 <Label>Store</Label>
+                <Input
+                  placeholder="Search by store # or name…"
+                  value={storeSearch}
+                  onChange={(e) => setStoreSearch(e.target.value)}
+                />
                 <Select
                   value={storeId ?? NONE}
                   onValueChange={(v) => setStoreId(v === NONE ? null : v)}
@@ -276,13 +286,22 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>None</SelectItem>
-                    {(relationships.data ?? [])
-                      .filter((r) => r.type === "store")
-                      .map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
+                    {(storesData.data ?? [])
+                      .filter((s) => {
+                        if (!storeSearch) return true;
+                        const q = storeSearch.toLowerCase();
+                        return s.store_number.toLowerCase().includes(q) || (s.name ?? "").toLowerCase().includes(q);
+                      })
+                      .slice(0, 100)
+                      .map((s) => {
+                        const d = (districtsData.data ?? []).find((x) => x.id === s.district_id);
+                        const label = `Store ${s.store_number}${s.name ? " — " + s.name : s.city ? " — " + s.city : ""}${d ? " — District " + d.name : ""}`;
+                        return (
+                          <SelectItem key={s.id} value={s.id}>
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>

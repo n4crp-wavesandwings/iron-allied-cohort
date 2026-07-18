@@ -30,6 +30,7 @@ import { ContactsList } from "@/components/relationships/ContactsList";
 import { RelationshipSummary } from "@/components/relationships/RelationshipSummary";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
+import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -172,6 +173,9 @@ function RelationshipDetailPage() {
           <ContactsList entityId={r.id} />
         </CardContent>
       </Card>
+
+      {/* Coverage */}
+      <CoveragePanel mode={{ kind: "entity", entityId: r.id }} />
 
       {/* Section 3 — Relationship Timeline */}
       <Card>
