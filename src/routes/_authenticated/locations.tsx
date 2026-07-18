@@ -20,7 +20,13 @@ import {
 } from "@/lib/locations";
 import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
-export const Route = createFileRoute("/_authenticated/locations")({ component: LocationsPage });
+export const Route = createFileRoute("/_authenticated/locations")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: (s.tab as string) || undefined,
+    mine: s.mine ? 1 : 0,
+  }),
+  component: LocationsPage,
+});
 
 type Level = "region" | "market" | "district" | "store";
 
