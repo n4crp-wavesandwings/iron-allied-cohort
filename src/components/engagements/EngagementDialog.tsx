@@ -40,6 +40,11 @@ import {
   orgStoreCoverageQuery,
   orgDistrictCoverageQuery,
 } from "@/lib/locations";
+import {
+  jobSiteVisitTypesQuery,
+  jobSiteChecklistItemsQuery,
+  jobSiteOpportunityItemsQuery,
+} from "@/lib/jobsite";
 
 type ContactPick = { id: string; first_name: string | null; last_name: string | null; name: string | null; entity_id: string | null };
 type EntityPick = { id: string; name: string; type: string };
