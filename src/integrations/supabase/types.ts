@@ -876,6 +876,364 @@ export type Database = {
           },
         ]
       }
+      engagement_organizations: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          entity_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          entity_id: string
+          id?: string
+          org_id?: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          entity_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_organizations_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_organizations_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_outcomes: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      engagement_people: {
+        Row: {
+          contact_id: string
+          created_at: string
+          engagement_id: string
+          id: string
+          org_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          org_id?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_people_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_people_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_programs: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          org_id: string
+          program_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          org_id?: string
+          program_id: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          org_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_programs_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_programs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_stores: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          org_id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          org_id?: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          org_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_stores_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_stores_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_tag_links: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          org_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          org_id?: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          org_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_tag_links_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_tag_links_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "engagement_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_tags: {
+        Row: {
+          active: boolean
+          created_at: string
+          group: string | null
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group?: string | null
+          id?: string
+          name: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      engagement_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      engagements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          engagement_type_id: string | null
+          id: string
+          note: string | null
+          occurred_at: string
+          org_id: string
+          outcome_id: string | null
+          store_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          engagement_type_id?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          org_id?: string
+          outcome_id?: string | null
+          store_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          engagement_type_id?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          org_id?: string
+          outcome_id?: string | null
+          store_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagements_engagement_type_id_fkey"
+            columns: ["engagement_type_id"]
+            isOneToOne: false
+            referencedRelation: "engagement_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagements_outcome_id_fkey"
+            columns: ["outcome_id"]
+            isOneToOne: false
+            referencedRelation: "engagement_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagements_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           active: boolean
@@ -964,12 +1322,14 @@ export type Database = {
       }
       follow_ups: {
         Row: {
+          assigned_to: string | null
           category: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at: string | null
           created_at: string
           created_by: string
           deleted_at: string | null
           due_date: string
+          engagement_id: string | null
           entity_id: string | null
           id: string
           interaction_id: string | null
@@ -981,12 +1341,14 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          assigned_to?: string | null
           category?: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
           due_date: string
+          engagement_id?: string | null
           entity_id?: string | null
           id?: string
           interaction_id?: string | null
@@ -998,12 +1360,14 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          assigned_to?: string | null
           category?: Database["public"]["Enums"]["follow_up_category"] | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
           due_date?: string
+          engagement_id?: string | null
           entity_id?: string | null
           id?: string
           interaction_id?: string | null
@@ -1015,6 +1379,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "follow_ups_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "follow_ups_entity_id_fkey"
             columns: ["entity_id"]
@@ -1355,6 +1726,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      programs: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       regions: {
         Row: {

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.seed_engagement_lookups_for_org() FROM authenticated, anon, PUBLIC;

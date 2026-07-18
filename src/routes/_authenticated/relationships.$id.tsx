@@ -31,6 +31,9 @@ import { RelationshipSummary } from "@/components/relationships/RelationshipSumm
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
+import { engagementsByEntityQuery } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -47,6 +50,8 @@ function RelationshipDetailPage() {
   const [logInteractionOpen, setLogInteractionOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const engagements = useQuery(engagementsByEntityQuery(id));
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -112,11 +117,13 @@ function RelationshipDetailPage() {
           <CardTitle className="text-base">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
-          <Button onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
-          <Button onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
+          <Button onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
+          <Button variant="outline" onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
+          <Button variant="outline" onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
+          <Button variant="outline" onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
         </CardContent>
       </Card>
+
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Section 1 — Basic Information */}
@@ -186,6 +193,27 @@ function RelationshipDetailPage() {
           <RelationshipTimeline entityId={r.id} />
         </CardContent>
       </Card>
+
+      {/* Engagements */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Engagements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {engagements.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{ entityId: r.id }}
+      />
+
 
       {/* Dialogs */}
       <RelationshipDialog open={editOpen} onOpenChange={setEditOpen} relationship={r} />

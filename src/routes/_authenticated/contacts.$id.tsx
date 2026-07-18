@@ -11,6 +11,9 @@ import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
+import { engagementsByContactQuery } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
@@ -96,6 +99,8 @@ function ContactDetailPage() {
   const orgs = useQuery(orgsQuery(id));
 
   const [editOpen, setEditOpen] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const engagements = useQuery(engagementsByContactQuery(id));
 
   // add form state
   const [newPhoneLabel, setNewPhoneLabel] = useState("Mobile");
@@ -477,7 +482,28 @@ function ContactDetailPage() {
 
       <CoveragePanel mode={{ kind: "contact", contactId: c.id }} />
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Engagements</CardTitle>
+          <Button size="sm" onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
+        </CardHeader>
+        <CardContent>
+          {engagements.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
+      />
+
       {c && c.entity_id && (
+
         <ContactDialog
           open={editOpen}
           onOpenChange={setEditOpen}

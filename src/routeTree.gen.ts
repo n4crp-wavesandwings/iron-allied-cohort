@@ -16,8 +16,10 @@ import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedLocationsRouteImport } from './routes/_authenticated/locations'
 import { Route as AuthenticatedResolutionsIndexRouteImport } from './routes/_authenticated/resolutions.index'
 import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
+import { Route as AuthenticatedEngagementsIndexRouteImport } from './routes/_authenticated/engagements.index'
 import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authenticated/resolutions.$id'
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
+import { Route as AuthenticatedEngagementsIdRouteImport } from './routes/_authenticated/engagements.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -56,6 +58,12 @@ const AuthenticatedRelationshipsIndexRoute =
     path: '/relationships/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEngagementsIndexRoute =
+  AuthenticatedEngagementsIndexRouteImport.update({
+    id: '/engagements/',
+    path: '/engagements/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedResolutionsIdRoute =
   AuthenticatedResolutionsIdRouteImport.update({
     id: '/resolutions/$id',
@@ -66,6 +74,12 @@ const AuthenticatedRelationshipsIdRoute =
   AuthenticatedRelationshipsIdRouteImport.update({
     id: '/relationships/$id',
     path: '/relationships/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEngagementsIdRoute =
+  AuthenticatedEngagementsIdRouteImport.update({
+    id: '/engagements/$id',
+    path: '/engagements/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
@@ -80,8 +94,10 @@ export interface FileRoutesByFullPath {
   '/locations': typeof AuthenticatedLocationsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/engagements/': typeof AuthenticatedEngagementsIndexRoute
   '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -91,8 +107,10 @@ export interface FileRoutesByTo {
   '/locations': typeof AuthenticatedLocationsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/engagements': typeof AuthenticatedEngagementsIndexRoute
   '/relationships': typeof AuthenticatedRelationshipsIndexRoute
   '/resolutions': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -104,8 +122,10 @@ export interface FileRoutesById {
   '/_authenticated/locations': typeof AuthenticatedLocationsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
   '/_authenticated/resolutions/$id': typeof AuthenticatedResolutionsIdRoute
+  '/_authenticated/engagements/': typeof AuthenticatedEngagementsIndexRoute
   '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/_authenticated/resolutions/': typeof AuthenticatedResolutionsIndexRoute
 }
@@ -117,8 +137,10 @@ export interface FileRouteTypes {
     | '/locations'
     | '/today'
     | '/contacts/$id'
+    | '/engagements/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
+    | '/engagements/'
     | '/relationships/'
     | '/resolutions/'
   fileRoutesByTo: FileRoutesByTo
@@ -128,8 +150,10 @@ export interface FileRouteTypes {
     | '/locations'
     | '/today'
     | '/contacts/$id'
+    | '/engagements/$id'
     | '/relationships/$id'
     | '/resolutions/$id'
+    | '/engagements'
     | '/relationships'
     | '/resolutions'
   id:
@@ -140,8 +164,10 @@ export interface FileRouteTypes {
     | '/_authenticated/locations'
     | '/_authenticated/today'
     | '/_authenticated/contacts/$id'
+    | '/_authenticated/engagements/$id'
     | '/_authenticated/relationships/$id'
     | '/_authenticated/resolutions/$id'
+    | '/_authenticated/engagements/'
     | '/_authenticated/relationships/'
     | '/_authenticated/resolutions/'
   fileRoutesById: FileRoutesById
@@ -203,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelationshipsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/engagements/': {
+      id: '/_authenticated/engagements/'
+      path: '/engagements'
+      fullPath: '/engagements/'
+      preLoaderRoute: typeof AuthenticatedEngagementsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/resolutions/$id': {
       id: '/_authenticated/resolutions/$id'
       path: '/resolutions/$id'
@@ -215,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/relationships/$id'
       fullPath: '/relationships/$id'
       preLoaderRoute: typeof AuthenticatedRelationshipsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/engagements/$id': {
+      id: '/_authenticated/engagements/$id'
+      path: '/engagements/$id'
+      fullPath: '/engagements/$id'
+      preLoaderRoute: typeof AuthenticatedEngagementsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/$id': {
@@ -231,8 +271,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLocationsRoute: typeof AuthenticatedLocationsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedEngagementsIdRoute: typeof AuthenticatedEngagementsIdRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
   AuthenticatedResolutionsIdRoute: typeof AuthenticatedResolutionsIdRoute
+  AuthenticatedEngagementsIndexRoute: typeof AuthenticatedEngagementsIndexRoute
   AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
   AuthenticatedResolutionsIndexRoute: typeof AuthenticatedResolutionsIndexRoute
 }
@@ -241,8 +283,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLocationsRoute: AuthenticatedLocationsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedEngagementsIdRoute: AuthenticatedEngagementsIdRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
   AuthenticatedResolutionsIdRoute: AuthenticatedResolutionsIdRoute,
+  AuthenticatedEngagementsIndexRoute: AuthenticatedEngagementsIndexRoute,
   AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
   AuthenticatedResolutionsIndexRoute: AuthenticatedResolutionsIndexRoute,
 }
