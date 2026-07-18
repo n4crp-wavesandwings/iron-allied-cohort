@@ -31,6 +31,9 @@ import { RelationshipSummary } from "@/components/relationships/RelationshipSumm
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
+import { engagementsByEntityQuery } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
