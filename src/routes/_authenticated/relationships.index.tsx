@@ -196,10 +196,16 @@ function RelationshipsListPage() {
             Providers, merchants, programs, internal partners. Numbered stores are managed under Locations.
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-1">
-          <Plus className="h-4 w-4" />
-          {createLabel}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setNewProviderOpen(true)} variant="outline" className="gap-1">
+            <Plus className="h-4 w-4" />
+            New Service Provider
+          </Button>
+          <Button onClick={openCreate} className="gap-1">
+            <Plus className="h-4 w-4" />
+            {createLabel}
+          </Button>
+        </div>
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mt-6">
