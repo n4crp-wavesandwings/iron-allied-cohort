@@ -185,6 +185,10 @@ function RelationshipDetailPage() {
       {/* Coverage */}
       <CoveragePanel mode={{ kind: "entity", entityId: r.id }} />
 
+      {/* Programs */}
+      <ProviderPrograms entityId={r.id} onLogEngagement={() => setEngagementOpen(true)} />
+
+
       {/* Section 3 — Relationship Timeline */}
       <Card>
         <CardHeader>
