@@ -59,6 +59,13 @@ function AuthedLayout() {
               >
                 Resolutions
               </Link>
+              <Link
+                to="/locations"
+                className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground"
+                activeProps={{ className: "rounded-md px-3 py-1.5 bg-secondary text-foreground" }}
+              >
+                Locations
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-2">
