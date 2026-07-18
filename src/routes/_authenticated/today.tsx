@@ -8,26 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import {
   openDueFollowUpsQueryOptions,
   recentInteractionsQueryOptions,
   formatDueLabel,
 } from "@/lib/followups";
 import { interactionTypeLabel } from "@/lib/interactions";
-import { relationshipsQueryOptions } from "@/lib/relationships";
 import {
   customerIdentifier,
   priorityBadgeClass,
@@ -35,7 +20,6 @@ import {
 } from "@/lib/resolutions";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
-import { InteractionForm } from "@/components/relationships/InteractionForm";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { recentEngagementsQuery } from "@/lib/engagements";
@@ -52,9 +36,7 @@ function TodayPage() {
 
   const [newRelOpen, setNewRelOpen] = useState(false);
   const [newFollowUpOpen, setNewFollowUpOpen] = useState(false);
-  const [newInteractionOpen, setNewInteractionOpen] = useState(false);
   const [newEngagementOpen, setNewEngagementOpen] = useState(false);
-  const [interactionEntity, setInteractionEntity] = useState<string>("");
   const recentEngagements = useQuery(recentEngagementsQuery);
 
   const markDone = useMutation({
@@ -243,15 +225,6 @@ function TodayPage() {
         <CardContent className="flex flex-wrap gap-2">
           <Button onClick={() => setNewEngagementOpen(true)}>+ New Engagement</Button>
           <Button variant="outline" onClick={() => setNewRelOpen(true)}>+ New Relationship</Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setInteractionEntity("");
-              setNewInteractionOpen(true);
-            }}
-          >
-            + New Interaction
-          </Button>
           <Button variant="outline" onClick={() => setNewFollowUpOpen(true)}>+ New Follow-Up</Button>
         </CardContent>
       </Card>
@@ -259,65 +232,11 @@ function TodayPage() {
       <EngagementDialog open={newEngagementOpen} onOpenChange={setNewEngagementOpen} />
       <RelationshipDialog open={newRelOpen} onOpenChange={setNewRelOpen} />
       <FollowUpDialog open={newFollowUpOpen} onOpenChange={setNewFollowUpOpen} />
-      <NewInteractionDialog
-        open={newInteractionOpen}
-        onOpenChange={setNewInteractionOpen}
-        entityId={interactionEntity}
-        onEntityChange={setInteractionEntity}
-      />
 
     </div>
   );
 }
 
-function NewInteractionDialog({
-  open,
-  onOpenChange,
-  entityId,
-  onEntityChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  entityId: string;
-  onEntityChange: (id: string) => void;
-}) {
-  const relationships = useQuery({
-    ...relationshipsQueryOptions("all"),
-    enabled: open,
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Log Interaction</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <Label>Relationship *</Label>
-          <Select value={entityId} onValueChange={onEntityChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a relationship" />
-            </SelectTrigger>
-            <SelectContent>
-              {(relationships.data ?? []).map((r) => (
-                <SelectItem key={r.id} value={r.id}>
-                  {r.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {entityId ? (
-          <InteractionForm entityId={entityId} />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Select a relationship above to log an interaction.
-          </p>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 type TodayResolutionTask = {
   id: string;
