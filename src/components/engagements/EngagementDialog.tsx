@@ -65,6 +65,60 @@ function todayISO(): string {
   return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
 }
 
+/**
+ * Ensure a custom tag exists for the current org (case-insensitive, trimmed).
+ * Returns the tag id. Reuses existing seeded/custom tags when the name matches.
+ */
+async function ensureCustomTag(
+  rawName: string,
+  existing: { id: string; name: string }[],
+): Promise<string | null> {
+  const name = rawName.trim();
+  if (!name) return null;
+  const norm = name.toLowerCase();
+  const match = existing.find((t) => t.name.trim().toLowerCase() === norm);
+  if (match) return match.id;
+
+  // Resolve current org id
+  const { data: prof, error: pErr } = await supabase
+    .from("profiles")
+    .select("org_id")
+    .maybeSingle();
+  if (pErr || !prof?.org_id) {
+    toast.error("Could not determine your organization.");
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("engagement_tags")
+    .insert({
+      org_id: prof.org_id,
+      name,
+      group: "Custom",
+      is_custom: true,
+      active: true,
+      sort_order: 999,
+    } as any)
+    .select("id")
+    .single();
+
+  if (error) {
+    // Unique-index race: re-fetch by case-insensitive match
+    const { data: existingRow } = await supabase
+      .from("engagement_tags")
+      .select("id,name")
+      .ilike("name", name)
+      .limit(1)
+      .maybeSingle();
+    if (existingRow?.id) return existingRow.id;
+    toast.error(error.message);
+    return null;
+  }
+  return (data as any).id as string;
+}
+
+
+
 export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const qc = useQueryClient();
 
@@ -107,7 +161,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   });
 
   // State
-  const [typeId, setTypeId] = useState<string>("");
+  const [typeIds, setTypeIds] = useState<string[]>([]);
   const [occurredAt, setOccurredAt] = useState(nowLocalInput());
   const [storeId, setStoreId] = useState<string>(defaults?.storeId ?? "");
   const [primaryOrgId, setPrimaryOrgId] = useState<string>(defaults?.entityId ?? "");
@@ -116,6 +170,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const [programIds, setProgramIds] = useState<string[]>([]);
   const [extraStoreIds, setExtraStoreIds] = useState<string[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState("");
   const [outcomeId, setOutcomeId] = useState<string>("");
   const [note, setNote] = useState("");
   const [wantFollowUp, setWantFollowUp] = useState(false);
@@ -126,7 +181,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   // Reset on open
   useEffect(() => {
     if (open) {
-      setTypeId("");
+      setTypeIds([]);
       setOccurredAt(nowLocalInput());
       setStoreId(defaults?.storeId ?? "");
       setPrimaryOrgId(defaults?.entityId ?? "");
@@ -135,6 +190,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       setProgramIds([]);
       setExtraStoreIds([]);
       setTagIds([]);
+      setCustomTagInput("");
       setOutcomeId("");
       setNote("");
       setWantFollowUp(false);
@@ -185,8 +241,11 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
     },
   });
 
-  const selectedType = (types.data ?? []).find((t) => t.id === typeId);
-  const dialogTitle = selectedType ? `New ${selectedType.name}` : "New Engagement";
+  const selectedTypes = (types.data ?? []).filter((t) => typeIds.includes(t.id));
+  const dialogTitle =
+    selectedTypes.length === 0
+      ? "New Engagement"
+      : `New ${selectedTypes.map((t) => t.name).join(" + ")}`;
 
   // Group tags
   const tagsByGroup = useMemo(() => {
@@ -202,7 +261,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!typeId) throw new Error("Select an engagement type.");
+      if (typeIds.length === 0) throw new Error("Select at least one engagement type.");
       const hasAnyLink =
         !!storeId ||
         !!primaryOrgId ||
@@ -214,10 +273,18 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       const { data: user } = await supabase.auth.getUser();
       const userId = user.user?.id;
 
+      // Resolve any pending custom tag typed but not confirmed yet
+      let finalTagIds = [...tagIds];
+      const pending = customTagInput.trim();
+      if (pending) {
+        const resolved = await ensureCustomTag(pending, tags.data ?? []);
+        if (resolved && !finalTagIds.includes(resolved)) finalTagIds.push(resolved);
+      }
+
       const { data: eng, error } = await supabase
         .from("engagements")
         .insert({
-          engagement_type_id: typeId,
+          engagement_type_id: typeIds[0], // keep legacy column populated with first type
           occurred_at: new Date(occurredAt).toISOString(),
           outcome_id: outcomeId || null,
           store_id: storeId || null,
@@ -261,10 +328,18 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
           ) as any,
         );
       }
-      if (tagIds.length) {
+      if (finalTagIds.length) {
         inserts.push(
           supabase.from("engagement_tag_links").insert(
-            tagIds.map((tag_id) => ({ engagement_id: engagementId, tag_id, org_id: orgId })) as any,
+            finalTagIds.map((tag_id) => ({ engagement_id: engagementId, tag_id, org_id: orgId })) as any,
+          ) as any,
+        );
+      }
+      // Engagement type multi-links
+      if (typeIds.length) {
+        inserts.push(
+          supabase.from("engagement_type_links").insert(
+            typeIds.map((engagement_type_id) => ({ engagement_id: engagementId, engagement_type_id, org_id: orgId })) as any,
           ) as any,
         );
       }
@@ -303,23 +378,34 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 1. Type */}
+          {/* 1. Type — multi-select */}
           <section className="space-y-2">
             <Label>Engagement Type *</Label>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {(types.data ?? []).map((t) => (
-                <Button
-                  key={t.id}
-                  type="button"
-                  variant={typeId === t.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTypeId(t.id)}
-                  className="justify-start"
-                >
-                  {t.name}
-                </Button>
-              ))}
+              {(types.data ?? []).map((t) => {
+                const on = typeIds.includes(t.id);
+                return (
+                  <Button
+                    key={t.id}
+                    type="button"
+                    variant={on ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setTypeIds((prev) =>
+                        on ? prev.filter((x) => x !== t.id) : [...prev, t.id],
+                      )
+                    }
+                    className="justify-start"
+                  >
+                    {on ? "✓ " : ""}
+                    {t.name}
+                  </Button>
+                );
+              })}
             </div>
+            {typeIds.length === 0 && (
+              <p className="text-xs text-muted-foreground">Tap one or more types (required).</p>
+            )}
           </section>
 
           {/* When */}
@@ -438,7 +524,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
             </section>
           )}
 
-          {/* 6. Tags */}
+          {/* 6. Tags — seeded + custom, unified display */}
           <section className="space-y-2">
             <Label>Category Tags</Label>
             <div className="space-y-2">
@@ -466,6 +552,44 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Input
+                value={customTagInput}
+                onChange={(e) => setCustomTagInput(e.target.value)}
+                placeholder="Add a tag (e.g. Birmingham expansion) and press Enter"
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const val = customTagInput.trim();
+                    if (!val) return;
+                    const id = await ensureCustomTag(val, tags.data ?? []);
+                    if (id) {
+                      setTagIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+                      setCustomTagInput("");
+                      qc.invalidateQueries({ queryKey: ["engagement_tags"] });
+                    }
+                  }
+                }}
+                className="max-w-sm"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const val = customTagInput.trim();
+                  if (!val) return;
+                  const id = await ensureCustomTag(val, tags.data ?? []);
+                  if (id) {
+                    setTagIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+                    setCustomTagInput("");
+                    qc.invalidateQueries({ queryKey: ["engagement_tags"] });
+                  }
+                }}
+              >
+                Add tag
+              </Button>
             </div>
           </section>
 

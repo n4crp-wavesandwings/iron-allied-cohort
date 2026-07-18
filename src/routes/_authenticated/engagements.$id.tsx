@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { engagementDetailQuery, contactLabel } from "@/lib/engagements";
+import { engagementDetailQuery, contactLabel, engagementTypeLabel } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/engagements/$id")({
   component: EngagementDetail,
@@ -34,11 +34,19 @@ function EngagementDetail() {
 
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{e.type?.name ?? "Engagement"}</Badge>
+          {(e.types?.length ?? 0) > 0 ? (
+            e.types.map((t) =>
+              t.type ? (
+                <Badge key={t.engagement_type_id} variant="secondary">{t.type.name}</Badge>
+              ) : null,
+            )
+          ) : (
+            <Badge variant="secondary">{e.type?.name ?? "Engagement"}</Badge>
+          )}
           {e.outcome && <Badge variant="outline">{e.outcome.name}</Badge>}
         </div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          {e.type?.name ?? "Engagement"}
+          {engagementTypeLabel(e)}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {new Date(e.occurred_at).toLocaleString()}
