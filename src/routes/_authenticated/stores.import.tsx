@@ -273,7 +273,9 @@ function StoresImportPage() {
                     <th className="text-left px-2 py-1.5">Action</th>
                     <th className="text-left px-2 py-1.5">Store #</th>
                     <th className="text-left px-2 py-1.5">Name</th>
+                    <th className="text-left px-2 py-1.5">Address</th>
                     <th className="text-left px-2 py-1.5">City, ST</th>
+                    <th className="text-left px-2 py-1.5">Zip</th>
                     <th className="text-left px-2 py-1.5">Manager</th>
                     <th className="text-left px-2 py-1.5">Note</th>
                   </tr>
@@ -292,9 +294,11 @@ function StoresImportPage() {
                       </td>
                       <td className="px-2 py-1.5 font-mono">{r.storeNumber || "—"}</td>
                       <td className="px-2 py-1.5">{r.name ?? "—"}</td>
+                      <td className="px-2 py-1.5">{r.address ?? "—"}</td>
                       <td className="px-2 py-1.5">
                         {[r.city, r.state].filter(Boolean).join(", ") || "—"}
                       </td>
+                      <td className="px-2 py-1.5">{r.zip ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.store_manager ?? "—"}</td>
                       <td className="px-2 py-1.5 text-muted-foreground">{r.reason ?? ""}</td>
                     </tr>

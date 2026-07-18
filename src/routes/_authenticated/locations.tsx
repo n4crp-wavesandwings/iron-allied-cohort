@@ -249,6 +249,9 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
   const [city, setCity] = useState("");
   const [stateVal, setStateVal] = useState("");
   const [mainPhone, setMainPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zip, setZip] = useState("");
+  const [storeManager, setStoreManager] = useState("");
 
   useMemo(() => {
     if (open) {
@@ -261,6 +264,9 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       setCity(record?.city ?? "");
       setStateVal(record?.state ?? "");
       setMainPhone(record?.main_phone ?? "");
+      setAddress((record as any)?.address ?? "");
+      setZip((record as any)?.zip ?? "");
+      setStoreManager((record as any)?.store_manager ?? "");
     }
   }, [open, record]);
 
@@ -292,6 +298,7 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       if (!storeNumber.trim()) return toast.error("Store number required");
       if (!parentId) return toast.error("Parent district required");
       v.store_number = storeNumber.trim(); v.name = name || null; v.city = city || null; v.state = stateVal || null; v.main_phone = mainPhone || null;
+      v.address = address || null; v.zip = zip || null; v.store_manager = storeManager || null;
       v.district_id = parentId;
     } else {
       if (!name.trim()) return toast.error("Name required");
@@ -336,11 +343,16 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
             <>
               <div className="space-y-2"><Label>Store Number *</Label><Input value={storeNumber} onChange={(e) => setStoreNumber(e.target.value)} /></div>
               <div className="space-y-2"><Label>Store Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2"><Label>City</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2 col-span-2"><Label>City</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
                 <div className="space-y-2"><Label>State</Label><Input value={stateVal} onChange={(e) => setStateVal(e.target.value)} /></div>
               </div>
-              <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label>Zip</Label><Input value={zip} onChange={(e) => setZip(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Main Phone</Label><Input value={mainPhone} onChange={(e) => setMainPhone(e.target.value)} /></div>
+              </div>
+              <div className="space-y-2"><Label>Store Manager</Label><Input value={storeManager} onChange={(e) => setStoreManager(e.target.value)} /></div>
             </>
           ) : (
             <>
