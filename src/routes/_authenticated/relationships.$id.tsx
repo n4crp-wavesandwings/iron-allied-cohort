@@ -34,6 +34,7 @@ import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByEntityQuery } from "@/lib/engagements";
+import { ProviderPrograms } from "@/components/relationships/ProviderPrograms";
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -183,6 +184,10 @@ function RelationshipDetailPage() {
 
       {/* Coverage */}
       <CoveragePanel mode={{ kind: "entity", entityId: r.id }} />
+
+      {/* Programs */}
+      <ProviderPrograms entityId={r.id} onLogEngagement={() => setEngagementOpen(true)} />
+
 
       {/* Section 3 — Relationship Timeline */}
       <Card>
