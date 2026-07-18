@@ -53,7 +53,9 @@ function TodayPage() {
   const [newRelOpen, setNewRelOpen] = useState(false);
   const [newFollowUpOpen, setNewFollowUpOpen] = useState(false);
   const [newInteractionOpen, setNewInteractionOpen] = useState(false);
+  const [newEngagementOpen, setNewEngagementOpen] = useState(false);
   const [interactionEntity, setInteractionEntity] = useState<string>("");
+  const recentEngagements = useQuery(recentEngagementsQuery);
 
   const markDone = useMutation({
     mutationFn: async (id: string) => {
