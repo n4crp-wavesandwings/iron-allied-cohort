@@ -66,6 +66,7 @@ function RelationshipsListPage() {
   const [merchantDialogOpen, setMerchantDialogOpen] = useState(false);
   const [editingMerchant, setEditingMerchant] = useState<MerchantEditable>(null);
   const [deleteMerchantTarget, setDeleteMerchantTarget] = useState<MerchantListRow | null>(null);
+  const [newProviderOpen, setNewProviderOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
