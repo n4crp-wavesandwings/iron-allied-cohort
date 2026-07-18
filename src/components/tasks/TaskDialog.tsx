@@ -182,33 +182,30 @@ export function TaskDialog({ open, onOpenChange, defaults }: Props) {
       const orgId = (prof2 as any)?.org_id;
       if (!orgId) throw new Error("Missing org context");
 
-      const bulks: Promise<any>[] = [];
-      if (contactIds.length)
-        bulks.push(
-          supabase.from("follow_up_people").insert(
-            contactIds.map((cid) => ({ org_id: orgId, follow_up_id: fuId, contact_id: cid })),
-          ),
+      if (contactIds.length) {
+        const { error: e } = await supabase.from("follow_up_people").insert(
+          contactIds.map((cid) => ({ org_id: orgId, follow_up_id: fuId, contact_id: cid })),
         );
-      if (storeIds.length)
-        bulks.push(
-          supabase.from("follow_up_stores").insert(
-            storeIds.map((sid) => ({ org_id: orgId, follow_up_id: fuId, store_id: sid })),
-          ),
+        if (e) throw e;
+      }
+      if (storeIds.length) {
+        const { error: e } = await supabase.from("follow_up_stores").insert(
+          storeIds.map((sid) => ({ org_id: orgId, follow_up_id: fuId, store_id: sid })),
         );
-      if (entityIds.length)
-        bulks.push(
-          supabase.from("follow_up_organizations").insert(
-            entityIds.map((eid) => ({ org_id: orgId, follow_up_id: fuId, entity_id: eid })),
-          ),
+        if (e) throw e;
+      }
+      if (entityIds.length) {
+        const { error: e } = await supabase.from("follow_up_organizations").insert(
+          entityIds.map((eid) => ({ org_id: orgId, follow_up_id: fuId, entity_id: eid })),
         );
-      if (programIds.length)
-        bulks.push(
-          supabase.from("follow_up_programs").insert(
-            programIds.map((pid) => ({ org_id: orgId, follow_up_id: fuId, program_id: pid })),
-          ),
+        if (e) throw e;
+      }
+      if (programIds.length) {
+        const { error: e } = await supabase.from("follow_up_programs").insert(
+          programIds.map((pid) => ({ org_id: orgId, follow_up_id: fuId, program_id: pid })),
         );
-      const results = await Promise.all(bulks);
-      for (const r of results) if (r?.error) throw r.error;
+        if (e) throw e;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
