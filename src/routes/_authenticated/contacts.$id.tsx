@@ -99,6 +99,8 @@ function ContactDetailPage() {
   const orgs = useQuery(orgsQuery(id));
 
   const [editOpen, setEditOpen] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const engagements = useQuery(engagementsByContactQuery(id));
 
   // add form state
   const [newPhoneLabel, setNewPhoneLabel] = useState("Mobile");
