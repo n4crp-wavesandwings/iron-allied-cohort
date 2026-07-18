@@ -117,6 +117,7 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
           .update(payload)
           .eq("id", contact.id);
         if (error) throw error;
+        return contact.id;
       } else {
         const { data: inserted, error } = await supabase
           .from("contacts")
@@ -136,12 +137,17 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
             is_primary: (count ?? 0) === 0,
           });
         }
+        return inserted!.id as string;
       }
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["contacts", entityId] });
       toast.success(isEdit ? "Contact updated" : "Contact added");
-      onOpenChange(false);
+      if (isEdit) {
+        onOpenChange(false);
+      } else {
+        setCreatedId(id);
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
