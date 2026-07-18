@@ -28,6 +28,9 @@ import { RelationshipDialog } from "@/components/relationships/RelationshipDialo
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { recentEngagementsQuery } from "@/lib/engagements";
+import { MyStoresCard } from "@/components/today/MyStoresCard";
+import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
+
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
