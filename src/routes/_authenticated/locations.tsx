@@ -249,6 +249,9 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
   const [city, setCity] = useState("");
   const [stateVal, setStateVal] = useState("");
   const [mainPhone, setMainPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [zip, setZip] = useState("");
+  const [storeManager, setStoreManager] = useState("");
 
   useMemo(() => {
     if (open) {
@@ -261,6 +264,9 @@ function NodeDialog({ open, onOpenChange, level, record, onSave }: {
       setCity(record?.city ?? "");
       setStateVal(record?.state ?? "");
       setMainPhone(record?.main_phone ?? "");
+      setAddress((record as any)?.address ?? "");
+      setZip((record as any)?.zip ?? "");
+      setStoreManager((record as any)?.store_manager ?? "");
     }
   }, [open, record]);
 
