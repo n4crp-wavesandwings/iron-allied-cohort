@@ -2874,7 +2874,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
-          district_id: string
+          district_id: string | null
           id: string
           main_phone: string | null
           name: string | null
@@ -2895,7 +2895,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
-          district_id: string
+          district_id?: string | null
           id?: string
           main_phone?: string | null
           name?: string | null
@@ -2916,7 +2916,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
-          district_id?: string
+          district_id?: string | null
           id?: string
           main_phone?: string | null
           name?: string | null

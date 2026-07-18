@@ -1,0 +1,1 @@
+ALTER TABLE public.stores ALTER COLUMN district_id DROP NOT NULL;
