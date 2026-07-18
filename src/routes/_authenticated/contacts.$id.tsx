@@ -475,6 +475,8 @@ function ContactDetailPage() {
         </CardContent>
       </Card>
 
+      <CoveragePanel mode={{ kind: "contact", contactId: c.id }} />
+
       {c && c.entity_id && (
         <ContactDialog
           open={editOpen}
