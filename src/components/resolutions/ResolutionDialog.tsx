@@ -67,6 +67,9 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
   const [escalationLevel, setEscalationLevel] = useState<CrEscalationLevel | "">("");
 
   const relationships = useQuery({ ...relationshipsQueryOptions("all"), enabled: open });
+  const storesData = useQuery({ ...storesQuery, enabled: open });
+  const districtsData = useQuery({ ...districtsQuery, enabled: open });
+  const [storeSearch, setStoreSearch] = useState("");
 
   useEffect(() => {
     if (!open) return;
