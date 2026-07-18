@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CR_STATUSES, logHistory, type CrStatus, type ResolutionRow } from "@/lib/resolutions";
+import { resolutionStatusesQuery } from "@/lib/resolutionLookups";
+import { logHistory, type ResolutionRow } from "@/lib/resolutions";
 
 interface Props {
   open: boolean;
@@ -26,38 +27,50 @@ interface Props {
   resolution: ResolutionRow;
 }
 
+// Map new status name → legacy enum for back-compat
+function legacyStatus(name?: string): "New" | "In Progress" | "Waiting" | "Resolved" | "Closed" {
+  switch (name) {
+    case "Open": return "New";
+    case "Waiting on Store":
+    case "Waiting on Provider":
+    case "Waiting on Customer": return "Waiting";
+    case "Scheduled Visit":
+    case "Corporate Review": return "In Progress";
+    case "Resolved": return "Resolved";
+    case "Closed": return "Closed";
+    default: return "New";
+  }
+}
+
 export function StatusChangeDialog({ open, onOpenChange, resolution }: Props) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<CrStatus>(resolution.status ?? "New");
+  const statuses = useQuery({ ...resolutionStatusesQuery, enabled: open });
+  const [statusId, setStatusId] = useState<string>((resolution as any).status_id ?? "");
 
   useEffect(() => {
-    if (open) setStatus(resolution.status ?? "New");
-  }, [open, resolution.status]);
+    if (open) setStatusId((resolution as any).status_id ?? "");
+  }, [open, resolution]);
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (status === resolution.status) return;
-      const isClosing = status === "Resolved" || status === "Closed";
-      const payload: {
-        status: CrStatus;
-        completed_date: string | null;
-      } = {
-        status,
-        completed_date: isClosing
-          ? resolution.completed_date ?? new Date().toISOString().slice(0, 10)
-          : null,
-      };
+      const currentId = (resolution as any).status_id ?? null;
+      if (!statusId || statusId === currentId) return;
+      const newName = statuses.data?.find((s) => s.id === statusId)?.name;
       const { error } = await supabase
         .from("customer_resolutions")
-        .update(payload)
+        .update({
+          status_id: statusId,
+          status: legacyStatus(newName),
+        })
         .eq("id", resolution.id);
       if (error) throw error;
+      const oldName = statuses.data?.find((s) => s.id === currentId)?.name ?? resolution.status ?? "—";
       await logHistory(
         resolution.id,
         "status_changed",
-        `Status changed: ${resolution.status} → ${status}`,
-        resolution.status,
-        status,
+        `Status changed: ${oldName} → ${newName}`,
+        oldName,
+        newName,
       );
     },
     onSuccess: () => {
@@ -77,14 +90,14 @@ export function StatusChangeDialog({ open, onOpenChange, resolution }: Props) {
         <div className="space-y-3">
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as CrStatus)}>
+            <Select value={statusId} onValueChange={setStatusId}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select…" />
               </SelectTrigger>
               <SelectContent>
-                {CR_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
+                {(statuses.data ?? []).map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
                   </SelectItem>
                 ))}
               </SelectContent>
