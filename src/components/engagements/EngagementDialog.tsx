@@ -56,6 +56,7 @@ interface Props {
     entityId?: string;
     storeId?: string;
     contactId?: string;
+    resolutionId?: string;
   };
 }
 
