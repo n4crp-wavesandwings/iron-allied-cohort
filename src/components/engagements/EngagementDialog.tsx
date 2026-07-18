@@ -677,6 +677,177 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
             </div>
           </section>
 
+          {/* Job-Site Visit section — only visible when Job-Site Visit type is selected */}
+          {isJobSite && (
+            <section className="space-y-4 rounded-md border border-primary/40 bg-primary/5 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-wide">Job-Site Visit</h3>
+                <span className="text-xs text-muted-foreground">
+                  Minimal customer data only
+                </span>
+              </div>
+
+              {/* Visit Type */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Visit Type</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(jsVisitTypes.data ?? []).map((v) => (
+                    <Button
+                      key={v.id}
+                      type="button"
+                      size="sm"
+                      variant={jsVisitTypeId === v.id ? "default" : "outline"}
+                      onClick={() => setJsVisitTypeId(jsVisitTypeId === v.id ? "" : v.id)}
+                    >
+                      {v.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Program + Provider */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Program</Label>
+                  <Combobox
+                    value={jsProgramId}
+                    onChange={setJsProgramId}
+                    placeholder="Select program…"
+                    options={(programs.data ?? []).map((p) => ({ value: p.id, label: p.name }))}
+                    allowClear
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Service Provider</Label>
+                  <Combobox
+                    value={jsProviderId}
+                    onChange={setJsProviderId}
+                    placeholder="Search organizations…"
+                    options={(entities.data ?? [])
+                      .filter((e) => /provider/i.test(e.type) || true)
+                      .map((e) => ({ value: e.id, label: `${e.name} (${e.type})` }))}
+                    allowClear
+                  />
+                </div>
+              </div>
+
+              {/* Customer (minimal) */}
+              <div className="space-y-2">
+                <Label className="text-xs">Customer (minimal — no PII)</Label>
+                <div className="grid gap-2 sm:grid-cols-4">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">First Initial</Label>
+                    <Input
+                      maxLength={1}
+                      value={jsCustFirstInitial}
+                      onChange={(e) => setJsCustFirstInitial(e.target.value.slice(0, 1).toUpperCase())}
+                      placeholder="J"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-3">
+                    <Label className="text-[10px] text-muted-foreground">Last Name</Label>
+                    <Input
+                      value={jsCustLastName}
+                      onChange={(e) => setJsCustLastName(e.target.value)}
+                      placeholder="Smith"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-[10px] text-muted-foreground">PO #</Label>
+                    <Input value={jsPoNumber} onChange={(e) => setJsPoNumber(e.target.value)} />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-[10px] text-muted-foreground">Order #</Label>
+                    <Input value={jsOrderNumber} onChange={(e) => setJsOrderNumber(e.target.value)} />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Only first initial + last name, PO #, and order # are captured. No full name, address, phone, email, or payment.
+                </p>
+              </div>
+
+              {/* Checklists */}
+              {(["Compliance", "Customer Experience"] as const).map((grp) => {
+                const items = (jsChecklist.data ?? []).filter((c) => c.group === grp);
+                if (!items.length) return null;
+                return (
+                  <div key={grp} className="space-y-1.5">
+                    <Label className="text-xs">{grp}</Label>
+                    <div className="grid gap-1.5 sm:grid-cols-2">
+                      {items.map((c) => {
+                        const on = jsCheckedIds.includes(c.id);
+                        return (
+                          <label
+                            key={c.id}
+                            className="flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm hover:bg-muted/40"
+                          >
+                            <Checkbox
+                              checked={on}
+                              onCheckedChange={(v) =>
+                                setJsCheckedIds((prev) =>
+                                  v ? [...prev, c.id] : prev.filter((x) => x !== c.id),
+                                )
+                              }
+                            />
+                            <span>{c.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Opportunities */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Home Improvement Opportunities</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(jsOpportunities.data ?? []).map((o) => {
+                    const on = jsOppIds.includes(o.id);
+                    return (
+                      <Badge
+                        key={o.id}
+                        variant={on ? "default" : "outline"}
+                        className="cursor-pointer text-xs"
+                        onClick={() =>
+                          setJsOppIds((prev) =>
+                            on ? prev.filter((x) => x !== o.id) : [...prev, o.id],
+                          )
+                        }
+                      >
+                        {on ? "✓ " : "+ "}
+                        {o.name}
+                      </Badge>
+                    );
+                  })}
+                </div>
+                {jsOppIds.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {jsOppIds.map((oid) => {
+                      const item = (jsOpportunities.data ?? []).find((x) => x.id === oid);
+                      if (!item) return null;
+                      return (
+                        <div key={oid} className="flex items-center gap-2">
+                          <span className="w-28 shrink-0 text-xs text-muted-foreground">
+                            {item.name}
+                          </span>
+                          <Input
+                            value={jsOppNotes[oid] ?? ""}
+                            onChange={(e) =>
+                              setJsOppNotes((prev) => ({ ...prev, [oid]: e.target.value }))
+                            }
+                            placeholder="Optional note"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* 7. Outcome */}
           <section className="space-y-2">
             <Label>Outcome</Label>
