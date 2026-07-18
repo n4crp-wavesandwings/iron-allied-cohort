@@ -941,7 +941,9 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
           open={inlinePersonOpen}
           onOpenChange={setInlinePersonOpen}
           defaultEntityId={primaryOrgId}
+          defaultStoreId={storeId}
           entities={entities.data ?? []}
+          stores={stores.data ?? []}
           onCreated={(id) => {
             setPeopleIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
             qc.invalidateQueries({ queryKey: ["contacts", "all"] });
@@ -1091,18 +1093,23 @@ function InlinePersonDialog({
   open,
   onOpenChange,
   defaultEntityId,
+  defaultStoreId,
   entities,
+  stores,
   onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultEntityId: string;
+  defaultStoreId: string;
   entities: EntityPick[];
+  stores: { id: string; store_number: string; name: string | null }[];
   onCreated: (id: string) => void;
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [entityId, setEntityId] = useState(defaultEntityId);
+  const [storeId, setStoreId] = useState(defaultStoreId);
   const [jobTitle, setJobTitle] = useState("");
   const [mobile, setMobile] = useState("");
 
@@ -1111,19 +1118,27 @@ function InlinePersonDialog({
       setFirstName("");
       setLastName("");
       setEntityId(defaultEntityId);
+      setStoreId(defaultStoreId);
       setJobTitle("");
       setMobile("");
     }
-  }, [open, defaultEntityId]);
+  }, [open, defaultEntityId, defaultStoreId]);
 
   const create = useMutation({
     mutationFn: async () => {
       if (!firstName.trim() && !lastName.trim()) throw new Error("Enter a name.");
-      if (!entityId) throw new Error("Select an organization.");
+      // Contact is a reusable person record. entity_id is optional (portable
+      // across stores/orgs); store assignment is expressed via
+      // contact_store_coverage so transfers preserve the person.
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("org_id")
+        .maybeSingle();
+      const orgId = (prof as any)?.org_id as string | undefined;
       const { data, error } = await supabase
         .from("contacts")
         .insert({
-          entity_id: entityId,
+          entity_id: entityId || null,
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
           name: `${firstName.trim()} ${lastName.trim()}`.trim(),
@@ -1134,7 +1149,18 @@ function InlinePersonDialog({
         .select("id")
         .single();
       if (error) throw error;
-      return (data as any).id as string;
+      const contactId = (data as any).id as string;
+      if (storeId && orgId) {
+        const today = new Date().toISOString().slice(0, 10);
+        await supabase.from("contact_store_coverage").insert({
+          org_id: orgId,
+          contact_id: contactId,
+          store_id: storeId,
+          is_current: true,
+          start_date: today,
+        } as any);
+      }
+      return contactId;
     },
     onSuccess: (id) => {
       toast.success("Person added");
@@ -1162,13 +1188,33 @@ function InlinePersonDialog({
             </div>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Organization *</Label>
+            <Label className="text-xs">Organization (optional)</Label>
             <Combobox
               value={entityId}
               onChange={setEntityId}
-              placeholder="Select organization…"
+              placeholder="No organization"
+              allowClear
               options={entities.map((e) => ({ value: e.id, label: `${e.name} (${e.type})` }))}
             />
+            <p className="text-[11px] text-muted-foreground">
+              Leave blank for store staff — assign them to a numbered store below.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Assign to store (optional)</Label>
+            <Combobox
+              value={storeId}
+              onChange={setStoreId}
+              placeholder="No store"
+              allowClear
+              options={stores.map((s) => ({
+                value: s.id,
+                label: `#${s.store_number}${s.name ? " — " + s.name : ""}`,
+              }))}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              This person can be reassigned to a different store later without losing history.
+            </p>
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Role / Job title</Label>

@@ -218,24 +218,33 @@ export type Database = {
           contact_id: string
           created_at: string
           created_by: string | null
+          end_date: string | null
           id: string
+          is_current: boolean
           org_id: string
+          start_date: string | null
           store_id: string
         }
         Insert: {
           contact_id: string
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           id?: string
+          is_current?: boolean
           org_id?: string
+          start_date?: string | null
           store_id: string
         }
         Update: {
           contact_id?: string
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           id?: string
+          is_current?: boolean
           org_id?: string
+          start_date?: string | null
           store_id?: string
         }
         Relationships: [
@@ -2568,6 +2577,50 @@ export type Database = {
           },
         ]
       }
+      retailers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retailers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           city: string | null
@@ -2580,6 +2633,7 @@ export type Database = {
           name: string | null
           notes: string | null
           org_id: string
+          retailer_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["location_status"]
           store_number: string
@@ -2597,6 +2651,7 @@ export type Database = {
           name?: string | null
           notes?: string | null
           org_id?: string
+          retailer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["location_status"]
           store_number: string
@@ -2614,6 +2669,7 @@ export type Database = {
           name?: string | null
           notes?: string | null
           org_id?: string
+          retailer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["location_status"]
           store_number?: string
@@ -2633,6 +2689,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_retailer_id_fkey"
+            columns: ["retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
             referencedColumns: ["id"]
           },
         ]
