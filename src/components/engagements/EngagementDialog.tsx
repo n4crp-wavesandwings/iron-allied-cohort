@@ -460,6 +460,10 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["engagements"] });
       qc.invalidateQueries({ queryKey: ["follow_ups"] });
+      if (defaults?.resolutionId) {
+        qc.invalidateQueries({ queryKey: ["resolutions", defaults.resolutionId] });
+        qc.invalidateQueries({ queryKey: ["resolutions", "list"] });
+      }
       toast.success("Engagement saved");
       onOpenChange(false);
     },
