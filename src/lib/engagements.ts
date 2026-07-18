@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type EngagementType = { id: string; name: string; icon: string | null; sort_order: number; active: boolean };
 export type EngagementOutcome = { id: string; name: string; sort_order: number; active: boolean };
-export type EngagementTag = { id: string; name: string; group: string | null; sort_order: number; active: boolean };
+export type EngagementTag = { id: string; name: string; group: string | null; sort_order: number; active: boolean; is_custom?: boolean };
 export type Program = { id: string; name: string; description: string | null; active: boolean; sort_order: number };
 
 export type EngagementRow = {
