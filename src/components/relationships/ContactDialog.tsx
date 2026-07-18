@@ -81,6 +81,7 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
       setBestTime(contact?.best_time_to_contact ?? "");
       setNotes(contact?.note ?? "");
       setActive(contact?.active ?? true);
+      setCreatedId(null);
     }
   }, [open, contact]);
 
