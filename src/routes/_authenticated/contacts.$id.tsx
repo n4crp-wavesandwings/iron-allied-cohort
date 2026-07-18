@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
+import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
