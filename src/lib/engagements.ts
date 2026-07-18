@@ -101,19 +101,6 @@ const engagementSelect = `
   job_site_visit:job_site_visits(id, visit_type:job_site_visit_types(id,name))
 `;
 
-const engagementSelect = `
-  *,
-  type:engagement_types(id,name),
-  types:engagement_type_links(engagement_type_id, type:engagement_types(id,name)),
-  outcome:engagement_outcomes(id,name),
-  store:stores(id,store_number,name),
-  people:engagement_people(contact_id, contact:contacts(id,first_name,last_name,name)),
-  organizations:engagement_organizations(entity_id, entity:entities(id,name)),
-  programs:engagement_programs(program_id, program:programs(id,name)),
-  stores:engagement_stores(store_id, store:stores(id,store_number,name)),
-  tags:engagement_tag_links(tag_id, tag:engagement_tags(id,name,"group",is_custom)),
-  follow_ups(id,title,due_date,status)
-`;
 
 export const recentEngagementsQuery = queryOptions({
   queryKey: ["engagements", "recent"],
