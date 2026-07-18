@@ -170,8 +170,7 @@ function StoresImportPage() {
             skipped++;
             continue;
           }
-          const { error } = await supabase
-            .from("stores")
+          const { error } = await (supabase.from("stores") as any)
             .update(patch)
             .eq("id", row.existingId);
           if (error) throw error;
