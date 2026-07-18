@@ -107,7 +107,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   });
 
   // State
-  const [typeId, setTypeId] = useState<string>("");
+  const [typeIds, setTypeIds] = useState<string[]>([]);
   const [occurredAt, setOccurredAt] = useState(nowLocalInput());
   const [storeId, setStoreId] = useState<string>(defaults?.storeId ?? "");
   const [primaryOrgId, setPrimaryOrgId] = useState<string>(defaults?.entityId ?? "");
@@ -116,6 +116,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   const [programIds, setProgramIds] = useState<string[]>([]);
   const [extraStoreIds, setExtraStoreIds] = useState<string[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState("");
   const [outcomeId, setOutcomeId] = useState<string>("");
   const [note, setNote] = useState("");
   const [wantFollowUp, setWantFollowUp] = useState(false);
@@ -126,7 +127,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
   // Reset on open
   useEffect(() => {
     if (open) {
-      setTypeId("");
+      setTypeIds([]);
       setOccurredAt(nowLocalInput());
       setStoreId(defaults?.storeId ?? "");
       setPrimaryOrgId(defaults?.entityId ?? "");
@@ -135,6 +136,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       setProgramIds([]);
       setExtraStoreIds([]);
       setTagIds([]);
+      setCustomTagInput("");
       setOutcomeId("");
       setNote("");
       setWantFollowUp(false);
