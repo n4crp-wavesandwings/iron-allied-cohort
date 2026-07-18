@@ -31,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/locations")({
 type Level = "region" | "market" | "district" | "store";
 
 function LocationsPage() {
+  const search = Route.useSearch();
+  const initialTab = search.tab === "stores" ? "stores" : search.tab === "markets" ? "markets" : search.tab === "districts" ? "districts" : "regions";
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
@@ -42,7 +44,7 @@ function LocationsPage() {
           <Link to="/stores/import"><Upload className="h-4 w-4 mr-1" />Import Stores</Link>
         </Button>
       </div>
-      <Tabs defaultValue="regions">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="regions">Regions</TabsTrigger>
           <TabsTrigger value="markets">Markets</TabsTrigger>
@@ -52,10 +54,11 @@ function LocationsPage() {
         <TabsContent value="regions"><RegionsTab /></TabsContent>
         <TabsContent value="markets"><MarketsTab /></TabsContent>
         <TabsContent value="districts"><DistrictsTab /></TabsContent>
-        <TabsContent value="stores"><StoresTab /></TabsContent>
+        <TabsContent value="stores"><StoresTab initialMine={search.mine === 1} /></TabsContent>
       </Tabs>
     </div>
   );
+
 }
 
 function useCrud(table: string, invalidate: string[]) {
