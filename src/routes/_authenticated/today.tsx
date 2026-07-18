@@ -36,6 +36,9 @@ import {
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
 import { InteractionForm } from "@/components/relationships/InteractionForm";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
+import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
+import { recentEngagementsQuery } from "@/lib/engagements";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
