@@ -612,6 +612,16 @@ function ResolutionDetail() {
         entityId={provider?.relationship_id ?? store?.relationship_id ?? null}
       />
 
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{
+          resolutionId: id,
+          entityId: provider?.relationship_id ?? undefined,
+          storeId: store?.relationship_id ?? undefined,
+        }}
+      />
+
       <AlertDialog open={markResolvedOpen} onOpenChange={setMarkResolvedOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
