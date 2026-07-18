@@ -482,7 +482,28 @@ function ContactDetailPage() {
 
       <CoveragePanel mode={{ kind: "contact", contactId: c.id }} />
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Engagements</CardTitle>
+          <Button size="sm" onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
+        </CardHeader>
+        <CardContent>
+          {engagements.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (
+            <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <EngagementDialog
+        open={engagementOpen}
+        onOpenChange={setEngagementOpen}
+        defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
+      />
+
       {c && c.entity_id && (
+
         <ContactDialog
           open={editOpen}
           onOpenChange={setEditOpen}
