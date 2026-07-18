@@ -187,8 +187,11 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
     },
   });
 
-  const selectedType = (types.data ?? []).find((t) => t.id === typeId);
-  const dialogTitle = selectedType ? `New ${selectedType.name}` : "New Engagement";
+  const selectedTypes = (types.data ?? []).filter((t) => typeIds.includes(t.id));
+  const dialogTitle =
+    selectedTypes.length === 0
+      ? "New Engagement"
+      : `New ${selectedTypes.map((t) => t.name).join(" + ")}`;
 
   // Group tags
   const tagsByGroup = useMemo(() => {
