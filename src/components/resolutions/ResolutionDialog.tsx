@@ -147,11 +147,10 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
 
       const newId = data.id;
 
-      // Link relationships
-      const links: { resolution_id: string; relationship_id: string; role: "Service Provider" | "Store" }[] = [];
+      // Link Service Provider (Store is now stored on store_id, not the relationship link)
+      const links: { resolution_id: string; relationship_id: string; role: "Service Provider" }[] = [];
       if (serviceProviderId)
         links.push({ resolution_id: newId, relationship_id: serviceProviderId, role: "Service Provider" });
-      if (storeId) links.push({ resolution_id: newId, relationship_id: storeId, role: "Store" });
       if (links.length) {
         const { error: relErr } = await supabase
           .from("customer_resolution_relationships")
