@@ -274,10 +274,18 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
           ) as any,
         );
       }
-      if (tagIds.length) {
+      if (finalTagIds.length) {
         inserts.push(
           supabase.from("engagement_tag_links").insert(
-            tagIds.map((tag_id) => ({ engagement_id: engagementId, tag_id, org_id: orgId })) as any,
+            finalTagIds.map((tag_id) => ({ engagement_id: engagementId, tag_id, org_id: orgId })) as any,
+          ) as any,
+        );
+      }
+      // Engagement type multi-links
+      if (typeIds.length) {
+        inserts.push(
+          supabase.from("engagement_type_links").insert(
+            typeIds.map((engagement_type_id) => ({ engagement_id: engagementId, engagement_type_id, org_id: orgId })) as any,
           ) as any,
         );
       }
