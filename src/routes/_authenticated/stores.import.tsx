@@ -294,9 +294,11 @@ function StoresImportPage() {
                       </td>
                       <td className="px-2 py-1.5 font-mono">{r.storeNumber || "—"}</td>
                       <td className="px-2 py-1.5">{r.name ?? "—"}</td>
+                      <td className="px-2 py-1.5">{r.address ?? "—"}</td>
                       <td className="px-2 py-1.5">
                         {[r.city, r.state].filter(Boolean).join(", ") || "—"}
                       </td>
+                      <td className="px-2 py-1.5">{r.zip ?? "—"}</td>
                       <td className="px-2 py-1.5">{r.store_manager ?? "—"}</td>
                       <td className="px-2 py-1.5 text-muted-foreground">{r.reason ?? ""}</td>
                     </tr>
