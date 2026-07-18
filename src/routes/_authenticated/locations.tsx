@@ -24,9 +24,14 @@ type Level = "region" | "market" | "district" | "store";
 function LocationsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Locations</h1>
-        <p className="text-sm text-muted-foreground">Region → Market → District → Store hierarchy. All records are editable and re-parentable.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Locations</h1>
+          <p className="text-sm text-muted-foreground">Region → Market → District → Store hierarchy. All records are editable and re-parentable.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/stores/import"><Upload className="h-4 w-4 mr-1" />Import Stores</Link>
+        </Button>
       </div>
       <Tabs defaultValue="regions">
         <TabsList>
