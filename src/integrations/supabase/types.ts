@@ -2145,6 +2145,72 @@ export type Database = {
           },
         ]
       }
+      program_merchants: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_date: string | null
+          id: string
+          is_current: boolean
+          merchant_id: string
+          notes: string | null
+          org_id: string
+          program_id: string
+          role: string
+          start_date: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          merchant_id: string
+          notes?: string | null
+          org_id?: string
+          program_id: string
+          role: string
+          start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          merchant_id?: string
+          notes?: string | null
+          org_id?: string
+          program_id?: string
+          role?: string
+          start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_merchants_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           active: boolean
@@ -2154,8 +2220,12 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          notes: string | null
           org_id: string
+          parent_program_id: string | null
           sort_order: number
+          status: string
+          sub_category: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -2167,8 +2237,12 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          notes?: string | null
           org_id?: string
+          parent_program_id?: string | null
           sort_order?: number
+          status?: string
+          sub_category?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2180,12 +2254,24 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          notes?: string | null
           org_id?: string
+          parent_program_id?: string | null
           sort_order?: number
+          status?: string
+          sub_category?: string | null
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "programs_parent_program_id_fkey"
+            columns: ["parent_program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       regions: {
         Row: {
