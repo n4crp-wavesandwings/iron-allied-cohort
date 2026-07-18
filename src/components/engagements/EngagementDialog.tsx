@@ -277,6 +277,12 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       ? "New Engagement"
       : `New ${selectedTypes.map((t) => t.name).join(" + ")}`;
 
+  // Job-Site Visit is chosen if any selected engagement type name matches
+  const isJobSite = useMemo(
+    () => selectedTypes.some((t) => /job[-\s]?site/i.test(t.name)),
+    [selectedTypes],
+  );
+
   // Group tags
   const tagsByGroup = useMemo(() => {
     const m = new Map<string, typeof tags.data>();
