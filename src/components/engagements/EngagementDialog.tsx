@@ -207,7 +207,7 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!typeId) throw new Error("Select an engagement type.");
+      if (typeIds.length === 0) throw new Error("Select at least one engagement type.");
       const hasAnyLink =
         !!storeId ||
         !!primaryOrgId ||
@@ -219,10 +219,18 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
       const { data: user } = await supabase.auth.getUser();
       const userId = user.user?.id;
 
+      // Resolve any pending custom tag typed but not confirmed yet
+      let finalTagIds = [...tagIds];
+      const pending = customTagInput.trim();
+      if (pending) {
+        const resolved = await ensureCustomTag(pending, tags.data ?? []);
+        if (resolved && !finalTagIds.includes(resolved)) finalTagIds.push(resolved);
+      }
+
       const { data: eng, error } = await supabase
         .from("engagements")
         .insert({
-          engagement_type_id: typeId,
+          engagement_type_id: typeIds[0], // keep legacy column populated with first type
           occurred_at: new Date(occurredAt).toISOString(),
           outcome_id: outcomeId || null,
           store_id: storeId || null,
