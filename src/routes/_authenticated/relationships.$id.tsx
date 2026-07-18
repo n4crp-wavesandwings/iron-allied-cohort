@@ -174,6 +174,9 @@ function RelationshipDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Coverage */}
+      <CoveragePanel mode={{ kind: "entity", entityId: r.id }} />
+
       {/* Section 3 — Relationship Timeline */}
       <Card>
         <CardHeader>
