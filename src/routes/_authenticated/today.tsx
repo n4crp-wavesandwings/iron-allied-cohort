@@ -237,54 +237,6 @@ function TodayPage() {
   );
 }
 
-function NewInteractionDialog({
-  open,
-  onOpenChange,
-  entityId,
-  onEntityChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  entityId: string;
-  onEntityChange: (id: string) => void;
-}) {
-  const relationships = useQuery({
-    ...relationshipsQueryOptions("all"),
-    enabled: open,
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Log Interaction</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <Label>Relationship *</Label>
-          <Select value={entityId} onValueChange={onEntityChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a relationship" />
-            </SelectTrigger>
-            <SelectContent>
-              {(relationships.data ?? []).map((r) => (
-                <SelectItem key={r.id} value={r.id}>
-                  {r.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {entityId ? (
-          <InteractionForm entityId={entityId} />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Select a relationship above to log an interaction.
-          </p>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 type TodayResolutionTask = {
   id: string;
