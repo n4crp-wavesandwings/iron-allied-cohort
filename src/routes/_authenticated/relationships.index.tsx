@@ -191,7 +191,7 @@ function RelationshipsListPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Relationships</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Stores, providers, merchants, programs, internal partners.
+            Providers, merchants, programs, internal partners. Numbered stores are managed under Locations.
           </p>
         </div>
         <Button onClick={openCreate} className="gap-1">
