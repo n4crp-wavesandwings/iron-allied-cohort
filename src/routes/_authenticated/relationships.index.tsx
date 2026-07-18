@@ -456,6 +456,8 @@ function RelationshipsListPage() {
         contact={editingMerchant}
       />
 
+      <NewProviderDialog open={newProviderOpen} onOpenChange={setNewProviderOpen} />
+
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
