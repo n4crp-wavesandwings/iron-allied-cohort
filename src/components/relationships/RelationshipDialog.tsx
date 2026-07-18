@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -25,11 +25,14 @@ import {
   ENTITY_COMM_METHODS,
   RELATIONSHIP_TYPES,
   STATUS_OPTIONS,
+  typeLabel,
   type EntityCommMethod,
   type EntityRow,
   type EntityType,
   type StatusOption,
 } from "@/lib/relationships";
+import { organizationTypesQuery } from "@/lib/locations";
+import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
 interface Props {
   open: boolean;
@@ -40,222 +43,247 @@ interface Props {
 export function RelationshipDialog({ open, onOpenChange, relationship }: Props) {
   const isEdit = !!relationship;
   const queryClient = useQueryClient();
+  const { data: orgTypes = [] } = useQuery(organizationTypesQuery);
 
   const [type, setType] = useState<EntityType | "">("");
+  const [orgType, setOrgType] = useState<string>("");
   const [name, setName] = useState("");
-  const [status, setStatus] = useState<StatusOption | "">("");
-  const [district, setDistrict] = useState("");
-  const [notes, setNotes] = useState("");
   const [legalName, setLegalName] = useState("");
-  const [dbaName, setDbaName] = useState("");
-  const [territory, setTerritory] = useState("");
-  const [primaryLocation, setPrimaryLocation] = useState("");
+  const [status, setStatus] = useState<StatusOption | "">("");
   const [active, setActive] = useState(true);
   const [website, setWebsite] = useState("");
   const [prefComm, setPrefComm] = useState<EntityCommMethod | "">("");
   const [internalRef, setInternalRef] = useState("");
+  const [notes, setNotes] = useState("");
+
+  // Two-step create: after basic save, show CoveragePanel targeting the new id
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setType(relationship?.type ?? "");
+      setOrgType((relationship as any)?.organization_type ?? "");
       setName(relationship?.name ?? "");
-      setStatus((relationship?.status as StatusOption) ?? "");
-      setDistrict(relationship?.district ?? "");
-      setNotes(relationship?.notes ?? "");
       setLegalName((relationship as any)?.legal_name ?? "");
-      setDbaName((relationship as any)?.dba_name ?? "");
-      setTerritory((relationship as any)?.territory ?? "");
-      setPrimaryLocation((relationship as any)?.primary_location ?? "");
+      setStatus((relationship?.status as StatusOption) ?? "");
       setActive((relationship as any)?.active ?? true);
       setWebsite((relationship as any)?.website ?? "");
       setPrefComm(((relationship as any)?.preferred_communication_method as EntityCommMethod) ?? "");
       setInternalRef((relationship as any)?.internal_reference_number ?? "");
+      setNotes(relationship?.notes ?? "");
+      setCreatedId(null);
     }
   }, [open, relationship]);
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!type || !name.trim() || !status) {
-        throw new Error("Relationship Type, Name, and Status are required.");
+        throw new Error("Type, Name, and Status are required.");
       }
-      const payload = {
-        type: type as EntityType,
+      const payload: any = {
+        type,
         name: name.trim(),
         status,
-        district: district.trim() || null,
-        notes: notes.trim() || null,
         legal_name: legalName.trim() || null,
-        dba_name: dbaName.trim() || null,
-        territory: territory.trim() || null,
-        primary_location: primaryLocation.trim() || null,
+        organization_type: orgType || null,
         active,
         website: website.trim() || null,
         preferred_communication_method: prefComm || null,
         internal_reference_number: internalRef.trim() || null,
+        notes: notes.trim() || null,
       };
       if (isEdit && relationship) {
-        const { error } = await supabase
-          .from("entities")
-          .update(payload)
-          .eq("id", relationship.id);
+        const { error } = await supabase.from("entities").update(payload).eq("id", relationship.id);
         if (error) throw error;
+        return relationship.id;
       } else {
-        const { error } = await supabase.from("entities").insert(payload);
+        const { data, error } = await supabase
+          .from("entities")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        return data!.id as string;
       }
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["relationships"] });
       toast.success(isEdit ? "Relationship updated" : "Relationship created");
-      onOpenChange(false);
+      if (isEdit) {
+        onOpenChange(false);
+      } else {
+        setCreatedId(id);
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const dialogTitle = isEdit
+    ? "Edit Relationship"
+    : createdId
+      ? `Coverage — ${name}`
+      : type
+        ? `New ${orgType || typeLabel(type as EntityType)}`
+        : "New Relationship";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Relationship" : "New Relationship"}</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            mutation.mutate();
-          }}
-        >
-          <div className="space-y-2">
-            <Label>Relationship Type *</Label>
-            <Select value={type} onValueChange={(v) => setType(v as EntityType)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {RELATIONSHIP_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+        {createdId ? (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Assign coverage now, or skip and add it later from the relationship page.
+            </p>
+            <CoveragePanel mode={{ kind: "entity", entityId: createdId }} />
+            <DialogFooter>
+              <Button onClick={() => onOpenChange(false)}>Done</Button>
+            </DialogFooter>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="legal_name">Legal Name</Label>
-              <Input id="legal_name" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
+        ) : (
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutation.mutate();
+            }}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Relationship Type *</Label>
+                <Select value={type} onValueChange={(v) => setType(v as EntityType)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Organization Type</Label>
+                <Select value={orgType} onValueChange={setOrgType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {orgTypes.map((t) => (
+                      <SelectItem key={t.id} value={t.name}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="dba_name">DBA / Common Name</Label>
-              <Input id="dba_name" value={dbaName} onChange={(e) => setDbaName(e.target.value)} />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name * (organization display name)</Label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="legal_name">Legal Name</Label>
+                <Input id="legal_name" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Status *</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as StatusOption)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Status *</Label>
+                <Select value={status} onValueChange={(v) => setStatus(v as StatusOption)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end gap-2 pb-2">
+                <Checkbox id="rel_active" checked={active} onCheckedChange={(v) => setActive(v === true)} />
+                <Label htmlFor="rel_active" className="cursor-pointer">
+                  Active
+                </Label>
+              </div>
             </div>
-            <div className="flex items-end gap-2 pb-2">
-              <Checkbox
-                id="rel_active"
-                checked={active}
-                onCheckedChange={(v) => setActive(v === true)}
-              />
-              <Label htmlFor="rel_active" className="cursor-pointer">
-                Active
-              </Label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Preferred Communication Method</Label>
+                <Select value={prefComm} onValueChange={(v) => setPrefComm(v as EntityCommMethod)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ENTITY_COMM_METHODS.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+
             <div className="space-y-2">
-              <Label htmlFor="district">District</Label>
-              <Input id="district" value={district} onChange={(e) => setDistrict(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="territory">Territory / Market</Label>
-              <Input id="territory" value={territory} onChange={(e) => setTerritory(e.target.value)} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="primary_location">Primary Location</Label>
-            <Input
-              id="primary_location"
-              value={primaryLocation}
-              onChange={(e) => setPrimaryLocation(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="internal_ref">Internal Reference Number</Label>
               <Input
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
+                id="internal_ref"
+                value={internalRef}
+                onChange={(e) => setInternalRef(e.target.value)}
               />
             </div>
+
             <div className="space-y-2">
-              <Label>Preferred Communication Method</Label>
-              <Select value={prefComm} onValueChange={(v) => setPrefComm(v as EntityCommMethod)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENTITY_COMM_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="internal_ref">Internal Reference Number</Label>
-            <Input
-              id="internal_ref"
-              value={internalRef}
-              onChange={(e) => setInternalRef(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              disabled={mutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
-            </Button>
-          </DialogFooter>
-        </form>
+
+            <p className="text-xs text-muted-foreground">
+              District, Market, and Region are set via structured Coverage
+              {isEdit ? " on the relationship page." : " in the next step."}
+            </p>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={mutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending
+                  ? "Saving…"
+                  : isEdit
+                    ? "Save changes"
+                    : "Save & Continue to Coverage"}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
