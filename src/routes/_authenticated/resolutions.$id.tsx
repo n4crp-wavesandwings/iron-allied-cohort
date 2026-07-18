@@ -31,12 +31,17 @@ import {
   type ResolutionPersonRow,
   type ResolutionTaskRow,
 } from "@/lib/resolutions";
+import {
+  resolutionEngagementsQuery,
+  resolutionStatusHistoryQuery,
+} from "@/lib/resolutionLookups";
 import { ResolutionDialog } from "@/components/resolutions/ResolutionDialog";
 import { TaskDialog } from "@/components/resolutions/TaskDialog";
 import { PersonDialog } from "@/components/resolutions/PersonDialog";
 import { NoteDialog } from "@/components/resolutions/NoteDialog";
 import { StatusChangeDialog } from "@/components/resolutions/StatusChangeDialog";
 import { FollowUpDialog } from "@/components/relationships/FollowUpDialog";
+import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 
 export const Route = createFileRoute("/_authenticated/resolutions/$id")({
   component: ResolutionDetail,
