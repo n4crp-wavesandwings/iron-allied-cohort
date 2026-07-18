@@ -16,6 +16,7 @@ import {
   regionsQuery, marketsQuery, districtsQuery, storesQuery,
   type Region, type Market, type District, type Store,
 } from "@/lib/locations";
+import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
 export const Route = createFileRoute("/_authenticated/locations")({ component: LocationsPage });
 
