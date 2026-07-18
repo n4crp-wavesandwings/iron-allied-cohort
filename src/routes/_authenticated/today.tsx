@@ -261,6 +261,15 @@ function TodayPage() {
       {/* Quick Starts */}
       <QuickStartsStrip />
 
+      {/* My Stores glance card */}
+      <MyStoresCard />
+
+      {/* Provider Quick-Engage */}
+      <CollapsibleCard cardKey="providers_quick" title="👷 Providers — Quick Engage">
+        <ProviderQuickEngage />
+      </CollapsibleCard>
+
+
       {/* Focus areas */}
       <CollapsibleCard cardKey="followup" title="🔄 Follow-up" count={sorted.length}>
         <div className="grid grid-cols-3 gap-3 text-center">
