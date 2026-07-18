@@ -121,6 +121,7 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
         severity: severity || null,
         resolution_type: resolutionType || null,
         escalation_level: escalationLevel || null,
+        store_id: storeId,
         completed_date:
           status === "Resolved" || status === "Closed"
             ? resolution?.completed_date ?? new Date().toISOString().slice(0, 10)
