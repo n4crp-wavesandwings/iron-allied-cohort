@@ -30,6 +30,7 @@ import {
   type ContactRow,
   type PreferredContactMethod,
 } from "@/lib/contacts";
+import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
 interface Props {
   open: boolean;
@@ -41,6 +42,7 @@ interface Props {
 export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) {
   const isEdit = !!contact;
   const queryClient = useQueryClient();
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
