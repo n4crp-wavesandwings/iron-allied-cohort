@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_district_coverage: {
+        Row: {
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          district_id: string
+          id: string
+          org_id: string
+          scope: Database["public"]["Enums"]["coverage_scope"]
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          district_id: string
+          id?: string
+          org_id?: string
+          scope?: Database["public"]["Enums"]["coverage_scope"]
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          district_id?: string
+          id?: string
+          org_id?: string
+          scope?: Database["public"]["Enums"]["coverage_scope"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_district_coverage_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_district_coverage_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_district_coverage_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_emails: {
         Row: {
           contact_id: string
@@ -154,6 +209,55 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_store_coverage: {
+        Row: {
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          org_id: string
+          store_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          org_id?: string
+          store_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          org_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_store_coverage_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_store_coverage_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_store_coverage_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -625,6 +729,7 @@ export type Database = {
             | null
           severity: Database["public"]["Enums"]["cr_severity"] | null
           status: Database["public"]["Enums"]["cr_status"]
+          store_id: string | null
           summary: string | null
           target_date: string | null
           title: string
@@ -652,6 +757,7 @@ export type Database = {
             | null
           severity?: Database["public"]["Enums"]["cr_severity"] | null
           status?: Database["public"]["Enums"]["cr_status"]
+          store_id?: string | null
           summary?: string | null
           target_date?: string | null
           title: string
@@ -679,6 +785,7 @@ export type Database = {
             | null
           severity?: Database["public"]["Enums"]["cr_severity"] | null
           status?: Database["public"]["Enums"]["cr_status"]
+          store_id?: string | null
           summary?: string | null
           target_date?: string | null
           title?: string
@@ -688,6 +795,80 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "customer_resolutions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_resolutions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      districts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          leader_contact_id: string | null
+          market_id: string
+          name: string
+          notes: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["location_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          leader_contact_id?: string | null
+          market_id: string
+          name: string
+          notes?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          leader_contact_id?: string | null
+          market_id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_leader_contact_id_fkey"
+            columns: ["leader_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "districts_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "districts_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -709,6 +890,7 @@ export type Database = {
           name: string
           notes: string | null
           org_id: string
+          organization_type: string | null
           preferred_communication_method:
             | Database["public"]["Enums"]["entity_comm_method"]
             | null
@@ -733,6 +915,7 @@ export type Database = {
           name: string
           notes?: string | null
           org_id?: string
+          organization_type?: string | null
           preferred_communication_method?:
             | Database["public"]["Enums"]["entity_comm_method"]
             | null
@@ -757,6 +940,7 @@ export type Database = {
           name?: string
           notes?: string | null
           org_id?: string
+          organization_type?: string | null
           preferred_communication_method?:
             | Database["public"]["Enums"]["entity_comm_method"]
             | null
@@ -914,6 +1098,208 @@ export type Database = {
           },
         ]
       }
+      markets: {
+        Row: {
+          code: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          region_id: string
+          status: Database["public"]["Enums"]["location_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id?: string
+          region_id: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          region_id?: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "markets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "markets_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_district_coverage: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          district_id: string
+          entity_id: string
+          id: string
+          org_id: string
+          scope: Database["public"]["Enums"]["coverage_scope"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          district_id: string
+          entity_id: string
+          id?: string
+          org_id?: string
+          scope?: Database["public"]["Enums"]["coverage_scope"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          district_id?: string
+          entity_id?: string
+          id?: string
+          org_id?: string
+          scope?: Database["public"]["Enums"]["coverage_scope"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_district_coverage_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_district_coverage_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_district_coverage_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_store_coverage: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          id: string
+          org_id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          id?: string
+          org_id?: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          id?: string
+          org_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_store_coverage_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_store_coverage_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_store_coverage_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          org_id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_types_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -970,6 +1356,125 @@ export type Database = {
           },
         ]
       }
+      regions: {
+        Row: {
+          code: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["location_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["location_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          city: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          district_id: string
+          id: string
+          main_phone: string | null
+          name: string | null
+          notes: string | null
+          org_id: string
+          state: string | null
+          status: Database["public"]["Enums"]["location_status"]
+          store_number: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          district_id: string
+          id?: string
+          main_phone?: string | null
+          name?: string | null
+          notes?: string | null
+          org_id?: string
+          state?: string | null
+          status?: Database["public"]["Enums"]["location_status"]
+          store_number: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          district_id?: string
+          id?: string
+          main_phone?: string | null
+          name?: string | null
+          notes?: string | null
+          org_id?: string
+          state?: string | null
+          status?: Database["public"]["Enums"]["location_status"]
+          store_number?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stores_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1016,6 +1521,7 @@ export type Database = {
         | "In Person"
         | "Other"
       contact_relationship_strength: "Weak" | "Moderate" | "Strong" | "Critical"
+      coverage_scope: "whole" | "selected"
       cr_escalation_level: "Store" | "District" | "Regional" | "Corporate"
       cr_event_type:
         | "resolution_updated"
@@ -1061,6 +1567,7 @@ export type Database = {
         | "Other"
       follow_up_status: "open" | "done"
       interaction_type: "meeting" | "call" | "visit" | "note"
+      location_status: "Active" | "Inactive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1199,6 +1706,7 @@ export const Constants = {
         "Other",
       ],
       contact_relationship_strength: ["Weak", "Moderate", "Strong", "Critical"],
+      coverage_scope: ["whole", "selected"],
       cr_escalation_level: ["Store", "District", "Regional", "Corporate"],
       cr_event_type: [
         "resolution_updated",
@@ -1249,6 +1757,7 @@ export const Constants = {
       ],
       follow_up_status: ["open", "done"],
       interaction_type: ["meeting", "call", "visit", "note"],
+      location_status: ["Active", "Inactive"],
     },
   },
 } as const
