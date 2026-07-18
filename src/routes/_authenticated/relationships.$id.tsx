@@ -117,11 +117,13 @@ function RelationshipDetailPage() {
           <CardTitle className="text-base">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
-          <Button onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
-          <Button onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
+          <Button onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
+          <Button variant="outline" onClick={() => setLogInteractionOpen(true)}>+ Log Interaction</Button>
+          <Button variant="outline" onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
+          <Button variant="outline" onClick={() => setAddContactOpen(true)}>+ Add Contact</Button>
         </CardContent>
       </Card>
+
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Section 1 — Basic Information */}
