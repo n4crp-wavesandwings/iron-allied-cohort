@@ -28,10 +28,10 @@ interface Props {
 
 export function StatusChangeDialog({ open, onOpenChange, resolution }: Props) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<CrStatus>(resolution.status);
+  const [status, setStatus] = useState<CrStatus>(resolution.status ?? "New");
 
   useEffect(() => {
-    if (open) setStatus(resolution.status);
+    if (open) setStatus(resolution.status ?? "New");
   }, [open, resolution.status]);
 
   const mutation = useMutation({
