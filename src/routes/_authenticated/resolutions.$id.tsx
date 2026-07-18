@@ -499,6 +499,100 @@ function ResolutionDetail() {
             <p className="text-sm text-muted-foreground">No history yet.</p>
           ) : (
             <ul className="space-y-2">
+      {/* Section G: Quick Actions */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button onClick={() => setEngagementOpen(true)}>+ Log Engagement</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setEditingTask(null);
+              setTaskOpen(true);
+            }}
+          >
+            + Add Task
+          </Button>
+          <Button variant="outline" onClick={() => setNoteOpen(true)}>+ Add Update</Button>
+          <Button variant="outline" onClick={() => setStatusOpen(true)}>Change Status</Button>
+          <Button variant="outline" onClick={() => setFollowUpOpen(true)}>+ Create Follow-up</Button>
+          <Button variant="default" onClick={() => setMarkResolvedOpen(true)}>Mark Resolved</Button>
+        </CardContent>
+      </Card>
+
+      {/* Section: Linked Engagements Thread */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Engagement Thread</CardTitle></CardHeader>
+        <CardContent>
+          {(linkedEngagements.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No engagements linked yet. Use "Log Engagement" to capture a call, visit, or note.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {(linkedEngagements.data ?? []).map((row: any) => {
+                const e = row.engagement;
+                if (!e) return null;
+                return (
+                  <li key={row.id} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        to="/engagements/$id"
+                        params={{ id: e.id }}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {e.summary || "(no summary)"}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {e.occurred_at ? new Date(e.occurred_at).toLocaleString() : ""}
+                      </span>
+                    </div>
+                    {e.notes && (
+                      <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
+                        {e.notes}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section: Status History Trail */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Status History</CardTitle></CardHeader>
+        <CardContent>
+          {(statusHistory.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No status changes yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(statusHistory.data ?? []).map((h: any) => (
+                <li key={h.id} className="rounded-md border-l-2 border-l-primary bg-muted/30 p-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>
+                      {h.from_status?.name ?? "—"} → <strong>{h.to_status?.name ?? "—"}</strong>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(h.changed_at).toLocaleString()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section H: History */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Activity Log</CardTitle></CardHeader>
+        <CardContent>
+          {(history.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No activity yet.</p>
+          ) : (
+            <ul className="space-y-2">
               {(history.data ?? []).map((h) => (
                 <li key={h.id} className="rounded-md border-l-2 border-l-primary bg-muted/30 p-3">
                   <div className="flex items-center justify-between gap-2">
@@ -521,6 +615,7 @@ function ResolutionDetail() {
           )}
         </CardContent>
       </Card>
+
 
       <ResolutionDialog open={editOpen} onOpenChange={setEditOpen} resolution={r} />
       <TaskDialog
