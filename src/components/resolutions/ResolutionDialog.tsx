@@ -74,12 +74,12 @@ export function ResolutionDialog({ open, onOpenChange, resolution = null }: Prop
   useEffect(() => {
     if (!open) return;
     if (resolution) {
-      setCustomerLastName(resolution.customer_last_name);
-      setCustomerFirstInitial(resolution.customer_first_initial);
+      setCustomerLastName(resolution.customer_last_name ?? "");
+      setCustomerFirstInitial(resolution.customer_first_initial ?? "");
       setTitle(resolution.title);
       setReferenceNumber(resolution.reference_number ?? "");
-      setPriority(resolution.priority);
-      setStatus(resolution.status);
+      setPriority(resolution.priority ?? "Normal");
+      setStatus(resolution.status ?? "New");
       setSummary(resolution.summary ?? "");
       setDesiredResolution(resolution.desired_resolution ?? "");
       setTargetDate(resolution.target_date ?? "");
