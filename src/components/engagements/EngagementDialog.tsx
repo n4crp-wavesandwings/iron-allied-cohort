@@ -324,23 +324,34 @@ export function EngagementDialog({ open, onOpenChange, defaults }: Props) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 1. Type */}
+          {/* 1. Type — multi-select */}
           <section className="space-y-2">
             <Label>Engagement Type *</Label>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {(types.data ?? []).map((t) => (
-                <Button
-                  key={t.id}
-                  type="button"
-                  variant={typeId === t.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTypeId(t.id)}
-                  className="justify-start"
-                >
-                  {t.name}
-                </Button>
-              ))}
+              {(types.data ?? []).map((t) => {
+                const on = typeIds.includes(t.id);
+                return (
+                  <Button
+                    key={t.id}
+                    type="button"
+                    variant={on ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setTypeIds((prev) =>
+                        on ? prev.filter((x) => x !== t.id) : [...prev, t.id],
+                      )
+                    }
+                    className="justify-start"
+                  >
+                    {on ? "✓ " : ""}
+                    {t.name}
+                  </Button>
+                );
+              })}
             </div>
+            {typeIds.length === 0 && (
+              <p className="text-xs text-muted-foreground">Tap one or more types (required).</p>
+            )}
           </section>
 
           {/* When */}
