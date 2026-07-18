@@ -50,6 +50,8 @@ function RelationshipDetailPage() {
   const [logInteractionOpen, setLogInteractionOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [engagementOpen, setEngagementOpen] = useState(false);
+  const engagements = useQuery(engagementsByEntityQuery(id));
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
