@@ -85,7 +85,11 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
           .map((l: any) => l.program_id as string),
       ),
     );
-  }, [open, contact, existingLinks]);
+    // Only re-sync when the dialog opens or the target contact changes.
+    // Depending on `existingLinks` causes an infinite loop: useQuery's `?? []`
+    // default is a new array reference every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, contact?.id]);
 
   const save = useMutation({
     mutationFn: async () => {
