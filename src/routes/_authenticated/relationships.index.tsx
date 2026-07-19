@@ -239,6 +239,8 @@ function RelationshipsListPage() {
     } else if (isMerchantTab) {
       setEditingMerchant(null);
       setMerchantDialogOpen(true);
+    } else if (isInternalTab) {
+      setInternalDialogOpen(true);
     } else {
       setEditing(null);
       setDialogOpen(true);
@@ -249,7 +251,10 @@ function RelationshipsListPage() {
     ? "New Program"
     : isMerchantTab
       ? "New Merchant"
-      : "Create Relationship";
+      : isInternalTab
+        ? "New Internal Contact"
+        : "Create Relationship";
+
 
   return (
     <div>
