@@ -187,7 +187,7 @@ async function ensureStoreCoverage(contactId: string, storeId: string, orgId: st
   } as any);
 }
 
-async function linkContactToChannelAndTarget(
+export async function linkContactToChannelAndTarget(
   contactId: string,
   channel: PersonChannel,
   role: string,
