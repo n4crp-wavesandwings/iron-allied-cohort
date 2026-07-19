@@ -8,8 +8,11 @@ import {
   programDetailQuery,
   programMerchantsQuery,
   programsListQuery,
+  programProviderIdsQuery,
+  activeProvidersQuery,
   contactLabel,
 } from "@/lib/programs";
+
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 
 export const Route = createFileRoute("/_authenticated/programs/$id")({
