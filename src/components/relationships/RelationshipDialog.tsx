@@ -65,6 +65,14 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
   // Two-step create: after basic save, show CoveragePanel targeting the new id
   const [createdId, setCreatedId] = useState<string | null>(null);
 
+  // Provider ↔ Programs
+  const { data: allActivePrograms = [] } = useQuery(activeProgramsQuery);
+  const { data: linkedProgramIds = [] } = useQuery({
+    ...providerProgramIdsQuery(relationship?.id ?? ""),
+    enabled: !!relationship?.id && open,
+  });
+  const [selectedProgramIds, setSelectedProgramIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (open) {
       setType(relationship?.type ?? "");
@@ -79,7 +87,17 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
       setNotes(relationship?.notes ?? "");
       setCreatedId(null);
     }
-  }, [open, relationship]);
+    // Only re-sync when opening/switching relationship.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, relationship?.id]);
+
+  useEffect(() => {
+    if (open && relationship?.id) {
+      setSelectedProgramIds(new Set(linkedProgramIds));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, relationship?.id, linkedProgramIds.join("|")]);
+
 
   const mutation = useMutation({
     mutationFn: async () => {
