@@ -322,6 +322,43 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
           </div>
 
           <div>
+            <Label>Providers</Label>
+            <p className="text-xs text-muted-foreground">
+              Which service providers do this program?
+            </p>
+            <div className="mt-2 rounded-md border border-border divide-y max-h-64 overflow-y-auto">
+              {allProviders.length === 0 ? (
+                <p className="p-3 text-sm text-muted-foreground">No service providers yet.</p>
+              ) : (
+                allProviders.map((p) => {
+                  const checked = providerIds.has(p.id);
+                  return (
+                    <label
+                      key={p.id}
+                      className="flex items-center gap-3 px-3 py-3 cursor-pointer min-h-11"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setProviderIds((prev) => {
+                            const next = new Set(prev);
+                            if (v) next.add(p.id);
+                            else next.delete(p.id);
+                            return next;
+                          });
+                        }}
+                        className="h-5 w-5"
+                      />
+                      <span className="text-base">{p.name}</span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+
+          <div>
             <Label htmlFor="prog-notes">Notes</Label>
             <Textarea
               id="prog-notes"
