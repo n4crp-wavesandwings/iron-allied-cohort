@@ -36,12 +36,24 @@ import { programsListQuery, type ProgramWithParent, contactLabel } from "@/lib/p
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
 import { NewProviderDialog } from "@/components/relationships/NewProviderDialog";
+import { InternalContactDialog } from "@/components/relationships/InternalContactDialog";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
 });
 
 type Filter = EntityType | "all" | "program" | "merchant";
+
+type InternalPersonRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  name: string | null;
+  job_title: string | null;
+  active: boolean;
+  stores: { id: string; store_number: string; name: string | null }[];
+};
+
 
 type MerchantListRow = {
   id: string;
