@@ -21,9 +21,9 @@ import {
 import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
 export const Route = createFileRoute("/_authenticated/locations")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    tab: (s.tab as string) || undefined,
-    mine: s.mine ? 1 : 0,
+  validateSearch: (s: Record<string, unknown>): { tab?: string; mine?: 1 } => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+    mine: s.mine ? 1 : undefined,
   }),
   component: LocationsPage,
 });
