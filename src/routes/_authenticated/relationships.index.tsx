@@ -576,6 +576,8 @@ function RelationshipsListPage() {
       />
 
       <NewProviderDialog open={newProviderOpen} onOpenChange={setNewProviderOpen} />
+      <InternalContactDialog open={internalDialogOpen} onOpenChange={setInternalDialogOpen} />
+
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
