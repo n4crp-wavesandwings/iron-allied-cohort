@@ -180,15 +180,23 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
         );
       }
 
+      // Sync program ↔ providers
+      if (programId) {
+        await syncProgramProviders(programId, providerIds);
+      }
+
       return programId;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["programs"] });
       qc.invalidateQueries({ queryKey: ["program-merchants"] });
       qc.invalidateQueries({ queryKey: ["contact-program-merchants"] });
+      qc.invalidateQueries({ queryKey: ["provider-programs"] });
+      qc.invalidateQueries({ queryKey: ["program-providers"] });
       toast.success(isEdit ? "Program updated" : "Program created");
       onOpenChange(false);
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
