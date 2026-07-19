@@ -293,6 +293,45 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
               <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
             </div>
 
+            {isEdit && type === "provider" && (
+              <div className="space-y-2">
+                <Label>Programs</Label>
+                <p className="text-xs text-muted-foreground">
+                  Which programs does this provider do?
+                </p>
+                <div className="rounded-md border border-border divide-y max-h-64 overflow-y-auto">
+                  {allActivePrograms.length === 0 ? (
+                    <p className="p-3 text-sm text-muted-foreground">No active programs.</p>
+                  ) : (
+                    allActivePrograms.map((p) => {
+                      const checked = selectedProgramIds.has(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-3 px-3 py-3 cursor-pointer min-h-11"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              setSelectedProgramIds((prev) => {
+                                const next = new Set(prev);
+                                if (v) next.add(p.id);
+                                else next.delete(p.id);
+                                return next;
+                              });
+                            }}
+                            className="h-5 w-5"
+                          />
+                          <span className="text-base">{p.name}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+
             <p className="text-xs text-muted-foreground">
               District, Market, and Region are set via structured Coverage
               {isEdit ? " on the relationship page." : " in the next step."}
