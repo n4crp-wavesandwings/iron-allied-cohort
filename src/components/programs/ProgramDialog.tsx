@@ -51,6 +51,12 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     enabled: !!program?.id,
   });
 
+  const { data: allProviders = [] } = useQuery(activeProvidersQuery);
+  const { data: linkedProviderIds = [] } = useQuery({
+    ...programProviderIdsQuery(program?.id ?? ""),
+    enabled: !!program?.id && open,
+  });
+
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState<string>("none");
   const [subCategory, setSubCategory] = useState("");
@@ -58,6 +64,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
   const [notes, setNotes] = useState("");
   const [primaryContactId, setPrimaryContactId] = useState<string>("none");
   const [secondaryIds, setSecondaryIds] = useState<Set<string>>(new Set());
+  const [providerIds, setProviderIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
@@ -79,6 +86,14 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     // fresh `[]` per render, which would cause an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, program?.id]);
+
+  useEffect(() => {
+    if (open && program?.id) {
+      setProviderIds(new Set(linkedProviderIds));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, program?.id, linkedProviderIds.join("|")]);
+
 
   const save = useMutation({
     mutationFn: async () => {
