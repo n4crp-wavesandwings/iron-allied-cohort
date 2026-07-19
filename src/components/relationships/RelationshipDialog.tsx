@@ -116,10 +116,11 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
         internal_reference_number: internalRef.trim() || null,
         notes: notes.trim() || null,
       };
+      let entityId: string;
       if (isEdit && relationship) {
         const { error } = await supabase.from("entities").update(payload).eq("id", relationship.id);
         if (error) throw error;
-        return relationship.id;
+        entityId = relationship.id;
       } else {
         const { data, error } = await supabase
           .from("entities")
@@ -127,11 +128,18 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
           .select("id")
           .single();
         if (error) throw error;
-        return data!.id as string;
+        entityId = data!.id as string;
       }
+      // Sync provider ↔ programs on edit for providers
+      if (isEdit && type === "provider") {
+        await syncProviderPrograms(entityId, selectedProgramIds);
+      }
+      return entityId;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["relationships"] });
+      queryClient.invalidateQueries({ queryKey: ["provider-programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program-providers"] });
       toast.success(isEdit ? "Relationship updated" : "Relationship created");
       if (isEdit) {
         onOpenChange(false);
@@ -141,6 +149,7 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const dialogTitle = isEdit
     ? "Edit Relationship"
