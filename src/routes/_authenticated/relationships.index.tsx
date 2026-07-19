@@ -356,8 +356,58 @@ function RelationshipsListPage() {
               )}
             </TableBody>
           </Table>
+        ) : isInternalTab ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Job Title / Role</TableHead>
+                <TableHead>Store(s)</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {internalLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                    Loading…
+                  </TableCell>
+                </TableRow>
+              ) : internalPeople.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-10">
+                    No internal contacts yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                internalPeople.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <Link
+                        to="/contacts/$id"
+                        params={{ id: p.id }}
+                        className="font-medium hover:underline"
+                      >
+                        {[p.first_name, p.last_name].filter(Boolean).join(" ") || p.name || "—"}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {p.job_title ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {p.stores.length === 0
+                        ? "—"
+                        : p.stores.map((s) => `#${s.store_number}`).join(", ")}
+                    </TableCell>
+                    <TableCell>{p.active ? "Active" : "Inactive"}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         ) : isMerchantTab ? (
           <Table>
+
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
