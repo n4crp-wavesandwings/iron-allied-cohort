@@ -21,9 +21,9 @@ import {
 import { PersonField, type PersonValue } from "@/components/people/PersonField";
 
 export const Route = createFileRoute("/_authenticated/locations")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    tab: (s.tab as string) || undefined,
-    mine: s.mine ? 1 : 0,
+  validateSearch: (s: Record<string, unknown>): { tab?: string; mine?: 1 } => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+    mine: s.mine ? 1 : undefined,
   }),
   component: LocationsPage,
 });
@@ -304,26 +304,41 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
           )
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-muted-foreground text-left"><tr><th className="py-2">Store #</th><th>Name</th><th>District</th><th>Market</th><th>Region</th><th>Status</th><th></th></tr></thead>
+            <thead className="text-muted-foreground text-left"><tr><th className="py-2">Store #</th><th>Name</th><th>Address</th><th>District</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
             <tbody>
               {filtered.map((s) => {
                 const d = districtMap.get(s.district_id);
-                const m = d ? marketMap.get(d.market_id) : null;
+                const href = mapHref(s as any);
+                const tel = telHref(s.main_phone);
+                const addr = [(s as any).address, s.city, s.state, (s as any).zip].filter(Boolean).join(", ");
                 return (
                   <tr key={s.id} className="border-t border-border">
                     <td className="py-2 font-medium">{s.store_number}</td>
                     <td>{s.name ?? "—"}</td>
+                    <td className="text-xs">
+                      {addr ? (
+                        href ? (
+                          <a href={href} target="_blank" rel="noreferrer" className="text-primary underline">{addr}</a>
+                        ) : addr
+                      ) : "—"}
+                    </td>
                     <td>{d?.name ?? "—"}</td>
-                    <td>{m?.name ?? "—"}</td>
-                    <td>{m ? regionMap.get(m.region_id) ?? "—" : "—"}</td>
                     <td>{s.status}</td>
-                    <td className="text-right"><Button variant="ghost" size="sm" onClick={() => { setEditing(s); setOpen(true); }}><Pencil className="h-4 w-4" /></Button></td>
+                    <td className="text-right whitespace-nowrap">
+                      {tel && (
+                        <Button asChild size="sm" variant="outline" className="mr-1 h-8">
+                          <a href={tel}>Call</a>
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => { setEditing(s); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+                    </td>
                   </tr>
                 );
               })}
-              {filtered.length === 0 && <tr><td colSpan={7} className="py-4 text-muted-foreground">No stores.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={6} className="py-4 text-muted-foreground">No stores.</td></tr>}
             </tbody>
           </table>
+
         )}
       </CardContent>
       <NodeDialog open={open} onOpenChange={setOpen} level="store" record={editing}

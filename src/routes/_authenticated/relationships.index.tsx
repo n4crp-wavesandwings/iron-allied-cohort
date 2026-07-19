@@ -36,12 +36,24 @@ import { programsListQuery, type ProgramWithParent, contactLabel } from "@/lib/p
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
 import { NewProviderDialog } from "@/components/relationships/NewProviderDialog";
+import { InternalContactDialog } from "@/components/relationships/InternalContactDialog";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
 });
 
 type Filter = EntityType | "all" | "program" | "merchant";
+
+type InternalPersonRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  name: string | null;
+  job_title: string | null;
+  active: boolean;
+  stores: { id: string; store_number: string; name: string | null }[];
+};
+
 
 type MerchantListRow = {
   id: string;
@@ -67,11 +79,13 @@ function RelationshipsListPage() {
   const [editingMerchant, setEditingMerchant] = useState<MerchantEditable>(null);
   const [deleteMerchantTarget, setDeleteMerchantTarget] = useState<MerchantListRow | null>(null);
   const [newProviderOpen, setNewProviderOpen] = useState(false);
+  const [internalDialogOpen, setInternalDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
   const isProgramTab = filter === "program";
   const isMerchantTab = filter === "merchant";
+  const isInternalTab = filter === "internal";
 
   const { data: rows = [], isLoading } = useQuery({
     ...relationshipsQueryOptions(
@@ -79,12 +93,62 @@ function RelationshipsListPage() {
         ? "all"
         : (filter as EntityType | "all"),
     ),
-    enabled: !isProgramTab && !isMerchantTab,
+    enabled: !isProgramTab && !isMerchantTab && !isInternalTab,
   });
   const { data: programs = [], isLoading: programsLoading } = useQuery({
     ...programsListQuery,
     enabled: isProgramTab,
   });
+
+  const { data: internalPeople = [], isLoading: internalLoading } = useQuery({
+    queryKey: ["internal-contacts", "list"],
+    enabled: isInternalTab,
+    queryFn: async (): Promise<InternalPersonRow[]> => {
+      const { data: ents } = await supabase
+        .from("entities")
+        .select("id")
+        .eq("type", "internal")
+        .is("deleted_at", null);
+      const entityIds = (ents ?? []).map((e: any) => e.id as string);
+      if (entityIds.length === 0) return [];
+      const { data: links } = await supabase
+        .from("contact_organizations")
+        .select("contact_id")
+        .in("organization_id", entityIds);
+      const idsFromLinks = (links ?? []).map((l: any) => l.contact_id as string);
+      const { data: byEntity } = await supabase
+        .from("contacts")
+        .select("id")
+        .in("entity_id", entityIds)
+        .is("deleted_at", null);
+      const idsFromEntity = (byEntity ?? []).map((c: any) => c.id as string);
+      const contactIds = Array.from(new Set([...idsFromLinks, ...idsFromEntity]));
+      if (contactIds.length === 0) return [];
+      const { data: contacts, error } = await supabase
+        .from("contacts")
+        .select(
+          "id, first_name, last_name, name, job_title, active, is_merchant, contact_store_coverage!left(is_current, store:store_id(id, store_number, name))",
+        )
+        .in("id", contactIds)
+        .is("deleted_at", null)
+        .order("last_name", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return (contacts ?? [])
+        .filter((c: any) => !c.is_merchant)
+        .map((c: any) => ({
+          id: c.id,
+          first_name: c.first_name,
+          last_name: c.last_name,
+          name: c.name,
+          job_title: c.job_title,
+          active: c.active,
+          stores: (c.contact_store_coverage ?? [])
+            .filter((r: any) => r.is_current && r.store)
+            .map((r: any) => r.store),
+        }));
+    },
+  });
+
 
   const { data: merchants = [], isLoading: merchantsLoading } = useQuery({
     queryKey: ["merchants", "list"],
@@ -175,6 +239,8 @@ function RelationshipsListPage() {
     } else if (isMerchantTab) {
       setEditingMerchant(null);
       setMerchantDialogOpen(true);
+    } else if (isInternalTab) {
+      setInternalDialogOpen(true);
     } else {
       setEditing(null);
       setDialogOpen(true);
@@ -185,7 +251,10 @@ function RelationshipsListPage() {
     ? "New Program"
     : isMerchantTab
       ? "New Merchant"
-      : "Create Relationship";
+      : isInternalTab
+        ? "New Internal Contact"
+        : "Create Relationship";
+
 
   return (
     <div>
@@ -287,8 +356,58 @@ function RelationshipsListPage() {
               )}
             </TableBody>
           </Table>
+        ) : isInternalTab ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Job Title / Role</TableHead>
+                <TableHead>Store(s)</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {internalLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                    Loading…
+                  </TableCell>
+                </TableRow>
+              ) : internalPeople.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-10">
+                    No internal contacts yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                internalPeople.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <Link
+                        to="/contacts/$id"
+                        params={{ id: p.id }}
+                        className="font-medium hover:underline"
+                      >
+                        {[p.first_name, p.last_name].filter(Boolean).join(" ") || p.name || "—"}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {p.job_title ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {p.stores.length === 0
+                        ? "—"
+                        : p.stores.map((s) => `#${s.store_number}`).join(", ")}
+                    </TableCell>
+                    <TableCell>{p.active ? "Active" : "Inactive"}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         ) : isMerchantTab ? (
           <Table>
+
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -457,6 +576,8 @@ function RelationshipsListPage() {
       />
 
       <NewProviderDialog open={newProviderOpen} onOpenChange={setNewProviderOpen} />
+      <InternalContactDialog open={internalDialogOpen} onOpenChange={setInternalDialogOpen} />
+
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
