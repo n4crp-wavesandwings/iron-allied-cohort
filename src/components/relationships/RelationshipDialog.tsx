@@ -33,6 +33,12 @@ import {
 } from "@/lib/relationships";
 import { organizationTypesQuery } from "@/lib/locations";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import {
+  activeProgramsQuery,
+  providerProgramIdsQuery,
+  syncProviderPrograms,
+} from "@/lib/programs";
+
 
 interface Props {
   open: boolean;
