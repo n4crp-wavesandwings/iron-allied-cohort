@@ -129,6 +129,29 @@ function ProgramDetailPage() {
         </div>
       </section>
 
+      <section className="rounded-lg border border-border p-4">
+        <h2 className="text-lg font-medium">Providers</h2>
+        {linkedProviders.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No providers linked yet.</p>
+        ) : (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {linkedProviders.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to="/relationships/$id"
+                  params={{ id: p.id }}
+                  className="inline-block rounded-full border px-3 py-1 text-sm bg-muted/40 hover:bg-muted"
+                >
+                  {p.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+
+
       {history.length > 0 && (
         <section className="rounded-lg border border-border p-4">
           <h2 className="text-lg font-medium">Merchant History</h2>
