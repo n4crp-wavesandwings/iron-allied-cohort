@@ -26,6 +26,10 @@ function ProgramDetailPage() {
   const { data: program, isLoading } = useQuery(programDetailQuery(id));
   const { data: links = [] } = useQuery(programMerchantsQuery(id));
   const { data: allPrograms = [] } = useQuery(programsListQuery);
+  const { data: linkedProviderIds = [] } = useQuery(programProviderIdsQuery(id));
+  const { data: allProviders = [] } = useQuery(activeProvidersQuery);
+  const linkedProviders = allProviders.filter((p) => linkedProviderIds.includes(p.id));
+
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
