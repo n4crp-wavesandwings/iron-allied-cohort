@@ -71,7 +71,10 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
           .map((l) => l.contact_id),
       ),
     );
-  }, [open, program, currentLinks]);
+    // Only re-sync when opening/switching program. `currentLinks` defaults to a
+    // fresh `[]` per render, which would cause an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, program?.id]);
 
   const save = useMutation({
     mutationFn: async () => {
