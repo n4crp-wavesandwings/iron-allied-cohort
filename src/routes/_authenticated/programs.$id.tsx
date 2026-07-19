@@ -8,8 +8,11 @@ import {
   programDetailQuery,
   programMerchantsQuery,
   programsListQuery,
+  programProviderIdsQuery,
+  activeProvidersQuery,
   contactLabel,
 } from "@/lib/programs";
+
 import { ProgramDialog } from "@/components/programs/ProgramDialog";
 
 export const Route = createFileRoute("/_authenticated/programs/$id")({
@@ -23,6 +26,10 @@ function ProgramDetailPage() {
   const { data: program, isLoading } = useQuery(programDetailQuery(id));
   const { data: links = [] } = useQuery(programMerchantsQuery(id));
   const { data: allPrograms = [] } = useQuery(programsListQuery);
+  const { data: linkedProviderIds = [] } = useQuery(programProviderIdsQuery(id));
+  const { data: allProviders = [] } = useQuery(activeProvidersQuery);
+  const linkedProviders = allProviders.filter((p) => linkedProviderIds.includes(p.id));
+
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -121,6 +128,29 @@ function ProgramDetailPage() {
           </div>
         </div>
       </section>
+
+      <section className="rounded-lg border border-border p-4">
+        <h2 className="text-lg font-medium">Providers</h2>
+        {linkedProviders.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No providers linked yet.</p>
+        ) : (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {linkedProviders.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to="/relationships/$id"
+                  params={{ id: p.id }}
+                  className="inline-block rounded-full border px-3 py-1 text-sm bg-muted/40 hover:bg-muted"
+                >
+                  {p.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+
 
       {history.length > 0 && (
         <section className="rounded-lg border border-border p-4">

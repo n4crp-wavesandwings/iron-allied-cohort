@@ -33,6 +33,12 @@ import {
 } from "@/lib/relationships";
 import { organizationTypesQuery } from "@/lib/locations";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
+import {
+  activeProgramsQuery,
+  providerProgramIdsQuery,
+  syncProviderPrograms,
+} from "@/lib/programs";
+
 
 interface Props {
   open: boolean;
@@ -59,6 +65,14 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
   // Two-step create: after basic save, show CoveragePanel targeting the new id
   const [createdId, setCreatedId] = useState<string | null>(null);
 
+  // Provider ↔ Programs
+  const { data: allActivePrograms = [] } = useQuery(activeProgramsQuery);
+  const { data: linkedProgramIds = [] } = useQuery({
+    ...providerProgramIdsQuery(relationship?.id ?? ""),
+    enabled: !!relationship?.id && open,
+  });
+  const [selectedProgramIds, setSelectedProgramIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (open) {
       setType(relationship?.type ?? "");
@@ -73,7 +87,17 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
       setNotes(relationship?.notes ?? "");
       setCreatedId(null);
     }
-  }, [open, relationship]);
+    // Only re-sync when opening/switching relationship.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, relationship?.id]);
+
+  useEffect(() => {
+    if (open && relationship?.id) {
+      setSelectedProgramIds(new Set(linkedProgramIds));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, relationship?.id, linkedProgramIds.join("|")]);
+
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -92,10 +116,11 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
         internal_reference_number: internalRef.trim() || null,
         notes: notes.trim() || null,
       };
+      let entityId: string;
       if (isEdit && relationship) {
         const { error } = await supabase.from("entities").update(payload).eq("id", relationship.id);
         if (error) throw error;
-        return relationship.id;
+        entityId = relationship.id;
       } else {
         const { data, error } = await supabase
           .from("entities")
@@ -103,11 +128,18 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
           .select("id")
           .single();
         if (error) throw error;
-        return data!.id as string;
+        entityId = data!.id as string;
       }
+      // Sync provider ↔ programs on edit for providers
+      if (isEdit && type === "provider") {
+        await syncProviderPrograms(entityId, selectedProgramIds);
+      }
+      return entityId;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["relationships"] });
+      queryClient.invalidateQueries({ queryKey: ["provider-programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program-providers"] });
       toast.success(isEdit ? "Relationship updated" : "Relationship created");
       if (isEdit) {
         onOpenChange(false);
@@ -117,6 +149,7 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const dialogTitle = isEdit
     ? "Edit Relationship"
@@ -259,6 +292,45 @@ export function RelationshipDialog({ open, onOpenChange, relationship }: Props) 
               <Label htmlFor="notes">Notes</Label>
               <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
             </div>
+
+            {isEdit && type === "provider" && (
+              <div className="space-y-2">
+                <Label>Programs</Label>
+                <p className="text-xs text-muted-foreground">
+                  Which programs does this provider do?
+                </p>
+                <div className="rounded-md border border-border divide-y max-h-64 overflow-y-auto">
+                  {allActivePrograms.length === 0 ? (
+                    <p className="p-3 text-sm text-muted-foreground">No active programs.</p>
+                  ) : (
+                    allActivePrograms.map((p) => {
+                      const checked = selectedProgramIds.has(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-3 px-3 py-3 cursor-pointer min-h-11"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              setSelectedProgramIds((prev) => {
+                                const next = new Set(prev);
+                                if (v) next.add(p.id);
+                                else next.delete(p.id);
+                                return next;
+                              });
+                            }}
+                            className="h-5 w-5"
+                          />
+                          <span className="text-base">{p.name}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
 
             <p className="text-xs text-muted-foreground">
               District, Market, and Region are set via structured Coverage

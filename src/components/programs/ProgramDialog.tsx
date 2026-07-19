@@ -27,8 +27,12 @@ import {
   programMerchantsQuery,
   programsListQuery,
   contactLabel,
+  activeProvidersQuery,
+  programProviderIdsQuery,
+  syncProgramProviders,
   type ProgramWithParent,
 } from "@/lib/programs";
+
 
 type Props = {
   open: boolean;
@@ -47,6 +51,12 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     enabled: !!program?.id,
   });
 
+  const { data: allProviders = [] } = useQuery(activeProvidersQuery);
+  const { data: linkedProviderIds = [] } = useQuery({
+    ...programProviderIdsQuery(program?.id ?? ""),
+    enabled: !!program?.id && open,
+  });
+
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState<string>("none");
   const [subCategory, setSubCategory] = useState("");
@@ -54,6 +64,7 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
   const [notes, setNotes] = useState("");
   const [primaryContactId, setPrimaryContactId] = useState<string>("none");
   const [secondaryIds, setSecondaryIds] = useState<Set<string>>(new Set());
+  const [providerIds, setProviderIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
@@ -75,6 +86,14 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
     // fresh `[]` per render, which would cause an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, program?.id]);
+
+  useEffect(() => {
+    if (open && program?.id) {
+      setProviderIds(new Set(linkedProviderIds));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, program?.id, linkedProviderIds.join("|")]);
+
 
   const save = useMutation({
     mutationFn: async () => {
@@ -161,15 +180,23 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
         );
       }
 
+      // Sync program ↔ providers
+      if (programId) {
+        await syncProgramProviders(programId, providerIds);
+      }
+
       return programId;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["programs"] });
       qc.invalidateQueries({ queryKey: ["program-merchants"] });
       qc.invalidateQueries({ queryKey: ["contact-program-merchants"] });
+      qc.invalidateQueries({ queryKey: ["provider-programs"] });
+      qc.invalidateQueries({ queryKey: ["program-providers"] });
       toast.success(isEdit ? "Program updated" : "Program created");
       onOpenChange(false);
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -293,6 +320,43 @@ export function ProgramDialog({ open, onOpenChange, program }: Props) {
               )}
             </div>
           </div>
+
+          <div>
+            <Label>Providers</Label>
+            <p className="text-xs text-muted-foreground">
+              Which service providers do this program?
+            </p>
+            <div className="mt-2 rounded-md border border-border divide-y max-h-64 overflow-y-auto">
+              {allProviders.length === 0 ? (
+                <p className="p-3 text-sm text-muted-foreground">No service providers yet.</p>
+              ) : (
+                allProviders.map((p) => {
+                  const checked = providerIds.has(p.id);
+                  return (
+                    <label
+                      key={p.id}
+                      className="flex items-center gap-3 px-3 py-3 cursor-pointer min-h-11"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setProviderIds((prev) => {
+                            const next = new Set(prev);
+                            if (v) next.add(p.id);
+                            else next.delete(p.id);
+                            return next;
+                          });
+                        }}
+                        className="h-5 w-5"
+                      />
+                      <span className="text-base">{p.name}</span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
 
           <div>
             <Label htmlFor="prog-notes">Notes</Label>
