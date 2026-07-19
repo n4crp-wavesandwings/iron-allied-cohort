@@ -27,8 +27,12 @@ import {
   programMerchantsQuery,
   programsListQuery,
   contactLabel,
+  activeProvidersQuery,
+  programProviderIdsQuery,
+  syncProgramProviders,
   type ProgramWithParent,
 } from "@/lib/programs";
+
 
 type Props = {
   open: boolean;
