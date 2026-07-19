@@ -114,19 +114,23 @@ export function ProviderPrograms({ entityId, onLogEngagement }: Props) {
             })}
           </ul>
         ) : selectedPrograms.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No programs assigned yet.</p>
+          <p className="text-sm text-muted-foreground">No programs linked yet.</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {selectedPrograms.map((p) => (
-              <li
-                key={p.id}
-                className="rounded-full border px-3 py-1 text-sm bg-muted/40"
-              >
-                {p.name}
+              <li key={p.id}>
+                <Link
+                  to="/programs/$id"
+                  params={{ id: p.id }}
+                  className="inline-block rounded-full border px-3 py-1 text-sm bg-muted/40 hover:bg-muted"
+                >
+                  {p.name}
+                </Link>
               </li>
             ))}
           </ul>
         )}
+
       </CardContent>
     </Card>
   );
