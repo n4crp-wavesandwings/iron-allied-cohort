@@ -79,11 +79,13 @@ function RelationshipsListPage() {
   const [editingMerchant, setEditingMerchant] = useState<MerchantEditable>(null);
   const [deleteMerchantTarget, setDeleteMerchantTarget] = useState<MerchantListRow | null>(null);
   const [newProviderOpen, setNewProviderOpen] = useState(false);
+  const [internalDialogOpen, setInternalDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
   const isProgramTab = filter === "program";
   const isMerchantTab = filter === "merchant";
+  const isInternalTab = filter === "internal";
 
   const { data: rows = [], isLoading } = useQuery({
     ...relationshipsQueryOptions(
@@ -91,12 +93,62 @@ function RelationshipsListPage() {
         ? "all"
         : (filter as EntityType | "all"),
     ),
-    enabled: !isProgramTab && !isMerchantTab,
+    enabled: !isProgramTab && !isMerchantTab && !isInternalTab,
   });
   const { data: programs = [], isLoading: programsLoading } = useQuery({
     ...programsListQuery,
     enabled: isProgramTab,
   });
+
+  const { data: internalPeople = [], isLoading: internalLoading } = useQuery({
+    queryKey: ["internal-contacts", "list"],
+    enabled: isInternalTab,
+    queryFn: async (): Promise<InternalPersonRow[]> => {
+      const { data: ents } = await supabase
+        .from("entities")
+        .select("id")
+        .eq("type", "internal")
+        .is("deleted_at", null);
+      const entityIds = (ents ?? []).map((e: any) => e.id as string);
+      if (entityIds.length === 0) return [];
+      const { data: links } = await supabase
+        .from("contact_organizations")
+        .select("contact_id")
+        .in("organization_id", entityIds);
+      const idsFromLinks = (links ?? []).map((l: any) => l.contact_id as string);
+      const { data: byEntity } = await supabase
+        .from("contacts")
+        .select("id")
+        .in("entity_id", entityIds)
+        .is("deleted_at", null);
+      const idsFromEntity = (byEntity ?? []).map((c: any) => c.id as string);
+      const contactIds = Array.from(new Set([...idsFromLinks, ...idsFromEntity]));
+      if (contactIds.length === 0) return [];
+      const { data: contacts, error } = await supabase
+        .from("contacts")
+        .select(
+          "id, first_name, last_name, name, job_title, active, is_merchant, contact_store_coverage!left(is_current, store:store_id(id, store_number, name))",
+        )
+        .in("id", contactIds)
+        .is("deleted_at", null)
+        .order("last_name", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return (contacts ?? [])
+        .filter((c: any) => !c.is_merchant)
+        .map((c: any) => ({
+          id: c.id,
+          first_name: c.first_name,
+          last_name: c.last_name,
+          name: c.name,
+          job_title: c.job_title,
+          active: c.active,
+          stores: (c.contact_store_coverage ?? [])
+            .filter((r: any) => r.is_current && r.store)
+            .map((r: any) => r.store),
+        }));
+    },
+  });
+
 
   const { data: merchants = [], isLoading: merchantsLoading } = useQuery({
     queryKey: ["merchants", "list"],
