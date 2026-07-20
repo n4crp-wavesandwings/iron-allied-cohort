@@ -355,32 +355,10 @@ function TodayPage() {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard cardKey="relationships" title="🤝 Relationships (Reconnect)" count={gapPeople.length}>
-        {gapPeople.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Everyone's been contacted recently.</p>
-        ) : (
-          <ul className="space-y-2">
-            {gapPeople.map((c: any) => {
-              const days = c.gap_days;
-              const tier = days === null ? "Never" : days >= 60 ? "60+ days" : "30+ days";
-              return (
-                <li key={c.id} className="flex items-center justify-between gap-2 rounded-md border p-2 text-sm">
-                  <div>
-                    <div className="font-medium">
-                      <Link to="/contacts/$id" params={{ id: c.id }} className="hover:underline">
-                        {contactFullName(c)}
-                      </Link>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Last engagement: {c.last_engagement_at ? new Date(c.last_engagement_at).toLocaleDateString() : "—"} · {tier}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <CollapsibleCard cardKey="relationships" title="🤝 Relationships (Reconnect)">
+        <ProviderReconnect />
       </CollapsibleCard>
+
 
       <CollapsibleCard cardKey="recent_engagements" title="💬 Recent Engagements" defaultCollapsed>
         {engagements.isLoading ? (
