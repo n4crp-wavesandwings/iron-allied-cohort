@@ -30,6 +30,7 @@ import { EngagementTimeline } from "@/components/engagements/EngagementTimeline"
 import { recentEngagementsQuery } from "@/lib/engagements";
 import { MyStoresCard } from "@/components/today/MyStoresCard";
 import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
+import { ProviderReconnect } from "@/components/today/ProviderReconnect";
 
 
 export const Route = createFileRoute("/_authenticated/today")({
