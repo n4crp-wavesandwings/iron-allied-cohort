@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -31,10 +33,6 @@ export type MerchantEditable = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  job_title: string | null;
-  email: string | null;
-  office_phone: string | null;
-  mobile_phone: string | null;
   note: string | null;
   active: boolean;
 } | null;
@@ -57,10 +55,6 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [email, setEmail] = useState("");
-  const [officePhone, setOfficePhone] = useState("");
-  const [mobilePhone, setMobilePhone] = useState("");
   const [notes, setNotes] = useState("");
   const [active, setActive] = useState(true);
   const [primaryProgramId, setPrimaryProgramId] = useState<string>("none");
@@ -70,10 +64,6 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
     if (!open) return;
     setFirstName(contact?.first_name ?? "");
     setLastName(contact?.last_name ?? "");
-    setJobTitle(contact?.job_title ?? "");
-    setEmail(contact?.email ?? "");
-    setOfficePhone(contact?.office_phone ?? "");
-    setMobilePhone(contact?.mobile_phone ?? "");
     setNotes(contact?.note ?? "");
     setActive(contact?.active ?? true);
     const primary = existingLinks.find((l: any) => l.is_current && l.role === "Primary");
@@ -86,40 +76,44 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
       ),
     );
     // Only re-sync when the dialog opens or the target contact changes.
-    // Depending on `existingLinks` causes an infinite loop: useQuery's `?? []`
-    // default is a new array reference every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, contact?.id]);
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!firstName.trim() || !lastName.trim()) {
-        throw new Error("First and Last name are required");
-      }
       const { data: profile } = await supabase.from("profiles").select("org_id").single();
       if (!profile?.org_id) throw new Error("No organization");
 
-      const payload = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        name: `${firstName.trim()} ${lastName.trim()}`,
-        job_title: jobTitle.trim() || null,
-        email: email.trim() || null,
-        office_phone: officePhone.trim() || null,
-        mobile_phone: mobilePhone.trim() || null,
-        note: notes.trim() || null,
-        active,
-        is_merchant: true,
-      };
-
       let contactId = contact?.id;
       if (isEdit && contactId) {
-        const { error } = await supabase.from("contacts").update(payload as any).eq("id", contactId);
+        // Only merchant-specific fields — never legacy name/phone/email/job_title.
+        const { error } = await supabase
+          .from("contacts")
+          .update({
+            note: notes.trim() || null,
+            active,
+            is_merchant: true,
+          } as any)
+          .eq("id", contactId);
         if (error) throw error;
       } else {
+        if (!firstName.trim() || !lastName.trim()) {
+          throw new Error("First and Last name are required");
+        }
+        const fn = firstName.trim();
+        const ln = lastName.trim();
         const { data, error } = await supabase
           .from("contacts")
-          .insert({ ...(payload as any), org_id: profile.org_id, entity_id: null })
+          .insert({
+            org_id: profile.org_id,
+            entity_id: null,
+            first_name: fn,
+            last_name: ln,
+            name: `${fn} ${ln}`,
+            note: notes.trim() || null,
+            active,
+            is_merchant: true,
+          } as any)
           .select("id")
           .single();
         if (error) throw error;
@@ -222,34 +216,38 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>First Name *</Label>
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+          {isEdit && contact ? (
+            <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2">
+              <div className="text-sm font-medium">
+                {[contact.first_name, contact.last_name].filter(Boolean).join(" ") ||
+                  "Merchant"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Name, phone, email, job title, and organization are edited on the contact
+                record.
+              </p>
+              <Button asChild variant="outline" size="sm" className="gap-1">
+                <Link
+                  to="/contacts/$id"
+                  params={{ id: contact.id }}
+                  onClick={() => onOpenChange(false)}
+                >
+                  <ExternalLink className="h-4 w-4" /> Edit contact details
+                </Link>
+              </Button>
             </div>
-            <div>
-              <Label>Last Name *</Label>
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>First Name *</Label>
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              </div>
+              <div>
+                <Label>Last Name *</Label>
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </div>
             </div>
-          </div>
-          <div>
-            <Label>Job Title</Label>
-            <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
-          </div>
-          <div>
-            <Label>Email</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Office Phone</Label>
-              <Input value={officePhone} onChange={(e) => setOfficePhone(e.target.value)} />
-            </div>
-            <div>
-              <Label>Mobile Phone</Label>
-              <Input value={mobilePhone} onChange={(e) => setMobilePhone(e.target.value)} />
-            </div>
-          </div>
+          )}
 
           <div>
             <Label>Primary on Program</Label>
