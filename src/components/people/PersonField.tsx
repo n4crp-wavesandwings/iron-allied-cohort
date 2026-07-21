@@ -330,8 +330,6 @@ export function PersonField({
         first_name: fn,
         last_name: ln,
         name: `${fn} ${ln}`,
-        mobile_phone: phone.trim() || null,
-        email: email.trim() || null,
         active: true,
       };
       const { data, error } = await supabase
@@ -341,7 +339,12 @@ export function PersonField({
         .single();
       if (error) throw error;
       const contactId = (data as any).id as string;
-      await ensureRole(contactId, role || roleLabel);
+      const { writeCanonicalContactDetails } = await import("@/lib/contacts");
+      await writeCanonicalContactDetails(contactId, {
+        mobilePhone: phone,
+        email,
+        role: role || roleLabel,
+      });
       await ensureChannel(contactId, channel, orgId);
       if (linkTarget?.kind === "store") {
         await ensureStoreCoverage(contactId, linkTarget.storeId, orgId);
@@ -363,6 +366,7 @@ export function PersonField({
       setBusy(false);
     }
   };
+
 
   const clear = () => {
     onChange(null);
