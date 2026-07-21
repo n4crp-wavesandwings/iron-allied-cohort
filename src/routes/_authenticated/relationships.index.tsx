@@ -258,6 +258,8 @@ function RelationshipsListPage() {
         : "Create Relationship";
 
 
+  const [topTab, setTopTab] = useState<"organizations" | "people">("organizations");
+
   return (
     <div>
       <div className="flex items-center justify-between">
