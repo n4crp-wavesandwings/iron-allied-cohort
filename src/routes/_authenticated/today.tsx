@@ -476,7 +476,7 @@ function TodayPage() {
 
       <PostTouchNotePanel
         open={!!notePanelEngagementId}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) {
             setNotePanelEngagementId(null);
             setNotePanelContactId(null);
