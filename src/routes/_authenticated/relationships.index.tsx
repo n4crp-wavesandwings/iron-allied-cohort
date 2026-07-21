@@ -37,6 +37,8 @@ import { ProgramDialog } from "@/components/programs/ProgramDialog";
 import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
 import { NewProviderDialog } from "@/components/relationships/NewProviderDialog";
 import { InternalContactDialog } from "@/components/relationships/InternalContactDialog";
+import { PeopleDirectory } from "@/components/relationships/PeopleDirectory";
+import { TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
