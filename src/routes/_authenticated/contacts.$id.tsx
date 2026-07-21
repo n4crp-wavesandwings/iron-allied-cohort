@@ -635,7 +635,7 @@ function ContactDetailPage() {
           ) : (engagements.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">No interactions logged yet.</p>
           ) : (
-            <EngagementTimeline items={engagements.data ?? []} />
+            <EngagementTimeline items={engagements.data ?? []} onEdit={openNotePanel} />
           )}
         </CardContent>
       </Card>
@@ -699,8 +699,19 @@ function ContactDetailPage() {
           null
         }
         primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
-        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+        onStamped={(engagementId) => {
+          qc.invalidateQueries({ queryKey: ["engagements", "contact", id] });
+          openNotePanel(engagementId);
+        }}
       />
+
+      <PostTouchNotePanel
+        open={notePanelOpen}
+        onOpenChange={setNotePanelOpen}
+        engagementId={notePanelEngagementId}
+        contactId={c.id}
+      />
+
 
       {c && c.entity_id && (
         <ContactDialog
