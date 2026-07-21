@@ -1,13 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, Pencil } from "lucide-react";
 import type { EngagementListItem } from "@/lib/engagements";
 import { contactLabel, engagementTypeLabel } from "@/lib/engagements";
 
-export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
+export function EngagementTimeline({
+  items,
+  onEdit,
+}: {
+  items: EngagementListItem[];
+  onEdit?: (id: string) => void;
+}) {
   if (!items.length) {
     return <p className="text-sm text-muted-foreground">No engagements yet.</p>;
   }
+
   return (
     <ul className="space-y-2">
       {items.map((e) => {
