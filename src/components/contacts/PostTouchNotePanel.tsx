@@ -20,7 +20,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   engagementId: string | null;
-  contactId: string;
+  contactId: string | null;
 }
 
 function todayInput(): string {
@@ -143,18 +143,23 @@ export function PostTouchNotePanel({ open, onOpenChange, engagementId, contactId
           .select("id")
           .single();
         if (fErr) throw fErr;
-        const { error: pErr } = await supabase.from("follow_up_people").insert({
-          follow_up_id: (fu as any).id,
-          contact_id: contactId,
-          org_id: orgId,
-        } as any);
-        if (pErr) throw pErr;
+        if (contactId) {
+          const { error: pErr } = await supabase.from("follow_up_people").insert({
+            follow_up_id: (fu as any).id,
+            contact_id: contactId,
+            org_id: orgId,
+          } as any);
+          if (pErr) throw pErr;
+        }
       }
     },
     onSuccess: () => {
       toast.success("Saved");
-      qc.invalidateQueries({ queryKey: ["engagements", "contact", contactId] });
-      qc.invalidateQueries({ queryKey: ["contact_follow_ups", contactId] });
+      if (contactId) {
+        qc.invalidateQueries({ queryKey: ["engagements", "contact", contactId] });
+        qc.invalidateQueries({ queryKey: ["contact_follow_ups", contactId] });
+      }
+      qc.invalidateQueries({ queryKey: ["engagements", "recent"] });
       qc.invalidateQueries({ queryKey: ["follow_ups"] });
       onOpenChange(false);
     },

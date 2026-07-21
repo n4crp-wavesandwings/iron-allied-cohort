@@ -35,6 +35,7 @@ import { recentEngagementsQuery } from "@/lib/engagements";
 import { MyStoresCard } from "@/components/today/MyStoresCard";
 import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
 import { ProviderReconnect } from "@/components/today/ProviderReconnect";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -221,6 +222,13 @@ function TodayPage() {
   const [relOpen, setRelOpen] = useState(false);
   const [engOpen, setEngOpen] = useState(false);
   const [followUpFilter, setFollowUpFilter] = useState<FollowUpFilter>(null);
+  const [notePanelEngagementId, setNotePanelEngagementId] = useState<string | null>(null);
+  const [notePanelContactId, setNotePanelContactId] = useState<string | null>(null);
+  const openEngagementNote = (engagementId: string) => {
+    const eng = (engagements.data ?? []).find((e) => e.id === engagementId);
+    setNotePanelContactId(eng?.people?.[0]?.contact?.id ?? null);
+    setNotePanelEngagementId(engagementId);
+  };
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
@@ -459,9 +467,25 @@ function TodayPage() {
         {engagements.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
-          <EngagementTimeline items={(engagements.data ?? []).slice(0, 10)} />
+          <EngagementTimeline
+            items={(engagements.data ?? []).slice(0, 10)}
+            onEdit={openEngagementNote}
+          />
         )}
       </CollapsibleCard>
+
+      <PostTouchNotePanel
+        open={!!notePanelEngagementId}
+        onOpenChange={(o: boolean) => {
+          if (!o) {
+            setNotePanelEngagementId(null);
+            setNotePanelContactId(null);
+          }
+        }}
+        engagementId={notePanelEngagementId}
+        contactId={notePanelContactId}
+      />
+
 
       {/* Quick Add row */}
       <Card>
