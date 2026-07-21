@@ -108,6 +108,86 @@ const orgsQuery = (id: string) =>
     },
   });
 
+const storeCoverageQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["contact_store_coverage", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contact_store_coverage")
+        .select("id, is_current, store:stores(id, store_number, name)")
+        .eq("contact_id", id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+const contactFollowUpsQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["contact_follow_ups", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("follow_up_people")
+        .select("follow_up:follow_ups(id, title, due_date, priority, status, deleted_at)")
+        .eq("contact_id", id);
+      if (error) throw error;
+      return ((data as any[]) ?? [])
+        .map((r) => r.follow_up)
+        .filter((f: any) => f && !f.deleted_at && f.status !== "completed" && f.status !== "done")
+        .sort((a: any, b: any) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
+    },
+  });
+
+/** Insert an engagement stamp for a touch with this contact. */
+async function stampContactTouch(input: {
+  contactId: string;
+  entityId?: string | null;
+  typeName: "Phone Call" | "Email" | string;
+  note?: string | null;
+}): Promise<void> {
+  const { data: types, error: te } = await supabase
+    .from("engagement_types")
+    .select("id,name")
+    .eq("active", true);
+  if (te) throw te;
+  const list = (types as any[]) ?? [];
+  const match =
+    list.find((t) => t.name?.toLowerCase() === input.typeName.toLowerCase()) ??
+    list.find((t) => /phone/i.test(t.name)) ??
+    list[0];
+  if (!match) throw new Error("No engagement types available.");
+
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user.user?.id ?? null;
+
+  const { data: eng, error } = await supabase
+    .from("engagements")
+    .insert({
+      engagement_type_id: match.id,
+      occurred_at: new Date().toISOString(),
+      note: input.note ?? null,
+      created_by: userId,
+    } as any)
+    .select("id, org_id")
+    .single();
+  if (error) throw error;
+  const engagementId = (eng as any).id as string;
+  const orgId = (eng as any).org_id as string;
+
+  await Promise.all([
+    supabase
+      .from("engagement_type_links")
+      .insert({ engagement_id: engagementId, engagement_type_id: match.id, org_id: orgId } as any),
+    supabase
+      .from("engagement_people")
+      .insert({ engagement_id: engagementId, contact_id: input.contactId, org_id: orgId } as any),
+    input.entityId
+      ? supabase
+          .from("engagement_organizations")
+          .insert({ engagement_id: engagementId, entity_id: input.entityId, org_id: orgId } as any)
+      : Promise.resolve({ error: null } as any),
+  ]);
+}
+
 function ContactDetailPage() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
@@ -116,10 +196,16 @@ function ContactDetailPage() {
   const emails = useQuery(emailsQuery(id));
   const roles = useQuery(rolesQuery(id));
   const orgs = useQuery(orgsQuery(id));
+  const coverage = useQuery(storeCoverageQuery(id));
+  const followUps = useQuery(contactFollowUpsQuery(id));
+  const quickStarts = useQuery(quickStartsQuery);
 
   const [editOpen, setEditOpen] = useState(false);
   const [engagementOpen, setEngagementOpen] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [qsPickerOpen, setQsPickerOpen] = useState(false);
   const engagements = useQuery(engagementsByContactQuery(id));
+
 
   // add form state
   const [newPhoneLabel, setNewPhoneLabel] = useState("Mobile");
