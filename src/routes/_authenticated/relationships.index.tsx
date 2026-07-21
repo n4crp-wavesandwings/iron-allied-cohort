@@ -87,7 +87,7 @@ function RelationshipsListPage() {
 
   const isProgramTab = filter === "program";
   const isMerchantTab = filter === "merchant";
-  const isInternalTab = filter === "internal";
+  const isInternalTab = false;
 
   const { data: rows = [], isLoading } = useQuery({
     ...relationshipsQueryOptions(
@@ -95,7 +95,7 @@ function RelationshipsListPage() {
         ? "all"
         : (filter as EntityType | "all"),
     ),
-    enabled: !isProgramTab && !isMerchantTab && !isInternalTab,
+    enabled: !isProgramTab && !isMerchantTab,
   });
   const { data: programs = [], isLoading: programsLoading } = useQuery({
     ...programsListQuery,
