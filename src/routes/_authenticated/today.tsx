@@ -215,6 +215,7 @@ function TodayPage() {
   const [taskOpen, setTaskOpen] = useState(false);
   const [relOpen, setRelOpen] = useState(false);
   const [engOpen, setEngOpen] = useState(false);
+  const [followUpFilter, setFollowUpFilter] = useState<FollowUpFilter>(null);
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
