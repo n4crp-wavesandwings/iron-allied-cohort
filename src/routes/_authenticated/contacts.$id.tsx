@@ -782,7 +782,8 @@ function ReachThemCard({
 
   const stamp = async (kind: "call" | "text" | "email", note: string) => {
     try {
-      const typeName = kind === "email" ? "Email" : "Phone Call";
+      const typeName =
+        kind === "email" ? "Email" : kind === "text" ? "Text Message" : "Phone Call";
       const engagementId = await stampContactTouch({
         contactId: contact.id,
         entityId: primaryEntityId,
