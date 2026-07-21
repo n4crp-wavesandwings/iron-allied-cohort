@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { linkContactToChannelAndTarget } from "@/components/people/PersonField";
+import { writeCanonicalContactDetails } from "@/lib/contacts";
 
 type Props = {
   open: boolean;
@@ -47,16 +48,19 @@ export function InternalContactDialog({ open, onOpenChange }: Props) {
           first_name: fn,
           last_name: ln,
           name: `${fn} ${ln}`,
-          job_title: jobTitle.trim() || null,
-          email: email.trim() || null,
-          mobile_phone: mobile.trim() || null,
           active: true,
         } as any)
         .select("id")
         .single();
       if (error) throw error;
+      const contactId = (data as any).id as string;
+      await writeCanonicalContactDetails(contactId, {
+        mobilePhone: mobile,
+        email,
+        role: jobTitle.trim() || "Internal",
+      });
       await linkContactToChannelAndTarget(
-        (data as any).id,
+        contactId,
         "Internal",
         jobTitle.trim() || "Internal",
         { kind: "none" },
@@ -70,6 +74,7 @@ export function InternalContactDialog({ open, onOpenChange }: Props) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
