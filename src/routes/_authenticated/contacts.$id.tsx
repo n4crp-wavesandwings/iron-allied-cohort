@@ -7,17 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Star,
+  Phone,
+  MessageSquare,
+  Mail,
+  Zap,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByContactQuery } from "@/lib/engagements";
+import { TaskDialog } from "@/components/tasks/TaskDialog";
+import { quickStartsQuery, substituteQuickStart, contactFirstName, type QuickStart } from "@/lib/tasks";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
 });
+
 
 const contactQuery = (id: string) =>
   queryOptions({
