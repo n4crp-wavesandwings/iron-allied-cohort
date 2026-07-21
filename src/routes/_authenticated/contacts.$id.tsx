@@ -711,3 +711,203 @@ function Field({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function AffiliationLine({
+  orgs,
+  coverage,
+  roles,
+}: {
+  orgs: any[];
+  coverage: any[];
+  roles: string[];
+}) {
+  const primaryOrg = orgs.find((o) => o.is_primary) ?? orgs[0];
+  const currentStore =
+    coverage.find((r) => r.is_current && r.store)?.store ?? coverage[0]?.store ?? null;
+  const roleText = roles.filter(Boolean).join(", ");
+  const parts: string[] = [];
+  if (primaryOrg?.entities?.name) parts.push(primaryOrg.entities.name);
+  else if (currentStore)
+    parts.push(
+      `${currentStore.store_number}${currentStore.name ? ` ${currentStore.name}` : ""}`,
+    );
+  if (roleText) parts.push(roleText);
+  if (parts.length === 0) return null;
+  return <p className="mt-1 text-sm">{parts.join(" · ")}</p>;
+}
+
+function ReachThemCard({
+  contact,
+  primaryPhone,
+  primaryEmail,
+  primaryEntityId,
+  quickStarts,
+  onOpenQuickStart,
+  onStamped,
+}: {
+  contact: ContactRow;
+  primaryPhone: string | null;
+  primaryEmail: string | null;
+  primaryEntityId: string | null;
+  quickStarts: QuickStart[];
+  onOpenQuickStart: () => void;
+  onStamped: () => void;
+}) {
+  const hasPhone = !!primaryPhone;
+  const hasEmail = !!primaryEmail;
+  const hasQuickStart = (hasPhone || hasEmail) && quickStarts.length > 0;
+
+  const stamp = async (kind: "call" | "text" | "email", note: string) => {
+    try {
+      const typeName = kind === "email" ? "Email" : "Phone Call";
+      await stampContactTouch({
+        contactId: contact.id,
+        entityId: primaryEntityId,
+        typeName,
+        note,
+      });
+      toast.success("Logged");
+      onStamped();
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not log");
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Reach Them</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasPhone && "opacity-40")}
+            disabled={!hasPhone}
+            onClick={() => {
+              if (!hasPhone) return;
+              window.location.href = `tel:${primaryPhone}`;
+              void stamp("call", "Phone call");
+            }}
+          >
+            <Phone className="h-4 w-4" /> Call
+          </Button>
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasPhone && "opacity-40")}
+            disabled={!hasPhone}
+            onClick={() => {
+              if (!hasPhone) return;
+              window.location.href = `sms:${primaryPhone}`;
+              void stamp("text", "Text message");
+            }}
+          >
+            <MessageSquare className="h-4 w-4" /> Text
+          </Button>
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasEmail && "opacity-40")}
+            disabled={!hasEmail}
+            onClick={() => {
+              if (!hasEmail) return;
+              window.location.href = `mailto:${primaryEmail}`;
+              void stamp("email", "Email");
+            }}
+          >
+            <Mail className="h-4 w-4" /> Email
+          </Button>
+          <Button
+            className={cn("h-11 gap-1", !hasQuickStart && "opacity-40")}
+            disabled={!hasQuickStart}
+            onClick={onOpenQuickStart}
+          >
+            <Zap className="h-4 w-4" /> Quick Start
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickStartPickerDialog({
+  open,
+  onOpenChange,
+  quickStarts,
+  contact,
+  primaryPhone,
+  primaryEmail,
+  primaryEntityId,
+  onStamped,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  quickStarts: QuickStart[];
+  contact: ContactRow;
+  primaryPhone: string | null;
+  primaryEmail: string | null;
+  primaryEntityId: string | null;
+  onStamped: () => void;
+}) {
+  const send = async (qs: QuickStart) => {
+    const body = substituteQuickStart(qs.body, contact);
+    let channel: "text" | "email" | null = null;
+    if (qs.channel === "email" && primaryEmail) {
+      window.location.href = `mailto:${encodeURIComponent(primaryEmail)}?body=${encodeURIComponent(body)}`;
+      channel = "email";
+    } else if (primaryPhone) {
+      window.location.href = `sms:${encodeURIComponent(primaryPhone)}?&body=${encodeURIComponent(body)}`;
+      channel = "text";
+    } else if (primaryEmail) {
+      window.location.href = `mailto:${encodeURIComponent(primaryEmail)}?body=${encodeURIComponent(body)}`;
+      channel = "email";
+    } else {
+      toast.error("No phone or email on file.");
+      return;
+    }
+    onOpenChange(false);
+    try {
+      await stampContactTouch({
+        contactId: contact.id,
+        entityId: primaryEntityId,
+        typeName: channel === "email" ? "Email" : "Phone Call",
+        note: `Quick Start: ${qs.name} — ${body}`,
+      });
+      toast.success("Logged");
+      onStamped();
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not log");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Send Quick Start to {contactFirstName(contact)}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          {quickStarts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No favorite Quick Starts.</p>
+          ) : (
+            quickStarts.map((qs) => (
+              <button
+                key={qs.id}
+                type="button"
+                onClick={() => send(qs)}
+                className="w-full rounded-md border p-3 text-left hover:bg-accent"
+              >
+                <div className="font-medium">
+                  <span className="mr-1">{qs.icon}</span>
+                  {qs.name}
+                </div>
+                <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  {substituteQuickStart(qs.body, contact)}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
