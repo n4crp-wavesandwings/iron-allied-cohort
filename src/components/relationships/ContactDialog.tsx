@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -24,11 +26,10 @@ import {
 import {
   CONTACT_COMM_METHODS,
   CONTACT_RELATIONSHIP_STRENGTHS,
-  PREFERRED_CONTACT_METHODS,
   type ContactCommMethod,
   type ContactRelationshipStrength,
   type ContactRow,
-  type PreferredContactMethod,
+  writeCanonicalContactDetails,
 } from "@/lib/contacts";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 
@@ -40,6 +41,9 @@ interface Props {
 }
 
 export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) {
+  // Editing an existing contact is now done exclusively on the Contact Hub
+  // (/contacts/$id) — this dialog only creates new contacts. When called with
+  // a `contact`, we show a short redirect card instead of duplicate fields.
   const isEdit = !!contact;
   const queryClient = useQueryClient();
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -50,11 +54,9 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
   const [jobTitle, setJobTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [email, setEmail] = useState("");
-  const [officePhone, setOfficePhone] = useState("");
   const [mobilePhone, setMobilePhone] = useState("");
   const [linkedIn, setLinkedIn] = useState("");
   const [teams, setTeams] = useState("");
-  const [preferred, setPreferred] = useState<PreferredContactMethod | "">("");
   const [prefCommV2, setPrefCommV2] = useState<ContactCommMethod | "">("");
   const [strength, setStrength] = useState<ContactRelationshipStrength | "">("");
   const [birthday, setBirthday] = useState("");
@@ -63,47 +65,42 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
   const [active, setActive] = useState(true);
 
   useEffect(() => {
-    if (open) {
-      setFirstName(contact?.first_name ?? "");
-      setLastName(contact?.last_name ?? "");
-      setPreferredName((contact as any)?.preferred_name ?? "");
-      setJobTitle(contact?.job_title ?? "");
-      setDepartment(contact?.department ?? "");
-      setEmail(contact?.email ?? "");
-      setOfficePhone(contact?.office_phone ?? "");
-      setMobilePhone(contact?.mobile_phone ?? "");
-      setLinkedIn((contact as any)?.linkedin ?? "");
-      setTeams((contact as any)?.microsoft_teams ?? "");
-      setPreferred((contact?.preferred_contact_method as PreferredContactMethod) ?? "");
-      setPrefCommV2(((contact as any)?.preferred_communication_method_v2 as ContactCommMethod) ?? "");
-      setStrength(((contact as any)?.relationship_strength as ContactRelationshipStrength) ?? "");
-      setBirthday((contact as any)?.birthday ?? "");
-      setBestTime(contact?.best_time_to_contact ?? "");
-      setNotes(contact?.note ?? "");
-      setActive(contact?.active ?? true);
+    if (open && !isEdit) {
+      setFirstName("");
+      setLastName("");
+      setPreferredName("");
+      setJobTitle("");
+      setDepartment("");
+      setEmail("");
+      setMobilePhone("");
+      setLinkedIn("");
+      setTeams("");
+      setPrefCommV2("");
+      setStrength("");
+      setBirthday("");
+      setBestTime("");
+      setNotes("");
+      setActive(true);
       setCreatedId(null);
     }
-  }, [open, contact]);
+  }, [open, isEdit]);
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!firstName.trim() || !lastName.trim()) {
         throw new Error("First Name and Last Name are required.");
       }
+      // Never write legacy flat columns (email / office_phone / mobile_phone /
+      // job_title). Those live in contact_phones / contact_emails / contact_roles.
       const payload = {
         entity_id: entityId,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         name: `${firstName.trim()} ${lastName.trim()}`,
         preferred_name: preferredName.trim() || null,
-        job_title: jobTitle.trim() || null,
         department: department.trim() || null,
-        email: email.trim() || null,
-        office_phone: officePhone.trim() || null,
-        mobile_phone: mobilePhone.trim() || null,
         linkedin: linkedIn.trim() || null,
         microsoft_teams: teams.trim() || null,
-        preferred_contact_method: preferred || null,
         preferred_communication_method_v2: prefCommV2 || null,
         relationship_strength: strength || null,
         birthday: birthday || null,
@@ -111,43 +108,34 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
         note: notes.trim() || null,
         active,
       };
-      if (isEdit && contact) {
-        const { error } = await supabase
-          .from("contacts")
-          .update(payload)
-          .eq("id", contact.id);
-        if (error) throw error;
-        return contact.id;
-      } else {
-        const { data: inserted, error } = await supabase
-          .from("contacts")
-          .insert(payload)
-          .select("id")
-          .single();
-        if (error) throw error;
-        // Ensure a contact_organizations link exists (primary if first)
-        if (inserted?.id) {
-          const { count } = await supabase
-            .from("contact_organizations")
-            .select("id", { count: "exact", head: true })
-            .eq("contact_id", inserted.id);
-          await supabase.from("contact_organizations").insert({
-            contact_id: inserted.id,
-            organization_id: entityId,
-            is_primary: (count ?? 0) === 0,
-          });
-        }
-        return inserted!.id as string;
-      }
+      const { data: inserted, error } = await supabase
+        .from("contacts")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw error;
+      const newId = inserted!.id as string;
+      await writeCanonicalContactDetails(newId, {
+        mobilePhone,
+        email,
+        role: jobTitle,
+      });
+      // Ensure a contact_organizations link exists (primary if first)
+      const { count } = await supabase
+        .from("contact_organizations")
+        .select("id", { count: "exact", head: true })
+        .eq("contact_id", newId);
+      await supabase.from("contact_organizations").insert({
+        contact_id: newId,
+        organization_id: entityId,
+        is_primary: (count ?? 0) === 0,
+      });
+      return newId;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ["contacts", entityId] });
-      toast.success(isEdit ? "Contact updated" : "Contact added");
-      if (isEdit) {
-        onOpenChange(false);
-      } else {
-        setCreatedId(id);
-      }
+      toast.success("Contact added");
+      setCreatedId(id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -164,7 +152,36 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
                 : "Add Contact"}
           </DialogTitle>
         </DialogHeader>
-        {createdId ? (
+
+        {isEdit && contact ? (
+          <div className="space-y-4">
+            <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2">
+              <div className="text-sm font-medium">
+                {[contact.first_name, contact.last_name].filter(Boolean).join(" ") ||
+                  contact.name ||
+                  "Contact"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Name, phones, emails, roles, and organization are edited on the contact
+                record.
+              </p>
+              <Button asChild variant="outline" size="sm" className="gap-1">
+                <Link
+                  to="/contacts/$id"
+                  params={{ id: contact.id }}
+                  onClick={() => onOpenChange(false)}
+                >
+                  <ExternalLink className="h-4 w-4" /> Edit contact details
+                </Link>
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : createdId ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Assign this contact&apos;s district/store coverage now, or skip and add it later
@@ -176,216 +193,194 @@ export function ContactDialog({ open, onOpenChange, entityId, contact }: Props) 
             </DialogFooter>
           </div>
         ) : (
-        <form
-          className="space-y-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            mutation.mutate();
-          }}
-        >
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">First Name *</Label>
-              <Input
-                id="first_name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutation.mutate();
+            }}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name *</Label>
+                <Input
+                  id="first_name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name *</Label>
+                <Input
+                  id="last_name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name *</Label>
+              <Label htmlFor="preferred_name">Preferred Name</Label>
               <Input
-                id="last_name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
+                id="preferred_name"
+                value={preferredName}
+                onChange={(e) => setPreferredName(e.target.value)}
+                placeholder="e.g. Bob (for Robert)"
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="preferred_name">Preferred Name</Label>
-            <Input
-              id="preferred_name"
-              value={preferredName}
-              onChange={(e) => setPreferredName(e.target.value)}
-              placeholder="e.g. Bob (for Robert)"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="job_title">Job Title</Label>
-              <Input
-                id="job_title"
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="job_title">Job Title / Role</Label>
+                <Input
+                  id="job_title"
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="department">Department</Label>
+                <Input
+                  id="department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mobile_phone">Mobile Phone</Label>
+                <Input
+                  id="mobile_phone"
+                  value={mobilePhone}
+                  onChange={(e) => setMobilePhone(e.target.value)}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Additional phones, emails, and roles can be added after creation on the
+              contact record.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="linkedin">LinkedIn</Label>
+                <Input
+                  id="linkedin"
+                  value={linkedIn}
+                  onChange={(e) => setLinkedIn(e.target.value)}
+                  placeholder="URL or username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="teams">Microsoft Teams</Label>
+                <Input
+                  id="teams"
+                  value={teams}
+                  onChange={(e) => setTeams(e.target.value)}
+                  placeholder="email or username"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Preferred Communication Method</Label>
+                <Select
+                  value={prefCommV2}
+                  onValueChange={(v) => setPrefCommV2(v as ContactCommMethod)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTACT_COMM_METHODS.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Relationship Strength</Label>
+                <Select
+                  value={strength}
+                  onValueChange={(v) => setStrength(v as ContactRelationshipStrength)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Not assessed" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTACT_RELATIONSHIP_STRENGTHS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="birthday">Birthday</Label>
+                <Input
+                  id="birthday"
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="best_time">Best Time To Contact</Label>
+                <Input
+                  id="best_time"
+                  value={bestTime}
+                  onChange={(e) => setBestTime(e.target.value)}
+                  placeholder="e.g. 9am-12pm"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Input
-                id="department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+              <Label htmlFor="contact_notes">Notes</Label>
+              <Textarea
+                id="contact_notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="office_phone">Office Phone</Label>
-              <Input
-                id="office_phone"
-                value={officePhone}
-                onChange={(e) => setOfficePhone(e.target.value)}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="active"
+                checked={active}
+                onCheckedChange={(v) => setActive(v === true)}
               />
+              <Label htmlFor="active" className="cursor-pointer">
+                Active
+              </Label>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="mobile_phone">Mobile Phone</Label>
-              <Input
-                id="mobile_phone"
-                value={mobilePhone}
-                onChange={(e) => setMobilePhone(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                value={linkedIn}
-                onChange={(e) => setLinkedIn(e.target.value)}
-                placeholder="URL or username"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="teams">Microsoft Teams</Label>
-              <Input
-                id="teams"
-                value={teams}
-                onChange={(e) => setTeams(e.target.value)}
-                placeholder="email or username"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Preferred Contact Method (legacy)</Label>
-              <Select
-                value={preferred}
-                onValueChange={(v) => setPreferred(v as PreferredContactMethod)}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={mutation.isPending}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PREFERRED_CONTACT_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Preferred Communication Method</Label>
-              <Select
-                value={prefCommV2}
-                onValueChange={(v) => setPrefCommV2(v as ContactCommMethod)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONTACT_COMM_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Relationship Strength</Label>
-              <Select
-                value={strength}
-                onValueChange={(v) => setStrength(v as ContactRelationshipStrength)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Not assessed" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONTACT_RELATIONSHIP_STRENGTHS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="birthday">Birthday</Label>
-              <Input
-                id="birthday"
-                type="date"
-                value={birthday}
-                onChange={(e) => setBirthday(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="best_time">Best Time To Contact</Label>
-            <Input
-              id="best_time"
-              value={bestTime}
-              onChange={(e) => setBestTime(e.target.value)}
-              placeholder="e.g. 9am-12pm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact_notes">Notes</Label>
-            <Textarea
-              id="contact_notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="active"
-              checked={active}
-              onCheckedChange={(v) => setActive(v === true)}
-            />
-            <Label htmlFor="active" className="cursor-pointer">
-              Active
-            </Label>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              disabled={mutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Save & Continue to Coverage"}
-            </Button>
-          </DialogFooter>
-        </form>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Saving…" : "Save & Continue to Coverage"}
+              </Button>
+            </DialogFooter>
+          </form>
         )}
       </DialogContent>
     </Dialog>

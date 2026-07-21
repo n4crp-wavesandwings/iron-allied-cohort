@@ -479,13 +479,10 @@ function RelationshipsListPage() {
                             id: m.id,
                             first_name: m.first_name,
                             last_name: m.last_name,
-                            job_title: m.job_title,
-                            email: null,
-                            office_phone: null,
-                            mobile_phone: null,
                             note: null,
                             active: m.active,
                           });
+
                           setMerchantDialogOpen(true);
                         }}
                         aria-label="Edit"

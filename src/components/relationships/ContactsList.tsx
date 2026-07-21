@@ -22,10 +22,10 @@ export function ContactsList({ entityId }: { entityId: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(contactsQueryOptions(entityId));
 
-  const [editing, setEditing] = useState<ContactRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ContactRow | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -90,9 +90,12 @@ export function ContactsList({ entityId }: { entityId: string }) {
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setEditing(c)}>
-                      <Pencil className="h-4 w-4" />
+                    <Button asChild variant="ghost" size="sm">
+                      <Link to="/contacts/$id" params={{ id: c.id }} aria-label="Edit contact">
+                        <Pencil className="h-4 w-4" />
+                      </Link>
                     </Button>
+
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(c)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -144,12 +147,7 @@ export function ContactsList({ entityId }: { entityId: string }) {
       )}
 
       <ContactDialog open={addOpen} onOpenChange={setAddOpen} entityId={entityId} />
-      <ContactDialog
-        open={!!editing}
-        onOpenChange={(o) => !o && setEditing(null)}
-        entityId={entityId}
-        contact={editing}
-      />
+
 
       <AlertDialog
         open={!!deleteTarget}
