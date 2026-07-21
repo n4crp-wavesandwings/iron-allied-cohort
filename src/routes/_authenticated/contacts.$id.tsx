@@ -32,6 +32,14 @@ import { engagementsByContactQuery } from "@/lib/engagements";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { quickStartsQuery, substituteQuickStart, contactFirstName, type QuickStart } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
+import { programsListQuery, contactProgramMerchantsQuery } from "@/lib/programs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
@@ -136,6 +144,20 @@ const contactFollowUpsQuery = (id: string) =>
         .sort((a: any, b: any) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
     },
   });
+
+const orgOptionsQuery = queryOptions({
+  queryKey: ["entities", "org-options"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("entities")
+      .select("id, name, type")
+      .in("type", ["provider", "merchant", "internal"])
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return (data as any[]) ?? [];
+  },
+});
 
 /** Insert an engagement stamp for a touch with this contact. */
 async function stampContactTouch(input: {
@@ -577,40 +599,13 @@ function ContactDetailPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Organizations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {orgs.data?.length ? (
-            <ul className="space-y-1">
-              {orgs.data.map((o: any) => (
-                <li
-                  key={o.id}
-                  className="flex items-center justify-between rounded border px-2 py-1 text-sm"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {o.is_primary && (
-                      <Star className="h-3 w-3 fill-current text-primary shrink-0" />
-                    )}
-                    <Link
-                      to="/relationships/$id"
-                      params={{ id: o.organization_id }}
-                      className="text-primary underline truncate"
-                    >
-                      {o.entities?.name ?? "—"}
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">Not linked to any organization.</p>
-          )}
-        </CardContent>
-      </Card>
+      <OrganizationsAssignmentCard contactId={c.id} orgs={orgs.data ?? []} />
 
       <CoveragePanel mode={{ kind: "contact", contactId: c.id }} />
+
+      <ProgramsAssignmentCard contactId={c.id} />
+
+
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -911,3 +906,259 @@ function QuickStartPickerDialog({
     </Dialog>
   );
 }
+
+function OrganizationsAssignmentCard({
+  contactId,
+  orgs,
+}: {
+  contactId: string;
+  orgs: any[];
+}) {
+  const qc = useQueryClient();
+  const options = useQuery(orgOptionsQuery);
+  const [pick, setPick] = useState<string>("");
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["contact_organizations", contactId] });
+
+  const add = useMutation({
+    mutationFn: async (entityId: string) => {
+      if (!entityId) throw new Error("Pick an organization");
+      if (orgs.some((o) => o.organization_id === entityId)) {
+        throw new Error("Already linked");
+      }
+      const { error } = await supabase.from("contact_organizations").insert({
+        contact_id: contactId,
+        organization_id: entityId,
+        is_primary: orgs.length === 0,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setPick("");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (rowId: string) => {
+      const { error } = await supabase
+        .from("contact_organizations")
+        .delete()
+        .eq("id", rowId);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setPrimary = useMutation({
+    mutationFn: async (rowId: string) => {
+      await supabase
+        .from("contact_organizations")
+        .update({ is_primary: false })
+        .eq("contact_id", contactId);
+      const { error } = await supabase
+        .from("contact_organizations")
+        .update({ is_primary: true })
+        .eq("id", rowId);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const linkedIds = new Set(orgs.map((o) => o.organization_id));
+  const available = (options.data ?? []).filter((e: any) => !linkedIds.has(e.id));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Organizations</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {orgs.length ? (
+          <ul className="space-y-1">
+            {orgs.map((o: any) => (
+              <li
+                key={o.id}
+                className="flex items-center justify-between rounded border px-2 py-1 text-sm"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {o.is_primary && (
+                    <Star className="h-3 w-3 fill-current text-primary shrink-0" />
+                  )}
+                  <Link
+                    to="/relationships/$id"
+                    params={{ id: o.organization_id }}
+                    className="text-primary underline truncate"
+                  >
+                    {o.entities?.name ?? "—"}
+                  </Link>
+                  {o.entities?.type && (
+                    <span className="text-xs text-muted-foreground">
+                      · {o.entities.type}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-1">
+                  {!o.is_primary && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPrimary.mutate(o.id)}
+                      title="Set primary"
+                    >
+                      <Star className="h-3 w-3" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove.mutate(o.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Not linked to any organization.</p>
+        )}
+        <div className="flex gap-2 pt-2">
+          <Select value={pick} onValueChange={setPick}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Link organization…" />
+            </SelectTrigger>
+            <SelectContent>
+              {available.map((e: any) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.name} {e.type ? `(${e.type})` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={() => add.mutate(pick)} disabled={!pick}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProgramsAssignmentCard({ contactId }: { contactId: string }) {
+  const qc = useQueryClient();
+  const links = useQuery(contactProgramMerchantsQuery(contactId));
+  const programs = useQuery(programsListQuery);
+  const [pick, setPick] = useState<string>("");
+  const [role, setRole] = useState<"Primary" | "Secondary">("Primary");
+
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["contact-program-merchants", contactId] });
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!pick) throw new Error("Pick a program");
+      const { error } = await supabase.from("program_merchants" as any).insert({
+        contact_id: contactId,
+        program_id: pick,
+        role,
+        is_current: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setPick("");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (rowId: string) => {
+      const { error } = await supabase
+        .from("program_merchants" as any)
+        .delete()
+        .eq("id", rowId);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const linkedProgramIds = new Set((links.data ?? []).map((l: any) => l.program_id));
+  const available = (programs.data ?? []).filter((p: any) => !linkedProgramIds.has(p.id));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Programs (Merchant)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {(links.data ?? []).length ? (
+          <ul className="space-y-1">
+            {(links.data as any[]).map((l) => (
+              <li
+                key={l.id}
+                className="flex items-center justify-between rounded border px-2 py-1 text-sm"
+              >
+                <div className="min-w-0">
+                  <Link
+                    to="/programs/$id"
+                    params={{ id: l.program_id }}
+                    className="text-primary underline truncate"
+                  >
+                    {l.program?.name ?? "—"}
+                  </Link>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {l.role}
+                    {l.is_current ? "" : " · past"}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => remove.mutate(l.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Not assigned as a merchant on any program.</p>
+        )}
+        <div className="flex flex-wrap gap-2 pt-2">
+          <Select value={pick} onValueChange={setPick}>
+            <SelectTrigger className="flex-1 min-w-[10rem]">
+              <SelectValue placeholder="Link program…" />
+            </SelectTrigger>
+            <SelectContent>
+              {available.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={role} onValueChange={(v) => setRole(v as "Primary" | "Secondary")}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Primary">Primary</SelectItem>
+              <SelectItem value="Secondary">Secondary</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={() => add.mutate()} disabled={!pick}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
