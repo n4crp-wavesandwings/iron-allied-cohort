@@ -352,7 +352,32 @@ function ContactDetailPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {[c.job_title, c.department].filter(Boolean).join(" · ") || "—"}
         </p>
+        <AffiliationLine
+          orgs={orgs.data ?? []}
+          coverage={coverage.data ?? []}
+          roles={(roles.data ?? []).map((r: any) => r.role)}
+        />
       </div>
+
+      <ReachThemCard
+        contact={c}
+        primaryPhone={
+          ((phones.data ?? []).find((p: any) => p.is_primary) ?? (phones.data ?? [])[0])?.phone ??
+          c.mobile_phone ??
+          c.office_phone ??
+          null
+        }
+        primaryEmail={
+          ((emails.data ?? []).find((e: any) => e.is_primary) ?? (emails.data ?? [])[0])?.email ??
+          c.email ??
+          null
+        }
+        primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
+        quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
+        onOpenQuickStart={() => setQsPickerOpen(true)}
+        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+      />
+
 
       <Card>
         <CardHeader>
