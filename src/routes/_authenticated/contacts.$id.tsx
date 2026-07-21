@@ -159,13 +159,13 @@ const orgOptionsQuery = queryOptions({
   },
 });
 
-/** Insert an engagement stamp for a touch with this contact. */
+/** Insert an engagement stamp for a touch with this contact. Returns the new engagement id. */
 async function stampContactTouch(input: {
   contactId: string;
   entityId?: string | null;
   typeName: "Phone Call" | "Email" | string;
   note?: string | null;
-}): Promise<void> {
+}): Promise<string> {
   const { data: types, error: te } = await supabase
     .from("engagement_types")
     .select("id,name")
@@ -208,7 +208,9 @@ async function stampContactTouch(input: {
           .insert({ engagement_id: engagementId, entity_id: input.entityId, org_id: orgId } as any)
       : Promise.resolve({ error: null } as any),
   ]);
+  return engagementId;
 }
+
 
 function ContactDetailPage() {
   const { id } = Route.useParams();
