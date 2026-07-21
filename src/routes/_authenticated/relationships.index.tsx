@@ -575,6 +575,7 @@ function RelationshipsListPage() {
           </Table>
         )}
       </div>
+      )}
 
       <RelationshipDialog
         open={dialogOpen}
