@@ -614,14 +614,46 @@ function ContactDetailPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Engagements</CardTitle>
+          <CardTitle className="text-base">Interaction History</CardTitle>
           <Button size="sm" onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
         </CardHeader>
         <CardContent>
           {engagements.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (engagements.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No interactions logged yet.</p>
           ) : (
             <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Follow-ups</CardTitle>
+          <Button size="sm" onClick={() => setTaskOpen(true)}>+ Add follow-up</Button>
+        </CardHeader>
+        <CardContent>
+          {followUps.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (followUps.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No open follow-ups.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(followUps.data as any[]).map((f) => (
+                <li
+                  key={f.id}
+                  className="flex items-center justify-between rounded border px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{f.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Due {f.due_date ?? "—"} · {f.priority ?? "Medium"}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>
@@ -632,8 +664,33 @@ function ContactDetailPage() {
         defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
       />
 
-      {c && c.entity_id && (
+      <TaskDialog
+        open={taskOpen}
+        onOpenChange={setTaskOpen}
+        defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
+      />
 
+      <QuickStartPickerDialog
+        open={qsPickerOpen}
+        onOpenChange={setQsPickerOpen}
+        quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
+        contact={c}
+        primaryPhone={
+          ((phones.data ?? []).find((p: any) => p.is_primary) ?? (phones.data ?? [])[0])?.phone ??
+          c.mobile_phone ??
+          c.office_phone ??
+          null
+        }
+        primaryEmail={
+          ((emails.data ?? []).find((e: any) => e.is_primary) ?? (emails.data ?? [])[0])?.email ??
+          c.email ??
+          null
+        }
+        primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
+        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+      />
+
+      {c && c.entity_id && (
         <ContactDialog
           open={editOpen}
           onOpenChange={setEditOpen}
@@ -644,6 +701,7 @@ function ContactDetailPage() {
     </div>
   );
 }
+
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
