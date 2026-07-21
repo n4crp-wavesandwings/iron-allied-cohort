@@ -466,9 +466,25 @@ function TodayPage() {
         {engagements.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
-          <EngagementTimeline items={(engagements.data ?? []).slice(0, 10)} />
+          <EngagementTimeline
+            items={(engagements.data ?? []).slice(0, 10)}
+            onEdit={openEngagementNote}
+          />
         )}
       </CollapsibleCard>
+
+      <PostTouchNotePanel
+        open={!!notePanelEngagementId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setNotePanelEngagementId(null);
+            setNotePanelContactId(null);
+          }
+        }}
+        engagementId={notePanelEngagementId}
+        contactId={notePanelContactId}
+      />
+
 
       {/* Quick Add row */}
       <Card>
