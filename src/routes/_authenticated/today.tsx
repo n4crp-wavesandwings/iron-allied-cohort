@@ -21,7 +21,11 @@ import {
   type TaskItem,
   type TaskStatus,
 } from "@/lib/tasks";
-import { todayResolutionsQueryOptions, customerIdentifier, priorityBadgeClass as crPriorityBadge } from "@/lib/resolutions";
+import {
+  todayResolutionsQueryOptions,
+  customerIdentifier,
+  priorityBadgeClass as crPriorityBadge,
+} from "@/lib/resolutions";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { QuickStartsStrip } from "@/components/quickstarts/QuickStartsStrip";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
@@ -31,7 +35,6 @@ import { recentEngagementsQuery } from "@/lib/engagements";
 import { MyStoresCard } from "@/components/today/MyStoresCard";
 import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
 import { ProviderReconnect } from "@/components/today/ProviderReconnect";
-
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -81,12 +84,66 @@ function CollapsibleCard({
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             {title}
           </span>
-          {typeof count === "number" && count > 0 && (
-            <Badge variant="secondary">{count}</Badge>
-          )}
+          {typeof count === "number" && count > 0 && <Badge variant="secondary">{count}</Badge>}
         </CardTitle>
       </CardHeader>
       {!collapsed && <CardContent>{children}</CardContent>}
+    </Card>
+  );
+}
+
+// --- Follow-up filter state + card ----------------------------------------
+
+type FollowUpFilter = "overdue" | "today" | "upcoming" | null;
+
+function FollowUpFilterCard({
+  counts,
+  active,
+  onChange,
+}: {
+  counts: { overdue: number; today: number; upcoming: number };
+  active: FollowUpFilter;
+  onChange: (f: FollowUpFilter) => void;
+}) {
+  const items = [
+    { key: "overdue" as const, label: "Overdue", count: counts.overdue },
+    { key: "today" as const, label: "Due today", count: counts.today },
+    { key: "upcoming" as const, label: "Upcoming", count: counts.upcoming },
+  ];
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-3 gap-3">
+          {items.map((item) => {
+            const isActive = active === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => onChange(isActive ? null : item.key)}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-md border p-4 text-center transition-colors active:scale-95",
+                  isActive ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted/50",
+                )}
+              >
+                <span className="text-3xl font-semibold">{item.count}</span>
+                <span className="text-xs text-muted-foreground">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {active && (
+          <div className="mt-3 flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Showing{" "}
+              {active === "overdue" ? "overdue" : active === "today" ? "due today" : "upcoming"}{" "}
+              follow-ups
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
+              All
+            </Button>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -104,7 +161,13 @@ function sortTasks(a: TaskItem, b: TaskItem): number {
   return priorityRank(a.priority) - priorityRank(b.priority);
 }
 
-function TaskRow({ task, onStatus }: { task: TaskItem; onStatus: (id: string, s: TaskStatus) => void }) {
+function TaskRow({
+  task,
+  onStatus,
+}: {
+  task: TaskItem;
+  onStatus: (id: string, s: TaskStatus) => void;
+}) {
   const { label, overdue, today } = dueLabel(task.due_date);
   const summary = taskEntitySummary(task);
   return (
@@ -118,20 +181,18 @@ function TaskRow({ task, onStatus }: { task: TaskItem; onStatus: (id: string, s:
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{task.title}</span>
           <Badge className={priorityBadgeClass(task.priority)}>{task.priority}</Badge>
-          {task.status === "in_progress" && (
-            <Badge variant="outline">In Progress</Badge>
-          )}
+          {task.status === "in_progress" && <Badge variant="outline">In Progress</Badge>}
           <Badge variant={overdue ? "destructive" : today ? "default" : "secondary"}>
             {overdue ? "Overdue · " : ""}
             {label}
           </Badge>
           {task.engagement_id && (
-            <Badge variant="outline" className="text-xs">from engagement</Badge>
+            <Badge variant="outline" className="text-xs">
+              from engagement
+            </Badge>
           )}
         </div>
-        {summary && (
-          <p className="mt-1 truncate text-xs text-muted-foreground">{summary}</p>
-        )}
+        {summary && <p className="mt-1 truncate text-xs text-muted-foreground">{summary}</p>}
       </div>
       <div className="flex flex-shrink-0 gap-2">
         {task.status !== "in_progress" && (
@@ -159,11 +220,13 @@ function TodayPage() {
   const [taskOpen, setTaskOpen] = useState(false);
   const [relOpen, setRelOpen] = useState(false);
   const [engOpen, setEngOpen] = useState(false);
+  const [followUpFilter, setFollowUpFilter] = useState<FollowUpFilter>(null);
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
       const patch: any = { status };
-      if (status === "completed" || status === "done") patch.completed_at = new Date().toISOString();
+      if (status === "completed" || status === "done")
+        patch.completed_at = new Date().toISOString();
       else patch.completed_at = null;
       const { error } = await supabase.from("follow_ups").update(patch).eq("id", id);
       if (error) throw error;
@@ -182,11 +245,20 @@ function TodayPage() {
   const overdueOrToday = sorted.filter((t) => !t.due_date || t.due_date <= today);
   const upcoming = sorted.filter((t) => t.due_date && t.due_date > today);
   const overdueCount = sorted.filter((t) => t.due_date && t.due_date < today).length;
+  const dueTodayCount = sorted.filter((t) => t.due_date === today).length;
+
+  const displayedTasks = useMemo(() => {
+    if (!followUpFilter) return sorted;
+    if (followUpFilter === "overdue") return sorted.filter((t) => t.due_date && t.due_date < today);
+    if (followUpFilter === "today") return sorted.filter((t) => t.due_date === today);
+    return sorted.filter((t) => t.due_date && t.due_date > today);
+  }, [sorted, followUpFilter, today]);
 
   // --- Focus area data ---
-  const csRows = sorted.filter((t) =>
-    (t.category ?? "").toLowerCase().includes("customer") ||
-    (t.title ?? "").toLowerCase().match(/hvc|customer/i),
+  const csRows = sorted.filter(
+    (t) =>
+      (t.category ?? "").toLowerCase().includes("customer") ||
+      (t.title ?? "").toLowerCase().match(/hvc|customer/i),
   );
 
   const openResolutions = (resolutions.data ?? []) as any[];
@@ -225,34 +297,61 @@ function TodayPage() {
         </Button>
       </div>
 
-      {/* Priority list — centerpiece */}
+      {/* Follow-up counts — glance */}
+      <FollowUpFilterCard
+        counts={{ overdue: overdueCount, today: dueTodayCount, upcoming: upcoming.length }}
+        active={followUpFilter}
+        onChange={setFollowUpFilter}
+      />
+
+      {/* Priority list — drill */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Priority List</CardTitle>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {overdueCount > 0 && (
+            {overdueCount > 0 && !followUpFilter && (
               <Badge variant="destructive">{overdueCount} overdue</Badge>
             )}
-            <span>{sorted.length} open</span>
+            <span>{displayedTasks.length} shown</span>
           </div>
         </CardHeader>
         <CardContent>
           {tasks.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : sorted.length === 0 ? (
+          ) : displayedTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nothing on the board. Add a task to get started.
+              Nothing in this bucket. Add a task to get started.
             </p>
+          ) : followUpFilter ? (
+            <ul className="space-y-2">
+              {displayedTasks.map((t) => (
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                />
+              ))}
+            </ul>
           ) : (
             <ul className="space-y-2">
               {overdueOrToday.map((t) => (
-                <TaskRow key={t.id} task={t} onStatus={(id, s) => setStatus.mutate({ id, status: s })} />
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                />
               ))}
               {upcoming.length > 0 && overdueOrToday.length > 0 && (
-                <li className="pt-2 text-xs uppercase tracking-wide text-muted-foreground">Upcoming</li>
+                <li className="pt-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  Upcoming
+                </li>
               )}
               {upcoming.map((t) => (
-                <TaskRow key={t.id} task={t} onStatus={(id, s) => setStatus.mutate({ id, status: s })} />
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                />
               ))}
             </ul>
           )}
@@ -270,26 +369,7 @@ function TodayPage() {
         <ProviderQuickEngage />
       </CollapsibleCard>
 
-
       {/* Focus areas */}
-      <CollapsibleCard cardKey="followup" title="🔄 Follow-up" count={sorted.length}>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">{overdueCount}</div>
-            <div className="text-xs text-muted-foreground">Overdue</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">
-              {sorted.filter((t) => t.due_date === today).length}
-            </div>
-            <div className="text-xs text-muted-foreground">Due today</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">{upcoming.length}</div>
-            <div className="text-xs text-muted-foreground">Upcoming</div>
-          </div>
-        </div>
-      </CollapsibleCard>
 
       <CollapsibleCard cardKey="customer_service" title="❤️ Customer Service" count={csRows.length}>
         {csRows.length === 0 ? (
@@ -306,7 +386,11 @@ function TodayPage() {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard cardKey="customer_resolution" title="🛠 Customer Resolution" count={openResolutions.length}>
+      <CollapsibleCard
+        cardKey="customer_resolution"
+        title="🛠 Customer Resolution"
+        count={openResolutions.length}
+      >
         {openResolutions.length === 0 ? (
           <p className="text-sm text-muted-foreground">No open resolutions.</p>
         ) : (
@@ -315,10 +399,17 @@ function TodayPage() {
               const waitingTasks = (r.tasks ?? []).filter((t: any) => t.status === "Waiting");
               const waitingOn =
                 waitingTasks.length > 0
-                  ? Array.from(new Set(waitingTasks.map((t: any) => t.waiting_on ?? t.owner_name).filter(Boolean))).join(", ")
+                  ? Array.from(
+                      new Set(
+                        waitingTasks.map((t: any) => t.waiting_on ?? t.owner_name).filter(Boolean),
+                      ),
+                    ).join(", ")
                   : null;
               return (
-                <li key={r.id} className="flex items-start justify-between gap-2 rounded-md border p-2 text-sm">
+                <li
+                  key={r.id}
+                  className="flex items-start justify-between gap-2 rounded-md border p-2 text-sm"
+                >
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
@@ -341,7 +432,11 @@ function TodayPage() {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard cardKey="providers" title="👷 Service Provider Management" count={providerRows.length}>
+      <CollapsibleCard
+        cardKey="providers"
+        title="👷 Service Provider Management"
+        count={providerRows.length}
+      >
         {providerRows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No provider action items right now.</p>
         ) : (
@@ -360,7 +455,6 @@ function TodayPage() {
         <ProviderReconnect />
       </CollapsibleCard>
 
-
       <CollapsibleCard cardKey="recent_engagements" title="💬 Recent Engagements" defaultCollapsed>
         {engagements.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
@@ -376,8 +470,12 @@ function TodayPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Button onClick={() => setEngOpen(true)}>+ New Engagement</Button>
-          <Button variant="outline" onClick={() => setTaskOpen(true)}>+ New Task</Button>
-          <Button variant="outline" onClick={() => setRelOpen(true)}>+ New Relationship</Button>
+          <Button variant="outline" onClick={() => setTaskOpen(true)}>
+            + New Task
+          </Button>
+          <Button variant="outline" onClick={() => setRelOpen(true)}>
+            + New Relationship
+          </Button>
         </CardContent>
       </Card>
 
