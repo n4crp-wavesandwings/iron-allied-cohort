@@ -90,9 +90,12 @@ export function ContactsList({ entityId }: { entityId: string }) {
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setEditing(c)}>
-                      <Pencil className="h-4 w-4" />
+                    <Button asChild variant="ghost" size="sm">
+                      <Link to="/contacts/$id" params={{ id: c.id }} aria-label="Edit contact">
+                        <Pencil className="h-4 w-4" />
+                      </Link>
                     </Button>
+
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(c)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
