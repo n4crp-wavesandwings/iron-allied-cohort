@@ -206,11 +206,18 @@ export function PeopleDirectory() {
                   className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{displayName(p)}</div>
+                    <Link
+                      to="/contacts/$id"
+                      params={{ id: p.id }}
+                      className="font-medium truncate hover:underline"
+                    >
+                      {displayName(p)}
+                    </Link>
                     <div className="text-xs text-muted-foreground truncate">
                       {where} · {role}
                     </div>
                   </div>
+
                   <div className="flex items-center gap-1">
                     <Button
                       size="icon"
