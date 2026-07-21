@@ -310,7 +310,7 @@ function TodayPage() {
         </CardHeader>
         <CardContent>
           {tasks.isLoading ? (
-            <p className="text-sm max-w-3xl mx-auto p-6 text-center text-muted-foreground">Loading…</p>
+            <p className="text-sm text-muted-foreground">Loading…</p>
           ) : displayedTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Nothing in this bucket. Add a task to get started.
