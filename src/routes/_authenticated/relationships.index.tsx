@@ -37,6 +37,8 @@ import { ProgramDialog } from "@/components/programs/ProgramDialog";
 import { MerchantDialog, type MerchantEditable } from "@/components/merchants/MerchantDialog";
 import { NewProviderDialog } from "@/components/relationships/NewProviderDialog";
 import { InternalContactDialog } from "@/components/relationships/InternalContactDialog";
+import { PeopleDirectory } from "@/components/relationships/PeopleDirectory";
+import { TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
@@ -256,6 +258,8 @@ function RelationshipsListPage() {
         : "Create Relationship";
 
 
+  const [topTab, setTopTab] = useState<"organizations" | "people">("organizations");
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -265,30 +269,45 @@ function RelationshipsListPage() {
             Providers, merchants, programs, internal partners. Numbered stores are managed under Locations.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setNewProviderOpen(true)} variant="outline" className="gap-1">
-            <Plus className="h-4 w-4" />
-            New Service Provider
-          </Button>
-          <Button onClick={openCreate} className="gap-1">
-            <Plus className="h-4 w-4" />
-            {createLabel}
-          </Button>
-        </div>
+        {topTab === "organizations" && (
+          <div className="flex gap-2">
+            <Button onClick={() => setNewProviderOpen(true)} variant="outline" className="gap-1">
+              <Plus className="h-4 w-4" />
+              New Service Provider
+            </Button>
+            <Button onClick={openCreate} className="gap-1">
+              <Plus className="h-4 w-4" />
+              {createLabel}
+            </Button>
+          </div>
+        )}
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mt-6">
+      <Tabs value={topTab} onValueChange={(v) => setTopTab(v as "organizations" | "people")} className="mt-6">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          {RELATIONSHIP_TYPES.map((t) => (
-            <TabsTrigger key={t.value} value={t.value}>
-              {t.label}
-            </TabsTrigger>
-          ))}
-          <TabsTrigger value="merchant">Merchant</TabsTrigger>
-          <TabsTrigger value="program">Program</TabsTrigger>
+          <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="people">People</TabsTrigger>
         </TabsList>
+        <TabsContent value="people">
+          <PeopleDirectory />
+        </TabsContent>
+        <TabsContent value="organizations">
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mt-4">
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              {RELATIONSHIP_TYPES.map((t) => (
+                <TabsTrigger key={t.value} value={t.value}>
+                  {t.label}
+                </TabsTrigger>
+              ))}
+              <TabsTrigger value="merchant">Merchant</TabsTrigger>
+              <TabsTrigger value="program">Program</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </TabsContent>
       </Tabs>
+
+      {topTab === "organizations" && (
 
       <div className="mt-6 rounded-lg border border-border">
         {isProgramTab ? (
@@ -556,6 +575,7 @@ function RelationshipsListPage() {
           </Table>
         )}
       </div>
+      )}
 
       <RelationshipDialog
         open={dialogOpen}
