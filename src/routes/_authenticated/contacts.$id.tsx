@@ -599,40 +599,13 @@ function ContactDetailPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Organizations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {orgs.data?.length ? (
-            <ul className="space-y-1">
-              {orgs.data.map((o: any) => (
-                <li
-                  key={o.id}
-                  className="flex items-center justify-between rounded border px-2 py-1 text-sm"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {o.is_primary && (
-                      <Star className="h-3 w-3 fill-current text-primary shrink-0" />
-                    )}
-                    <Link
-                      to="/relationships/$id"
-                      params={{ id: o.organization_id }}
-                      className="text-primary underline truncate"
-                    >
-                      {o.entities?.name ?? "—"}
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">Not linked to any organization.</p>
-          )}
-        </CardContent>
-      </Card>
+      <OrganizationsAssignmentCard contactId={c.id} orgs={orgs.data ?? []} />
 
       <CoveragePanel mode={{ kind: "contact", contactId: c.id }} />
+
+      <ProgramsAssignmentCard contactId={c.id} />
+
+
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
