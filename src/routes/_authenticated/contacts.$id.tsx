@@ -7,17 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Star,
+  Phone,
+  MessageSquare,
+  Mail,
+  Zap,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByContactQuery } from "@/lib/engagements";
+import { TaskDialog } from "@/components/tasks/TaskDialog";
+import { quickStartsQuery, substituteQuickStart, contactFirstName, type QuickStart } from "@/lib/tasks";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
 });
+
 
 const contactQuery = (id: string) =>
   queryOptions({
@@ -89,6 +108,86 @@ const orgsQuery = (id: string) =>
     },
   });
 
+const storeCoverageQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["contact_store_coverage", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contact_store_coverage")
+        .select("id, is_current, store:stores(id, store_number, name)")
+        .eq("contact_id", id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+const contactFollowUpsQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["contact_follow_ups", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("follow_up_people")
+        .select("follow_up:follow_ups(id, title, due_date, priority, status, deleted_at)")
+        .eq("contact_id", id);
+      if (error) throw error;
+      return ((data as any[]) ?? [])
+        .map((r) => r.follow_up)
+        .filter((f: any) => f && !f.deleted_at && f.status !== "completed" && f.status !== "done")
+        .sort((a: any, b: any) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
+    },
+  });
+
+/** Insert an engagement stamp for a touch with this contact. */
+async function stampContactTouch(input: {
+  contactId: string;
+  entityId?: string | null;
+  typeName: "Phone Call" | "Email" | string;
+  note?: string | null;
+}): Promise<void> {
+  const { data: types, error: te } = await supabase
+    .from("engagement_types")
+    .select("id,name")
+    .eq("active", true);
+  if (te) throw te;
+  const list = (types as any[]) ?? [];
+  const match =
+    list.find((t) => t.name?.toLowerCase() === input.typeName.toLowerCase()) ??
+    list.find((t) => /phone/i.test(t.name)) ??
+    list[0];
+  if (!match) throw new Error("No engagement types available.");
+
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user.user?.id ?? null;
+
+  const { data: eng, error } = await supabase
+    .from("engagements")
+    .insert({
+      engagement_type_id: match.id,
+      occurred_at: new Date().toISOString(),
+      note: input.note ?? null,
+      created_by: userId,
+    } as any)
+    .select("id, org_id")
+    .single();
+  if (error) throw error;
+  const engagementId = (eng as any).id as string;
+  const orgId = (eng as any).org_id as string;
+
+  await Promise.all([
+    supabase
+      .from("engagement_type_links")
+      .insert({ engagement_id: engagementId, engagement_type_id: match.id, org_id: orgId } as any),
+    supabase
+      .from("engagement_people")
+      .insert({ engagement_id: engagementId, contact_id: input.contactId, org_id: orgId } as any),
+    input.entityId
+      ? supabase
+          .from("engagement_organizations")
+          .insert({ engagement_id: engagementId, entity_id: input.entityId, org_id: orgId } as any)
+      : Promise.resolve({ error: null } as any),
+  ]);
+}
+
 function ContactDetailPage() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
@@ -97,10 +196,16 @@ function ContactDetailPage() {
   const emails = useQuery(emailsQuery(id));
   const roles = useQuery(rolesQuery(id));
   const orgs = useQuery(orgsQuery(id));
+  const coverage = useQuery(storeCoverageQuery(id));
+  const followUps = useQuery(contactFollowUpsQuery(id));
+  const quickStarts = useQuery(quickStartsQuery);
 
   const [editOpen, setEditOpen] = useState(false);
   const [engagementOpen, setEngagementOpen] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [qsPickerOpen, setQsPickerOpen] = useState(false);
   const engagements = useQuery(engagementsByContactQuery(id));
+
 
   // add form state
   const [newPhoneLabel, setNewPhoneLabel] = useState("Mobile");
@@ -247,7 +352,32 @@ function ContactDetailPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {[c.job_title, c.department].filter(Boolean).join(" · ") || "—"}
         </p>
+        <AffiliationLine
+          orgs={orgs.data ?? []}
+          coverage={coverage.data ?? []}
+          roles={(roles.data ?? []).map((r: any) => r.role)}
+        />
       </div>
+
+      <ReachThemCard
+        contact={c}
+        primaryPhone={
+          ((phones.data ?? []).find((p: any) => p.is_primary) ?? (phones.data ?? [])[0])?.phone ??
+          c.mobile_phone ??
+          c.office_phone ??
+          null
+        }
+        primaryEmail={
+          ((emails.data ?? []).find((e: any) => e.is_primary) ?? (emails.data ?? [])[0])?.email ??
+          c.email ??
+          null
+        }
+        primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
+        quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
+        onOpenQuickStart={() => setQsPickerOpen(true)}
+        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+      />
+
 
       <Card>
         <CardHeader>
@@ -484,14 +614,46 @@ function ContactDetailPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Engagements</CardTitle>
+          <CardTitle className="text-base">Interaction History</CardTitle>
           <Button size="sm" onClick={() => setEngagementOpen(true)}>+ New Engagement</Button>
         </CardHeader>
         <CardContent>
           {engagements.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (engagements.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No interactions logged yet.</p>
           ) : (
             <EngagementTimeline items={engagements.data ?? []} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Follow-ups</CardTitle>
+          <Button size="sm" onClick={() => setTaskOpen(true)}>+ Add follow-up</Button>
+        </CardHeader>
+        <CardContent>
+          {followUps.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (followUps.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No open follow-ups.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(followUps.data as any[]).map((f) => (
+                <li
+                  key={f.id}
+                  className="flex items-center justify-between rounded border px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{f.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Due {f.due_date ?? "—"} · {f.priority ?? "Medium"}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>
@@ -502,8 +664,33 @@ function ContactDetailPage() {
         defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
       />
 
-      {c && c.entity_id && (
+      <TaskDialog
+        open={taskOpen}
+        onOpenChange={setTaskOpen}
+        defaults={{ contactId: c.id, entityId: c.entity_id ?? undefined }}
+      />
 
+      <QuickStartPickerDialog
+        open={qsPickerOpen}
+        onOpenChange={setQsPickerOpen}
+        quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
+        contact={c}
+        primaryPhone={
+          ((phones.data ?? []).find((p: any) => p.is_primary) ?? (phones.data ?? [])[0])?.phone ??
+          c.mobile_phone ??
+          c.office_phone ??
+          null
+        }
+        primaryEmail={
+          ((emails.data ?? []).find((e: any) => e.is_primary) ?? (emails.data ?? [])[0])?.email ??
+          c.email ??
+          null
+        }
+        primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
+        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+      />
+
+      {c && c.entity_id && (
         <ContactDialog
           open={editOpen}
           onOpenChange={setEditOpen}
@@ -515,11 +702,212 @@ function ContactDetailPage() {
   );
 }
 
+
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium text-right">{value}</span>
     </div>
+  );
+}
+
+function AffiliationLine({
+  orgs,
+  coverage,
+  roles,
+}: {
+  orgs: any[];
+  coverage: any[];
+  roles: string[];
+}) {
+  const primaryOrg = orgs.find((o) => o.is_primary) ?? orgs[0];
+  const currentStore =
+    coverage.find((r) => r.is_current && r.store)?.store ?? coverage[0]?.store ?? null;
+  const roleText = roles.filter(Boolean).join(", ");
+  const parts: string[] = [];
+  if (primaryOrg?.entities?.name) parts.push(primaryOrg.entities.name);
+  else if (currentStore)
+    parts.push(
+      `${currentStore.store_number}${currentStore.name ? ` ${currentStore.name}` : ""}`,
+    );
+  if (roleText) parts.push(roleText);
+  if (parts.length === 0) return null;
+  return <p className="mt-1 text-sm">{parts.join(" · ")}</p>;
+}
+
+function ReachThemCard({
+  contact,
+  primaryPhone,
+  primaryEmail,
+  primaryEntityId,
+  quickStarts,
+  onOpenQuickStart,
+  onStamped,
+}: {
+  contact: ContactRow;
+  primaryPhone: string | null;
+  primaryEmail: string | null;
+  primaryEntityId: string | null;
+  quickStarts: QuickStart[];
+  onOpenQuickStart: () => void;
+  onStamped: () => void;
+}) {
+  const hasPhone = !!primaryPhone;
+  const hasEmail = !!primaryEmail;
+  const hasQuickStart = (hasPhone || hasEmail) && quickStarts.length > 0;
+
+  const stamp = async (kind: "call" | "text" | "email", note: string) => {
+    try {
+      const typeName = kind === "email" ? "Email" : "Phone Call";
+      await stampContactTouch({
+        contactId: contact.id,
+        entityId: primaryEntityId,
+        typeName,
+        note,
+      });
+      toast.success("Logged");
+      onStamped();
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not log");
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Reach Them</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasPhone && "opacity-40")}
+            disabled={!hasPhone}
+            onClick={() => {
+              if (!hasPhone) return;
+              window.location.href = `tel:${primaryPhone}`;
+              void stamp("call", "Phone call");
+            }}
+          >
+            <Phone className="h-4 w-4" /> Call
+          </Button>
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasPhone && "opacity-40")}
+            disabled={!hasPhone}
+            onClick={() => {
+              if (!hasPhone) return;
+              window.location.href = `sms:${primaryPhone}`;
+              void stamp("text", "Text message");
+            }}
+          >
+            <MessageSquare className="h-4 w-4" /> Text
+          </Button>
+          <Button
+            variant="outline"
+            className={cn("h-11 gap-1", !hasEmail && "opacity-40")}
+            disabled={!hasEmail}
+            onClick={() => {
+              if (!hasEmail) return;
+              window.location.href = `mailto:${primaryEmail}`;
+              void stamp("email", "Email");
+            }}
+          >
+            <Mail className="h-4 w-4" /> Email
+          </Button>
+          <Button
+            className={cn("h-11 gap-1", !hasQuickStart && "opacity-40")}
+            disabled={!hasQuickStart}
+            onClick={onOpenQuickStart}
+          >
+            <Zap className="h-4 w-4" /> Quick Start
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickStartPickerDialog({
+  open,
+  onOpenChange,
+  quickStarts,
+  contact,
+  primaryPhone,
+  primaryEmail,
+  primaryEntityId,
+  onStamped,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  quickStarts: QuickStart[];
+  contact: ContactRow;
+  primaryPhone: string | null;
+  primaryEmail: string | null;
+  primaryEntityId: string | null;
+  onStamped: () => void;
+}) {
+  const send = async (qs: QuickStart) => {
+    const body = substituteQuickStart(qs.body, contact);
+    let channel: "text" | "email" | null = null;
+    if (qs.channel === "email" && primaryEmail) {
+      window.location.href = `mailto:${encodeURIComponent(primaryEmail)}?body=${encodeURIComponent(body)}`;
+      channel = "email";
+    } else if (primaryPhone) {
+      window.location.href = `sms:${encodeURIComponent(primaryPhone)}?&body=${encodeURIComponent(body)}`;
+      channel = "text";
+    } else if (primaryEmail) {
+      window.location.href = `mailto:${encodeURIComponent(primaryEmail)}?body=${encodeURIComponent(body)}`;
+      channel = "email";
+    } else {
+      toast.error("No phone or email on file.");
+      return;
+    }
+    onOpenChange(false);
+    try {
+      await stampContactTouch({
+        contactId: contact.id,
+        entityId: primaryEntityId,
+        typeName: channel === "email" ? "Email" : "Phone Call",
+        note: `Quick Start: ${qs.name} — ${body}`,
+      });
+      toast.success("Logged");
+      onStamped();
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not log");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Send Quick Start to {contactFirstName(contact)}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          {quickStarts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No favorite Quick Starts.</p>
+          ) : (
+            quickStarts.map((qs) => (
+              <button
+                key={qs.id}
+                type="button"
+                onClick={() => send(qs)}
+                className="w-full rounded-md border p-3 text-left hover:bg-accent"
+              >
+                <div className="font-medium">
+                  <span className="mr-1">{qs.icon}</span>
+                  {qs.name}
+                </div>
+                <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  {substituteQuickStart(qs.body, contact)}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
