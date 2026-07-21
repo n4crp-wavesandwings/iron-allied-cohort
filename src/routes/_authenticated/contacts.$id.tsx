@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
@@ -408,8 +410,12 @@ function ContactDetailPage() {
         primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
         quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
         onOpenQuickStart={() => setQsPickerOpen(true)}
-        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+        onStamped={(engagementId) => {
+          qc.invalidateQueries({ queryKey: ["engagements", "contact", id] });
+          openNotePanel(engagementId);
+        }}
       />
+
 
 
       <Card>
