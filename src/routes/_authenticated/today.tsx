@@ -350,24 +350,6 @@ function TodayPage() {
 
 
       {/* Focus areas */}
-      <CollapsibleCard cardKey="followup" title="🔄 Follow-up" count={sorted.length}>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">{overdueCount}</div>
-            <div className="text-xs text-muted-foreground">Overdue</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">
-              {sorted.filter((t) => t.due_date === today).length}
-            </div>
-            <div className="text-xs text-muted-foreground">Due today</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-2xl font-semibold">{upcoming.length}</div>
-            <div className="text-xs text-muted-foreground">Upcoming</div>
-          </div>
-        </div>
-      </CollapsibleCard>
 
       <CollapsibleCard cardKey="customer_service" title="❤️ Customer Service" count={csRows.length}>
         {csRows.length === 0 ? (
