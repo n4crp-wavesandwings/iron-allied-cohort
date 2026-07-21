@@ -20,7 +20,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   engagementId: string | null;
-  contactId: string;
+  contactId: string | null;
 }
 
 function todayInput(): string {
