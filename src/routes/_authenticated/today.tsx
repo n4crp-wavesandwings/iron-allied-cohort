@@ -290,24 +290,37 @@ function TodayPage() {
         </Button>
       </div>
 
-      {/* Priority list — centerpiece */}
+      {/* Follow-up counts — glance */}
+      <FollowUpFilterCard
+        counts={{ overdue: overdueCount, today: dueTodayCount, upcoming: upcoming.length }}
+        active={followUpFilter}
+        onChange={setFollowUpFilter}
+      />
+
+      {/* Priority list — drill */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Priority List</CardTitle>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {overdueCount > 0 && (
+            {overdueCount > 0 && !followUpFilter && (
               <Badge variant="destructive">{overdueCount} overdue</Badge>
             )}
-            <span>{sorted.length} open</span>
+            <span>{displayedTasks.length} shown</span>
           </div>
         </CardHeader>
         <CardContent>
           {tasks.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : sorted.length === 0 ? (
+            <p className="text-sm max-w-3xl mx-auto p-6 text-center text-muted-foreground">Loading…</p>
+          ) : displayedTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Nothing on the board. Add a task to get started.
+              Nothing in this bucket. Add a task to get started.
             </p>
+          ) : followUpFilter ? (
+            <ul className="space-y-2">
+              {displayedTasks.map((t) => (
+                <TaskRow key={t.id} task={t} onStatus={(id, s) => setStatus.mutate({ id, status: s })} />
+              ))}
+            </ul>
           ) : (
             <ul className="space-y-2">
               {overdueOrToday.map((t) => (
