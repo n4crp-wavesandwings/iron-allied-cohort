@@ -32,6 +32,14 @@ import { engagementsByContactQuery } from "@/lib/engagements";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { quickStartsQuery, substituteQuickStart, contactFirstName, type QuickStart } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
+import { programsListQuery, contactProgramMerchantsQuery } from "@/lib/programs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetailPage,
