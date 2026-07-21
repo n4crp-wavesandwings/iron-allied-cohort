@@ -774,7 +774,7 @@ function ReachThemCard({
   primaryEntityId: string | null;
   quickStarts: QuickStart[];
   onOpenQuickStart: () => void;
-  onStamped: () => void;
+  onStamped: (engagementId: string) => void;
 }) {
   const hasPhone = !!primaryPhone;
   const hasEmail = !!primaryEmail;
@@ -783,18 +783,19 @@ function ReachThemCard({
   const stamp = async (kind: "call" | "text" | "email", note: string) => {
     try {
       const typeName = kind === "email" ? "Email" : "Phone Call";
-      await stampContactTouch({
+      const engagementId = await stampContactTouch({
         contactId: contact.id,
         entityId: primaryEntityId,
         typeName,
         note,
       });
       toast.success("Logged");
-      onStamped();
+      onStamped(engagementId);
     } catch (e: any) {
       toast.error(e.message ?? "Could not log");
     }
   };
+
 
   return (
     <Card>
@@ -869,7 +870,7 @@ function QuickStartPickerDialog({
   primaryPhone: string | null;
   primaryEmail: string | null;
   primaryEntityId: string | null;
-  onStamped: () => void;
+  onStamped: (engagementId: string) => void;
 }) {
   const send = async (qs: QuickStart) => {
     const body = substituteQuickStart(qs.body, contact);
@@ -889,18 +890,19 @@ function QuickStartPickerDialog({
     }
     onOpenChange(false);
     try {
-      await stampContactTouch({
+      const engagementId = await stampContactTouch({
         contactId: contact.id,
         entityId: primaryEntityId,
         typeName: channel === "email" ? "Email" : "Phone Call",
         note: `Quick Start: ${qs.name} — ${body}`,
       });
       toast.success("Logged");
-      onStamped();
+      onStamped(engagementId);
     } catch (e: any) {
       toast.error(e.message ?? "Could not log");
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
