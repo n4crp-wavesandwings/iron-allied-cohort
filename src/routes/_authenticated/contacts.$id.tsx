@@ -228,7 +228,16 @@ function ContactDetailPage() {
   const [engagementOpen, setEngagementOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [qsPickerOpen, setQsPickerOpen] = useState(false);
+  const [notePanelOpen, setNotePanelOpen] = useState(false);
+  const [notePanelEngagementId, setNotePanelEngagementId] = useState<string | null>(null);
   const engagements = useQuery(engagementsByContactQuery(id));
+
+  const openNotePanel = (engagementId: string) => {
+    setNotePanelEngagementId(engagementId);
+    setNotePanelOpen(true);
+  };
+
+
 
 
   // add form state
