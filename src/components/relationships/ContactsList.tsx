@@ -147,12 +147,7 @@ export function ContactsList({ entityId }: { entityId: string }) {
       )}
 
       <ContactDialog open={addOpen} onOpenChange={setAddOpen} entityId={entityId} />
-      <ContactDialog
-        open={!!editing}
-        onOpenChange={(o) => !o && setEditing(null)}
-        entityId={entityId}
-        contact={editing}
-      />
+
 
       <AlertDialog
         open={!!deleteTarget}
