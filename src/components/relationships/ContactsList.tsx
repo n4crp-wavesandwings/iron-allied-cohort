@@ -22,10 +22,10 @@ export function ContactsList({ entityId }: { entityId: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(contactsQueryOptions(entityId));
 
-  const [editing, setEditing] = useState<ContactRow | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ContactRow | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
