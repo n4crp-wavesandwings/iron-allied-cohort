@@ -221,6 +221,13 @@ function TodayPage() {
   const [relOpen, setRelOpen] = useState(false);
   const [engOpen, setEngOpen] = useState(false);
   const [followUpFilter, setFollowUpFilter] = useState<FollowUpFilter>(null);
+  const [notePanelEngagementId, setNotePanelEngagementId] = useState<string | null>(null);
+  const [notePanelContactId, setNotePanelContactId] = useState<string | null>(null);
+  const openEngagementNote = (engagementId: string) => {
+    const eng = (engagements.data ?? []).find((e) => e.id === engagementId);
+    setNotePanelContactId(eng?.people?.[0]?.contact?.id ?? null);
+    setNotePanelEngagementId(engagementId);
+  };
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
