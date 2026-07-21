@@ -91,6 +91,62 @@ function CollapsibleCard({
   );
 }
 
+// --- Follow-up filter state + card ----------------------------------------
+
+type FollowUpFilter = "overdue" | "today" | "upcoming" | null;
+
+function FollowUpFilterCard({
+  counts,
+  active,
+  onChange,
+}: {
+  counts: { overdue: number; today: number; upcoming: number };
+  active: FollowUpFilter;
+  onChange: (f: FollowUpFilter) => void;
+}) {
+  const items = [
+    { key: "overdue" as const, label: "Overdue", count: counts.overdue },
+    { key: "today" as const, label: "Due today", count: counts.today },
+    { key: "upcoming" as const, label: "Upcoming", count: counts.upcoming },
+  ];
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-3 gap-3">
+          {items.map((item) => {
+            const isActive = active === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => onChange(isActive ? null : item.key)}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-md border p-4 text-center transition-colors active:scale-95",
+                  isActive
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "hover:bg-muted/50",
+                )}
+              >
+                <span className="text-3xl font-semibold">{item.count}</span>
+                <span className="text-xs text-muted-foreground">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {active && (
+          <div className="mt-3 flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Showing {active === "overdue" ? "overdue" : active === "today" ? "due today" : "upcoming"} follow-ups
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
+              All
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // --- Priority list (unified tasks + follow-ups) ---------------------------
 
 function sortTasks(a: TaskItem, b: TaskItem): number {
