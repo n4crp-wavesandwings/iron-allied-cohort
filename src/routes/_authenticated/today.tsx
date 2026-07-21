@@ -239,6 +239,14 @@ function TodayPage() {
   const overdueOrToday = sorted.filter((t) => !t.due_date || t.due_date <= today);
   const upcoming = sorted.filter((t) => t.due_date && t.due_date > today);
   const overdueCount = sorted.filter((t) => t.due_date && t.due_date < today).length;
+  const dueTodayCount = sorted.filter((t) => t.due_date === today).length;
+
+  const displayedTasks = useMemo(() => {
+    if (!followUpFilter) return sorted;
+    if (followUpFilter === "overdue") return sorted.filter((t) => t.due_date && t.due_date < today);
+    if (followUpFilter === "today") return sorted.filter((t) => t.due_date === today);
+    return sorted.filter((t) => t.due_date && t.due_date > today);
+  }, [sorted, followUpFilter, today]);
 
   // --- Focus area data ---
   const csRows = sorted.filter((t) =>
