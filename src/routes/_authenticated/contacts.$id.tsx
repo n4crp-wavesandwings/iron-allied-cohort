@@ -145,6 +145,20 @@ const contactFollowUpsQuery = (id: string) =>
     },
   });
 
+const orgOptionsQuery = queryOptions({
+  queryKey: ["entities", "org-options"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("entities")
+      .select("id, name, type")
+      .in("type", ["provider", "merchant", "internal"])
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return (data as any[]) ?? [];
+  },
+});
+
 /** Insert an engagement stamp for a touch with this contact. */
 async function stampContactTouch(input: {
   contactId: string;
