@@ -1,13 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, Pencil } from "lucide-react";
 import type { EngagementListItem } from "@/lib/engagements";
 import { contactLabel, engagementTypeLabel } from "@/lib/engagements";
 
-export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
+export function EngagementTimeline({
+  items,
+  onEdit,
+}: {
+  items: EngagementListItem[];
+  onEdit?: (id: string) => void;
+}) {
   if (!items.length) {
     return <p className="text-sm text-muted-foreground">No engagements yet.</p>;
   }
+
   return (
     <ul className="space-y-2">
       {items.map((e) => {
@@ -60,13 +68,26 @@ export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
                 <span className="text-xs text-muted-foreground">
                   {new Date(e.occurred_at).toLocaleString()}
                 </span>
-                <Link
-                  to="/engagements/$id"
-                  params={{ id: e.id }}
-                  className="text-xs underline"
-                >
-                  Open
-                </Link>
+                <div className="flex items-center gap-2">
+                  {onEdit && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1 px-2 text-xs"
+                      onClick={() => onEdit(e.id)}
+                    >
+                      <Pencil className="h-3 w-3" /> Edit
+                    </Button>
+                  )}
+                  <Link
+                    to="/engagements/$id"
+                    params={{ id: e.id }}
+                    className="text-xs underline"
+                  >
+                    Open
+                  </Link>
+                </div>
               </div>
             </div>
           </li>
@@ -75,3 +96,4 @@ export function EngagementTimeline({ items }: { items: EngagementListItem[] }) {
     </ul>
   );
 }
+

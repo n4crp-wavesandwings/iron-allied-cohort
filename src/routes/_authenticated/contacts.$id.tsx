@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { contactDisplayName, type ContactRow } from "@/lib/contacts";
 import { ContactDialog } from "@/components/relationships/ContactDialog";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
@@ -159,13 +161,13 @@ const orgOptionsQuery = queryOptions({
   },
 });
 
-/** Insert an engagement stamp for a touch with this contact. */
+/** Insert an engagement stamp for a touch with this contact. Returns the new engagement id. */
 async function stampContactTouch(input: {
   contactId: string;
   entityId?: string | null;
   typeName: "Phone Call" | "Email" | string;
   note?: string | null;
-}): Promise<void> {
+}): Promise<string> {
   const { data: types, error: te } = await supabase
     .from("engagement_types")
     .select("id,name")
@@ -208,7 +210,9 @@ async function stampContactTouch(input: {
           .insert({ engagement_id: engagementId, entity_id: input.entityId, org_id: orgId } as any)
       : Promise.resolve({ error: null } as any),
   ]);
+  return engagementId;
 }
+
 
 function ContactDetailPage() {
   const { id } = Route.useParams();
@@ -226,7 +230,16 @@ function ContactDetailPage() {
   const [engagementOpen, setEngagementOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [qsPickerOpen, setQsPickerOpen] = useState(false);
+  const [notePanelOpen, setNotePanelOpen] = useState(false);
+  const [notePanelEngagementId, setNotePanelEngagementId] = useState<string | null>(null);
   const engagements = useQuery(engagementsByContactQuery(id));
+
+  const openNotePanel = (engagementId: string) => {
+    setNotePanelEngagementId(engagementId);
+    setNotePanelOpen(true);
+  };
+
+
 
 
   // add form state
@@ -397,8 +410,12 @@ function ContactDetailPage() {
         primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
         quickStarts={(quickStarts.data ?? []).filter((q) => q.is_favorite)}
         onOpenQuickStart={() => setQsPickerOpen(true)}
-        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+        onStamped={(engagementId) => {
+          qc.invalidateQueries({ queryKey: ["engagements", "contact", id] });
+          openNotePanel(engagementId);
+        }}
       />
+
 
 
       <Card>
@@ -618,7 +635,7 @@ function ContactDetailPage() {
           ) : (engagements.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">No interactions logged yet.</p>
           ) : (
-            <EngagementTimeline items={engagements.data ?? []} />
+            <EngagementTimeline items={engagements.data ?? []} onEdit={openNotePanel} />
           )}
         </CardContent>
       </Card>
@@ -682,8 +699,19 @@ function ContactDetailPage() {
           null
         }
         primaryEntityId={primaryOrg?.organization_id ?? c.entity_id ?? null}
-        onStamped={() => qc.invalidateQueries({ queryKey: ["engagements", "contact", id] })}
+        onStamped={(engagementId) => {
+          qc.invalidateQueries({ queryKey: ["engagements", "contact", id] });
+          openNotePanel(engagementId);
+        }}
       />
+
+      <PostTouchNotePanel
+        open={notePanelOpen}
+        onOpenChange={setNotePanelOpen}
+        engagementId={notePanelEngagementId}
+        contactId={c.id}
+      />
+
 
       {c && c.entity_id && (
         <ContactDialog
@@ -746,7 +774,7 @@ function ReachThemCard({
   primaryEntityId: string | null;
   quickStarts: QuickStart[];
   onOpenQuickStart: () => void;
-  onStamped: () => void;
+  onStamped: (engagementId: string) => void;
 }) {
   const hasPhone = !!primaryPhone;
   const hasEmail = !!primaryEmail;
@@ -755,18 +783,19 @@ function ReachThemCard({
   const stamp = async (kind: "call" | "text" | "email", note: string) => {
     try {
       const typeName = kind === "email" ? "Email" : "Phone Call";
-      await stampContactTouch({
+      const engagementId = await stampContactTouch({
         contactId: contact.id,
         entityId: primaryEntityId,
         typeName,
         note,
       });
       toast.success("Logged");
-      onStamped();
+      onStamped(engagementId);
     } catch (e: any) {
       toast.error(e.message ?? "Could not log");
     }
   };
+
 
   return (
     <Card>
@@ -841,7 +870,7 @@ function QuickStartPickerDialog({
   primaryPhone: string | null;
   primaryEmail: string | null;
   primaryEntityId: string | null;
-  onStamped: () => void;
+  onStamped: (engagementId: string) => void;
 }) {
   const send = async (qs: QuickStart) => {
     const body = substituteQuickStart(qs.body, contact);
@@ -861,18 +890,19 @@ function QuickStartPickerDialog({
     }
     onOpenChange(false);
     try {
-      await stampContactTouch({
+      const engagementId = await stampContactTouch({
         contactId: contact.id,
         entityId: primaryEntityId,
         typeName: channel === "email" ? "Email" : "Phone Call",
         note: `Quick Start: ${qs.name} — ${body}`,
       });
       toast.success("Logged");
-      onStamped();
+      onStamped(engagementId);
     } catch (e: any) {
       toast.error(e.message ?? "Could not log");
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
