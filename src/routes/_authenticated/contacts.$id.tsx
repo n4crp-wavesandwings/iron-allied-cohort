@@ -719,11 +719,10 @@ function ContactDetailPage() {
       />
 
 
-      {c && c.entity_id && (
-        <ContactDialog
+      {c && (
+        <ContactIdentityEditDialog
           open={editOpen}
           onOpenChange={setEditOpen}
-          entityId={c.entity_id}
           contact={c}
         />
       )}
