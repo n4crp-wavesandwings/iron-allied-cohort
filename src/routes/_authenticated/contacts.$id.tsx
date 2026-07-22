@@ -1198,3 +1198,187 @@ function ProgramsAssignmentCard({ contactId }: { contactId: string }) {
   );
 }
 
+function ContactIdentityEditDialog({
+  open,
+  onOpenChange,
+  contact,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  contact: ContactRow;
+}) {
+  const qc = useQueryClient();
+  const [firstName, setFirstName] = useState(contact.first_name ?? "");
+  const [lastName, setLastName] = useState(contact.last_name ?? "");
+  const [preferredName, setPreferredName] = useState(contact.preferred_name ?? "");
+  const [jobTitle, setJobTitle] = useState("");
+  const [prefComm, setPrefComm] = useState<ContactCommMethod | "">(
+    (contact.preferred_communication_method_v2 as ContactCommMethod | null) ?? "",
+  );
+  const [active, setActive] = useState(contact.active ?? true);
+
+  const primaryRoleQ = useQuery({
+    queryKey: ["contact_roles_primary", contact.id],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contact_roles")
+        .select("role,is_primary")
+        .eq("contact_id", contact.id)
+        .order("is_primary", { ascending: false })
+        .limit(1);
+      return data?.[0]?.role ?? "";
+    },
+  });
+
+  // Re-sync form state when the dialog opens or the underlying record changes.
+  useQuery({
+    queryKey: ["__contact_edit_reset", contact.id, open, primaryRoleQ.data ?? ""],
+    enabled: open,
+    staleTime: 0,
+    queryFn: async () => {
+      setFirstName(contact.first_name ?? "");
+      setLastName(contact.last_name ?? "");
+      setPreferredName(contact.preferred_name ?? "");
+      setPrefComm(
+        (contact.preferred_communication_method_v2 as ContactCommMethod | null) ?? "",
+      );
+      setActive(contact.active ?? true);
+      setJobTitle(primaryRoleQ.data ?? "");
+      return true;
+    },
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!firstName.trim() || !lastName.trim()) {
+        throw new Error("First and Last name are required.");
+      }
+      const { error } = await supabase
+        .from("contacts")
+        .update({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          preferred_name: preferredName.trim() || null,
+          preferred_communication_method_v2: prefComm || null,
+          active,
+        })
+        .eq("id", contact.id);
+      if (error) throw error;
+      if (jobTitle.trim() && jobTitle.trim() !== (primaryRoleQ.data ?? "").trim()) {
+        await writeCanonicalContactDetails(contact.id, { role: jobTitle.trim() });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contact", contact.id] });
+      qc.invalidateQueries({ queryKey: ["contact_roles", contact.id] });
+      qc.invalidateQueries({ queryKey: ["contact_roles_primary", contact.id] });
+      qc.invalidateQueries({ queryKey: ["org_contacts_canonical"] });
+      toast.success("Contact updated");
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit contact</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save.mutate();
+          }}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="ed_first">First name *</Label>
+              <Input
+                id="ed_first"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed_last">Last name *</Label>
+              <Input
+                id="ed_last"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ed_pref">Preferred name</Label>
+            <Input
+              id="ed_pref"
+              value={preferredName}
+              onChange={(e) => setPreferredName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ed_role">Job title / role</Label>
+            <Input
+              id="ed_role"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder={primaryRoleQ.data || "e.g. Installer"}
+            />
+            <p className="text-xs text-muted-foreground">
+              Updates the primary role. Manage additional roles inline below the header.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label>Preferred communication</Label>
+            <Select
+              value={prefComm}
+              onValueChange={(v) => setPrefComm(v as ContactCommMethod)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                {CONTACT_COMM_METHODS.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="ed_active"
+              checked={active}
+              onCheckedChange={(v) => setActive(v === true)}
+            />
+            <Label htmlFor="ed_active" className="cursor-pointer">
+              Active
+            </Label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={save.isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
