@@ -1223,11 +1223,10 @@ function ContactIdentityEditDialog({
     queryFn: async () => {
       const { data } = await supabase
         .from("contact_roles")
-        .select("role,is_primary")
+        .select("role")
         .eq("contact_id", contact.id)
-        .order("is_primary", { ascending: false })
         .limit(1);
-      return data?.[0]?.role ?? "";
+      return (data?.[0] as { role?: string } | undefined)?.role ?? "";
     },
   });
 
