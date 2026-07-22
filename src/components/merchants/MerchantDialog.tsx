@@ -81,12 +81,15 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { data: profile } = await supabase.from("profiles").select("org_id").single();
+      const { data: profile, error: profileErr } = await supabase
+        .from("profiles")
+        .select("org_id")
+        .single();
+      if (profileErr) throw profileErr;
       if (!profile?.org_id) throw new Error("No organization");
 
       let contactId = contact?.id;
       if (isEdit && contactId) {
-        // Only merchant-specific fields — never legacy name/phone/email/job_title.
         const { error } = await supabase
           .from("contacts")
           .update({
@@ -122,31 +125,63 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
 
       if (!contactId) return;
 
-      // Reconcile program_merchants
+      // Reconcile program_merchants — fetch FRESH state (do not trust closure).
       const desiredPrimary = primaryProgramId === "none" ? null : primaryProgramId;
       const desiredSecondary = new Set(secondaryPrograms);
       if (desiredPrimary) desiredSecondary.delete(desiredPrimary);
 
       const now = new Date().toISOString().slice(0, 10);
 
-      const currentPrimary = existingLinks.find(
-        (l: any) => l.is_current && l.role === "Primary",
-      );
-      const currentSecondaries = existingLinks.filter(
-        (l: any) => l.is_current && l.role === "Secondary",
-      );
+      const { data: fresh, error: freshErr } = await supabase
+        .from("program_merchants" as any)
+        .select("id, program_id, role, is_current")
+        .eq("contact_id", contactId)
+        .eq("is_current", true);
+      if (freshErr) throw freshErr;
+      const currentRows = (fresh ?? []) as Array<{
+        id: string;
+        program_id: string;
+        role: string;
+        is_current: boolean;
+      }>;
+      const currentPrimary = currentRows.find((l) => l.role === "Primary") ?? null;
+      const currentSecondaries = currentRows.filter((l) => l.role === "Secondary");
 
+      // 1. Close out existing Primary if changing or clearing.
       if (currentPrimary && currentPrimary.program_id !== desiredPrimary) {
-        await supabase
+        const { error } = await supabase
           .from("program_merchants" as any)
           .update({ is_current: false, end_date: now })
           .eq("id", currentPrimary.id);
+        if (error) throw error;
       }
+
+      // 2. Insert new Primary if needed. First unseat any other merchant that
+      //    holds Primary on the same program (partial unique index enforces one).
       if (
         desiredPrimary &&
         (!currentPrimary || currentPrimary.program_id !== desiredPrimary)
       ) {
-        await supabase.from("program_merchants" as any).insert({
+        const { error: unseatErr } = await supabase
+          .from("program_merchants" as any)
+          .update({ is_current: false, end_date: now })
+          .eq("program_id", desiredPrimary)
+          .eq("role", "Primary")
+          .eq("is_current", true);
+        if (unseatErr) throw unseatErr;
+
+        // If this merchant already has a Secondary row for the same program,
+        // close it so it doesn't shadow the new Primary.
+        const secDupe = currentSecondaries.find((s) => s.program_id === desiredPrimary);
+        if (secDupe) {
+          const { error } = await supabase
+            .from("program_merchants" as any)
+            .update({ is_current: false, end_date: now })
+            .eq("id", secDupe.id);
+          if (error) throw error;
+        }
+
+        const { error: insErr } = await supabase.from("program_merchants" as any).insert({
           org_id: profile.org_id,
           program_id: desiredPrimary,
           contact_id: contactId,
@@ -154,25 +189,32 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
           is_current: true,
           start_date: now,
         });
+        if (insErr) throw insErr;
       }
 
+      // 3. Remove Secondary rows that were deselected.
       for (const sec of currentSecondaries) {
         if (!desiredSecondary.has(sec.program_id)) {
-          await supabase
+          const { error } = await supabase
             .from("program_merchants" as any)
             .update({ is_current: false, end_date: now })
             .eq("id", sec.id);
+          if (error) throw error;
         }
       }
+
+      // 4. Add new Secondary rows.
       const existingSecondaryProgIds = new Set(
-        currentSecondaries.map((s: any) => s.program_id as string),
+        currentSecondaries
+          .filter((s) => desiredSecondary.has(s.program_id))
+          .map((s) => s.program_id),
       );
       const toAdd: string[] = [];
       for (const p of desiredSecondary) {
         if (!existingSecondaryProgIds.has(p)) toAdd.push(p);
       }
       if (toAdd.length) {
-        await supabase.from("program_merchants" as any).insert(
+        const { error } = await supabase.from("program_merchants" as any).insert(
           toAdd.map((pid) => ({
             org_id: profile.org_id,
             program_id: pid,
@@ -182,6 +224,7 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
             start_date: now,
           })),
         );
+        if (error) throw error;
       }
       return contactId;
     },
