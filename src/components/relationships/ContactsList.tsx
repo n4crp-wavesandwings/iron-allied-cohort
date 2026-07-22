@@ -28,7 +28,7 @@ export function ContactsList({ entityId }: { entityId: string }) {
 
 
   const [addOpen, setAddOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<ContactRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CanonicalOrgContact | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
 
