@@ -138,7 +138,7 @@ export function MerchantDialog({ open, onOpenChange, contact }: Props) {
         .eq("contact_id", contactId)
         .eq("is_current", true);
       if (freshErr) throw freshErr;
-      const currentRows = (fresh ?? []) as Array<{
+      const currentRows = ((fresh ?? []) as unknown) as Array<{
         id: string;
         program_id: string;
         role: string;
