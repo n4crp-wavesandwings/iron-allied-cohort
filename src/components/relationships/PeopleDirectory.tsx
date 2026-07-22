@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Phone, MessageSquare, Mail, Pencil } from "lucide-react";
+import { Phone, MessageSquare, Mail, Pencil, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type PersonRow = {
@@ -134,7 +134,15 @@ export function PeopleDirectory() {
 
   return (
     <div className="mt-6 space-y-4">
+      <div className="flex items-center justify-end">
+        <Button asChild size="sm" variant="outline" className="gap-1">
+          <Link to="/contacts/import">
+            <Upload className="h-4 w-4" /> Import Contacts
+          </Link>
+        </Button>
+      </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+
         <Input
           placeholder="Filter by name, company, role…"
           value={text}

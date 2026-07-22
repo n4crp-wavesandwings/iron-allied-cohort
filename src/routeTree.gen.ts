@@ -22,6 +22,7 @@ import { Route as AuthenticatedResolutionsIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedRelationshipsIdRouteImport } from './routes/_authenticated/relationships.$id'
 import { Route as AuthenticatedProgramsIdRouteImport } from './routes/_authenticated/programs.$id'
 import { Route as AuthenticatedEngagementsIdRouteImport } from './routes/_authenticated/engagements.$id'
+import { Route as AuthenticatedContactsImportRouteImport } from './routes/_authenticated/contacts.import'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -95,6 +96,12 @@ const AuthenticatedEngagementsIdRoute =
     path: '/engagements/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContactsImportRoute =
+  AuthenticatedContactsImportRouteImport.update({
+    id: '/contacts/import',
+    path: '/contacts/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   id: '/contacts/$id',
   path: '/contacts/$id',
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/locations': typeof AuthenticatedLocationsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/contacts/import': typeof AuthenticatedContactsImportRoute
   '/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
   '/locations': typeof AuthenticatedLocationsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/contacts/import': typeof AuthenticatedContactsImportRoute
   '/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
@@ -139,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/locations': typeof AuthenticatedLocationsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/contacts/import': typeof AuthenticatedContactsImportRoute
   '/_authenticated/engagements/$id': typeof AuthenticatedEngagementsIdRoute
   '/_authenticated/programs/$id': typeof AuthenticatedProgramsIdRoute
   '/_authenticated/relationships/$id': typeof AuthenticatedRelationshipsIdRoute
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/locations'
     | '/today'
     | '/contacts/$id'
+    | '/contacts/import'
     | '/engagements/$id'
     | '/programs/$id'
     | '/relationships/$id'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/locations'
     | '/today'
     | '/contacts/$id'
+    | '/contacts/import'
     | '/engagements/$id'
     | '/programs/$id'
     | '/relationships/$id'
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/locations'
     | '/_authenticated/today'
     | '/_authenticated/contacts/$id'
+    | '/_authenticated/contacts/import'
     | '/_authenticated/engagements/$id'
     | '/_authenticated/programs/$id'
     | '/_authenticated/relationships/$id'
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEngagementsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contacts/import': {
+      id: '/_authenticated/contacts/import'
+      path: '/contacts/import'
+      fullPath: '/contacts/import'
+      preLoaderRoute: typeof AuthenticatedContactsImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/$id': {
       id: '/_authenticated/contacts/$id'
       path: '/contacts/$id'
@@ -310,6 +330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLocationsRoute: typeof AuthenticatedLocationsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedContactsImportRoute: typeof AuthenticatedContactsImportRoute
   AuthenticatedEngagementsIdRoute: typeof AuthenticatedEngagementsIdRoute
   AuthenticatedProgramsIdRoute: typeof AuthenticatedProgramsIdRoute
   AuthenticatedRelationshipsIdRoute: typeof AuthenticatedRelationshipsIdRoute
@@ -324,6 +345,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLocationsRoute: AuthenticatedLocationsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedContactsImportRoute: AuthenticatedContactsImportRoute,
   AuthenticatedEngagementsIdRoute: AuthenticatedEngagementsIdRoute,
   AuthenticatedProgramsIdRoute: AuthenticatedProgramsIdRoute,
   AuthenticatedRelationshipsIdRoute: AuthenticatedRelationshipsIdRoute,
