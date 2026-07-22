@@ -15,12 +15,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
-import { contactsQueryOptions, contactDisplayName, type ContactRow } from "@/lib/contacts";
+import {
+  orgContactsCanonicalQuery,
+  contactDisplayName,
+  type CanonicalOrgContact,
+} from "@/lib/contacts";
 import { ContactDialog } from "./ContactDialog";
 
 export function ContactsList({ entityId }: { entityId: string }) {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery(contactsQueryOptions(entityId));
+  const { data, isLoading } = useQuery(orgContactsCanonicalQuery(entityId));
+
 
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ContactRow | null>(null);
