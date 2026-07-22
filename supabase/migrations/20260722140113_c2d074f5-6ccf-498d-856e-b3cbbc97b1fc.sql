@@ -1,0 +1,1 @@
+ALTER TABLE public.program_merchants DROP CONSTRAINT IF EXISTS program_merchants_merchant_id_fkey;

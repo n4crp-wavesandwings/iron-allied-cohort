@@ -2402,13 +2402,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "program_merchants_merchant_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "entities"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "program_merchants_program_fk"
             columns: ["program_id"]
             isOneToOne: false
