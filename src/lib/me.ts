@@ -191,133 +191,28 @@ export const providersReconnectQuery = queryOptions({
   },
 });
 
-export type ProviderContactMethods = ProviderContactRow & {
-  phones: { id: string; phone: string; is_primary: boolean; label: string | null }[];
-  emails: { id: string; email: string; is_primary: boolean; label: string | null }[];
-  primary_phone: string | null;
-  primary_email: string | null;
-};
+import {
+  orgContactsCanonicalQuery,
+  type CanonicalOrgContact,
+} from "@/lib/contacts";
+
+export type ProviderContactRow = CanonicalOrgContact;
+export type ProviderContactMethods = CanonicalOrgContact;
+
+/**
+ * Canonical read path for a provider's / organization's / merchant's contacts.
+ * Reads ONLY canonical tables (contact_organizations, contact_phones,
+ * contact_emails, contact_roles). Every screen listing an org's people
+ * must route through this helper.
+ */
+export function providerContactsQuery(entityId: string) {
+  return orgContactsCanonicalQuery(entityId);
+}
 
 export function providerContactsWithMethodsQuery(entityId: string) {
-  return queryOptions({
-    queryKey: ["provider_contacts_methods", entityId],
-    queryFn: async (): Promise<ProviderContactMethods[]> => {
-      const [{ data: direct, error: e1 }, { data: linked, error: e2 }] = await Promise.all([
-        supabase
-          .from("contacts")
-          .select("id,first_name,last_name,name,email,mobile_phone,office_phone,job_title")
-          .eq("entity_id", entityId)
-          .is("deleted_at", null)
-          .eq("active", true),
-        supabase
-          .from("contact_organizations")
-          .select(
-            `contact:contacts(id,first_name,last_name,name,email,mobile_phone,office_phone,job_title,deleted_at,active)`,
-          )
-          .eq("organization_id", entityId),
-      ]);
-      if (e1) throw e1;
-      if (e2) throw e2;
-      const map = new Map<string, ProviderContactRow>();
-      for (const c of (direct as any[]) ?? []) map.set(c.id, c);
-      for (const row of (linked as any[]) ?? []) {
-        const c = row.contact;
-        if (!c || c.deleted_at || c.active === false) continue;
-        if (!map.has(c.id)) map.set(c.id, c);
-      }
-      const ids = Array.from(map.keys());
-      if (ids.length === 0) return [];
-      const [{ data: phones }, { data: emails }] = await Promise.all([
-        supabase
-          .from("contact_phones")
-          .select("id,contact_id,phone,is_primary,label")
-          .in("contact_id", ids),
-        supabase
-          .from("contact_emails")
-          .select("id,contact_id,email,is_primary,label")
-          .in("contact_id", ids),
-      ]);
-      const phoneMap = new Map<string, any[]>();
-      for (const p of (phones as any[]) ?? []) {
-        const arr = phoneMap.get(p.contact_id) ?? [];
-        arr.push(p);
-        phoneMap.set(p.contact_id, arr);
-      }
-      const emailMap = new Map<string, any[]>();
-      for (const e of (emails as any[]) ?? []) {
-        const arr = emailMap.get(e.contact_id) ?? [];
-        arr.push(e);
-        emailMap.set(e.contact_id, arr);
-      }
-      return Array.from(map.values())
-        .map((c) => {
-          const ps = phoneMap.get(c.id) ?? [];
-          const es = emailMap.get(c.id) ?? [];
-          const primaryPhoneRow = ps.find((p) => p.is_primary) ?? ps[0];
-          const primaryEmailRow = es.find((e) => e.is_primary) ?? es[0];
-          const primary_phone =
-            primaryPhoneRow?.phone ?? c.mobile_phone ?? c.office_phone ?? null;
-          const primary_email = primaryEmailRow?.email ?? c.email ?? null;
-          return {
-            ...c,
-            phones: ps,
-            emails: es,
-            primary_phone,
-            primary_email,
-          } as ProviderContactMethods;
-        })
-        .sort((a, b) =>
-          (a.first_name ?? a.name ?? "").localeCompare(b.first_name ?? b.name ?? ""),
-        );
-    },
-  });
+  return orgContactsCanonicalQuery(entityId);
 }
 
-export type ProviderContactRow = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  name: string | null;
-  email: string | null;
-  mobile_phone: string | null;
-  office_phone: string | null;
-  job_title: string | null;
-};
-
-export function providerContactsQuery(entityId: string) {
-  return queryOptions({
-    queryKey: ["provider_contacts", entityId],
-    queryFn: async (): Promise<ProviderContactRow[]> => {
-      // union of entity_id direct + contact_organizations join
-      const [{ data: direct, error: e1 }, { data: linked, error: e2 }] = await Promise.all([
-        supabase
-          .from("contacts")
-          .select("id,first_name,last_name,name,email,mobile_phone,office_phone,job_title")
-          .eq("entity_id", entityId)
-          .is("deleted_at", null)
-          .eq("active", true),
-        supabase
-          .from("contact_organizations")
-          .select(
-            `contact:contacts(id,first_name,last_name,name,email,mobile_phone,office_phone,job_title,deleted_at,active)`,
-          )
-          .eq("organization_id", entityId),
-      ]);
-      if (e1) throw e1;
-      if (e2) throw e2;
-      const map = new Map<string, ProviderContactRow>();
-      for (const c of (direct as any[]) ?? []) map.set(c.id, c);
-      for (const row of (linked as any[]) ?? []) {
-        const c = row.contact;
-        if (!c || c.deleted_at || c.active === false) continue;
-        if (!map.has(c.id)) map.set(c.id, c);
-      }
-      return Array.from(map.values()).sort((a, b) =>
-        (a.first_name ?? a.name ?? "").localeCompare(b.first_name ?? b.name ?? ""),
-      );
-    },
-  });
-}
 
 export function contactFirstName(c: {
   first_name?: string | null;
