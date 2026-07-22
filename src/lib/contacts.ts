@@ -192,11 +192,16 @@ export function orgContactsCanonicalQuery(entityId: string) {
 }
 
 
-export function contactDisplayName(c: ContactRow): string {
+export function contactDisplayName(c: {
+  first_name?: string | null;
+  last_name?: string | null;
+  name?: string | null;
+}): string {
   const parts = [c.first_name, c.last_name].filter(Boolean);
   if (parts.length) return parts.join(" ");
   return c.name ?? "Unnamed";
 }
+
 
 // ---------------------------------------------------------------------------
 // Canonical writers — phones, emails, and roles live in their own tables.
