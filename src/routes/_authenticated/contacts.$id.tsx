@@ -23,8 +23,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { contactDisplayName, type ContactRow } from "@/lib/contacts";
-import { ContactDialog } from "@/components/relationships/ContactDialog";
+import {
+  contactDisplayName,
+  writeCanonicalContactDetails,
+  CONTACT_COMM_METHODS,
+  type ContactCommMethod,
+  type ContactRow,
+} from "@/lib/contacts";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
 
 import { CoveragePanel } from "@/components/coverage/CoveragePanel";
