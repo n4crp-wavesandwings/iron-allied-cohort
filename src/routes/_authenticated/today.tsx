@@ -69,12 +69,14 @@ function CollapsibleCard({
   title,
   count,
   defaultCollapsed = false,
+  action,
   children,
 }: {
   cardKey: string;
   title: string;
   count?: number;
   defaultCollapsed?: boolean;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { collapsed, toggle } = useCollapsed(cardKey, defaultCollapsed);
@@ -86,7 +88,14 @@ function CollapsibleCard({
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             {title}
           </span>
-          {typeof count === "number" && count > 0 && <Badge variant="secondary">{count}</Badge>}
+          <span className="flex items-center gap-2">
+            {typeof count === "number" && count > 0 && <Badge variant="secondary">{count}</Badge>}
+            {action && (
+              <span onClick={(e) => e.stopPropagation()} className="font-normal">
+                {action}
+              </span>
+            )}
+          </span>
         </CardTitle>
       </CardHeader>
       {!collapsed && <CardContent>{children}</CardContent>}
@@ -276,6 +285,8 @@ function TodayPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const [providerQuickLogOpen, setProviderQuickLogOpen] = useState(false);
 
   const sorted = useMemo(() => (tasks.data ?? []).slice().sort(sortTasks), [tasks.data]);
 
@@ -474,6 +485,11 @@ function TodayPage() {
         cardKey="providers"
         title="👷 Service Provider Management"
         count={providerRows.length}
+        action={
+          <Button size="sm" variant="outline" onClick={() => setProviderQuickLogOpen(true)}>
+            + Quick Log
+          </Button>
+        }
       >
         {providerRows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No provider action items right now.</p>
@@ -514,6 +530,11 @@ function TodayPage() {
         }}
         engagementId={notePanelEngagementId}
         contactId={notePanelContactId}
+      />
+
+      <ProviderQuickLogPanel
+        open={providerQuickLogOpen}
+        onOpenChange={setProviderQuickLogOpen}
       />
 
 
