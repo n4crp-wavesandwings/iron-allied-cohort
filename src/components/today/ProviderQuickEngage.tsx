@@ -20,7 +20,6 @@ import {
   type ProviderContactRow,
 } from "@/lib/me";
 import { quickStartsQuery, substituteQuickStart, type QuickStart } from "@/lib/tasks";
-import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
 import { logTouch, invalidateTouchQueries, type TouchChannel } from "@/lib/logTouch";
 
@@ -28,8 +27,7 @@ export function ProviderQuickEngage() {
   const providers = useQuery(serviceProvidersQuery);
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<ProviderRow | null>(null);
-  const [engOpen, setEngOpen] = useState(false);
-  const [engProviderId, setEngProviderId] = useState<string | null>(null);
+  const [quickLogProviderId, setQuickLogProviderId] = useState<string | null>(null);
 
   const items = useMemo(() => {
     const all = (providers.data ?? []) as ProviderRow[];
@@ -76,18 +74,16 @@ export function ProviderQuickEngage() {
         onClose={() => setSelected(null)}
         onLogEngagementFor={(p) => {
           setSelected(null);
-          setEngProviderId(p.id);
-          setEngOpen(true);
+          setQuickLogProviderId(p.id);
         }}
       />
 
-      <EngagementDialog
-        open={engOpen}
+      <PostTouchNotePanel
+        open={!!quickLogProviderId}
         onOpenChange={(o) => {
-          setEngOpen(o);
-          if (!o) setEngProviderId(null);
+          if (!o) setQuickLogProviderId(null);
         }}
-        defaults={engProviderId ? { entityId: engProviderId } : undefined}
+        entityId={quickLogProviderId}
       />
     </>
   );
@@ -267,7 +263,7 @@ function ProviderContactsDialog({
               className="w-full gap-1"
               onClick={() => provider && onLogEngagementFor(provider)}
             >
-              <Plus className="h-4 w-4" /> Log engagement
+              <Plus className="h-4 w-4" /> Quick Log
             </Button>
           </DialogFooter>
         </DialogContent>
