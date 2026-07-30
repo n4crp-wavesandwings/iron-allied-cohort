@@ -95,15 +95,21 @@ function RelationshipDetailPage() {
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirmDelete(true)}
-          className="gap-1"
-        >
-          <Trash2 className="h-4 w-4" /> Delete
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setQuickLogOpen(true)} className="gap-1">
+            <SquarePen className="h-4 w-4" /> Quick Log
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmDelete(true)}
+            className="gap-1"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
+        </div>
       </div>
+
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{r.name}</h1>
