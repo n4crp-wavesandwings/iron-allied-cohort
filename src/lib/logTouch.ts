@@ -12,6 +12,8 @@ export type LogTouchParams = {
   programId?: string | null;
   note?: string | null;
   occurredAt?: string;
+  /** Explicit engagement_types.id — skips name-based resolution when provided. */
+  engagementTypeId?: string | null;
 };
 
 /** Preferred engagement_types names per channel, best match first. */
