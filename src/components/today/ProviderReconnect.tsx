@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Phone, MessageSquare, Mail } from "lucide-react";
 import {
@@ -9,6 +10,8 @@ import {
   contactDisplayName,
   type ProviderReconnectRow,
 } from "@/lib/me";
+import { logTouch, invalidateTouchQueries, type TouchChannel } from "@/lib/logTouch";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
 
 const RECONNECT_THRESHOLD_DAYS = 9;
 
@@ -22,6 +25,8 @@ function lastContactedLabel(row: ProviderReconnectRow): string {
 export function ProviderReconnect() {
   const { data, isLoading } = useQuery(providersReconnectQuery);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [noteEngagementId, setNoteEngagementId] = useState<string | null>(null);
+  const [noteContactId, setNoteContactId] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     const all = (data ?? []) as ProviderReconnectRow[];
@@ -48,45 +53,99 @@ export function ProviderReconnect() {
   }
 
   return (
-    <ul className="space-y-2">
-      {rows.map((p) => {
-        const isOpen = expandedId === p.id;
-        return (
-          <li key={p.id} className="rounded-md border">
-            <button
-              type="button"
-              onClick={() => setExpandedId(isOpen ? null : p.id)}
-              className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left hover:bg-accent"
-            >
-              <div className="min-w-0">
-                <div className="font-medium truncate">{p.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {lastContactedLabel(p)}
+    <>
+      <ul className="space-y-2">
+        {rows.map((p) => {
+          const isOpen = expandedId === p.id;
+          return (
+            <li key={p.id} className="rounded-md border">
+              <button
+                type="button"
+                onClick={() => setExpandedId(isOpen ? null : p.id)}
+                className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left hover:bg-accent"
+              >
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{p.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {lastContactedLabel(p)}
+                  </div>
                 </div>
-              </div>
-              {isOpen ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                {isOpen ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
+              {isOpen && (
+                <ProviderContactList
+                  providerId={p.id}
+                  providerName={p.name}
+                  onLogged={(engagementId, contactId) => {
+                    setNoteContactId(contactId);
+                    setNoteEngagementId(engagementId);
+                  }}
+                />
               )}
-            </button>
-            {isOpen && <ProviderContactList providerId={p.id} providerName={p.name} />}
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          );
+        })}
+      </ul>
+
+      <PostTouchNotePanel
+        open={!!noteEngagementId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setNoteEngagementId(null);
+            setNoteContactId(null);
+          }
+        }}
+        engagementId={noteEngagementId}
+        contactId={noteContactId}
+      />
+    </>
   );
 }
 
 function ProviderContactList({
   providerId,
   providerName,
+  onLogged,
 }: {
   providerId: string;
   providerName: string;
+  onLogged: (engagementId: string, contactId: string) => void;
 }) {
   const { data, isLoading } = useQuery(providerContactsWithMethodsQuery(providerId));
+  const qc = useQueryClient();
   const contacts = data ?? [];
+
+  const verb: Record<"Call" | "Text" | "Email", string> = {
+    Call: "call",
+    Text: "text",
+    Email: "email",
+  };
+
+  const record = async (
+    channel: "Call" | "Text" | "Email",
+    contact: { id: string; first_name?: string | null; last_name?: string | null; name?: string | null },
+  ) => {
+    try {
+      const engagementId = await logTouch({
+        channel: channel as TouchChannel,
+        contactId: contact.id,
+        entityId: providerId,
+      });
+      invalidateTouchQueries(qc, { contactId: contact.id, entityId: providerId });
+      toast.success(`Logged — ${verb[channel]} to ${contactDisplayName(contact as any)}`, {
+        action: {
+          label: "Add note",
+          onClick: () => onLogged(engagementId, contact.id),
+        },
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not log engagement");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -124,21 +183,21 @@ function ProviderContactList({
           <div className="mt-2 flex flex-wrap gap-2">
             {c.primary_phone && (
               <Button asChild size="sm" variant="outline" className="h-9 gap-1">
-                <a href={`tel:${c.primary_phone}`}>
+                <a href={`tel:${c.primary_phone}`} onClick={() => void record("Call", c)}>
                   <Phone className="h-4 w-4" /> Call
                 </a>
               </Button>
             )}
             {c.primary_phone && (
               <Button asChild size="sm" variant="outline" className="h-9 gap-1">
-                <a href={`sms:${c.primary_phone}`}>
+                <a href={`sms:${c.primary_phone}`} onClick={() => void record("Text", c)}>
                   <MessageSquare className="h-4 w-4" /> Text
                 </a>
               </Button>
             )}
             {c.primary_email && (
               <Button asChild size="sm" variant="outline" className="h-9 gap-1">
-                <a href={`mailto:${c.primary_email}`}>
+                <a href={`mailto:${c.primary_email}`} onClick={() => void record("Email", c)}>
                   <Mail className="h-4 w-4" /> Email
                 </a>
               </Button>
