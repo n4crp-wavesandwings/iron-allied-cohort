@@ -285,7 +285,7 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
                           <div className="flex gap-2">
                             {tel && (
                               <Button asChild size="sm" variant="outline" className="h-10">
-                                <a href={tel}>Call</a>
+                                <a href={tel} onClick={() => void recordStoreCall(s.id, s.store_number)}>Call</a>
                               </Button>
                             )}
                             <Button size="sm" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
