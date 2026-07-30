@@ -27,6 +27,9 @@ export function ProviderReconnect() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [noteEngagementId, setNoteEngagementId] = useState<string | null>(null);
   const [noteContactId, setNoteContactId] = useState<string | null>(null);
+  const [noteEntityId, setNoteEntityId] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+
 
   const rows = useMemo(() => {
     const all = (data ?? []) as ProviderReconnectRow[];
