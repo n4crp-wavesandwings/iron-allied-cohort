@@ -197,6 +197,7 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
   const { data: markets = [] } = useQuery(marketsQuery);
   const { data: regions = [] } = useQuery(regionsQuery);
   const mut = useCrud("stores", ["stores"]);
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Store | null>(null);
   const [search, setSearch] = useState("");
