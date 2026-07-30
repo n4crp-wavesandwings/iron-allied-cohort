@@ -90,6 +90,15 @@ export function ContactsList({ entityId }: { entityId: string }) {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label="Quick Log"
+                      onClick={() => setQuickLogContactId(c.id)}
+                    >
+                      <SquarePen className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() =>
                         setExpanded((prev) => ({ ...prev, [c.id]: !prev[c.id] }))
                       }
