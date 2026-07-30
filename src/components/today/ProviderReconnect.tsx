@@ -199,6 +199,15 @@ function ProviderContactList({
             </div>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 gap-1"
+              onClick={() => onQuickLog(c.id)}
+            >
+              <SquarePen className="h-4 w-4" /> Log
+            </Button>
+
             {c.primary_phone && (
               <Button asChild size="sm" variant="outline" className="h-9 gap-1">
                 <a href={`tel:${c.primary_phone}`} onClick={() => void record("Call", c)}>
