@@ -225,6 +225,15 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
   }, [mine, filtered, districtMap]);
 
   const telHref = (p: string | null) => (p ? `tel:${p.replace(/[^\d+]/g, "")}` : undefined);
+  const recordStoreCall = async (storeId: string, storeNumber: string) => {
+    try {
+      await logTouch({ channel: "Call", storeId });
+      invalidateTouchQueries(qc, { storeId });
+      toast.success(`Logged — call to store #${storeNumber}`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not log engagement");
+    }
+  };
   const mapHref = (s: Store) => {
     const parts = [(s as any).address, s.city, s.state, (s as any).zip].filter(Boolean).join(", ");
     if (!parts) return undefined;
