@@ -167,6 +167,14 @@ export function ContactsList({ entityId }: { entityId: string }) {
 
       <ContactDialog open={addOpen} onOpenChange={setAddOpen} entityId={entityId} />
 
+      <PostTouchNotePanel
+        open={!!quickLogContactId}
+        onOpenChange={(o) => !o && setQuickLogContactId(null)}
+        contactId={quickLogContactId}
+        entityId={entityId}
+      />
+
+
 
       <AlertDialog
         open={!!deleteTarget}
