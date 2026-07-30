@@ -14,13 +14,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Trash2, SquarePen } from "lucide-react";
 import {
   orgContactsCanonicalQuery,
   contactDisplayName,
   type CanonicalOrgContact,
 } from "@/lib/contacts";
 import { ContactDialog } from "./ContactDialog";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+
 
 export function ContactsList({ entityId }: { entityId: string }) {
   const queryClient = useQueryClient();
