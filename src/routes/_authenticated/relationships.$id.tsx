@@ -227,6 +227,13 @@ function RelationshipDetailPage() {
         defaults={{ entityId: r.id }}
       />
 
+      <PostTouchNotePanel
+        open={quickLogOpen}
+        onOpenChange={setQuickLogOpen}
+        entityId={r.id}
+      />
+
+
 
       {/* Dialogs */}
       <RelationshipDialog open={editOpen} onOpenChange={setEditOpen} relationship={r} />
