@@ -51,7 +51,7 @@ async function resolveEngagementTypeId(channel: TouchChannel): Promise<string | 
  * logQuickEngagement in src/lib/me.ts.
  */
 export async function logTouch(params: LogTouchParams): Promise<string> {
-  const typeId = await resolveEngagementTypeId(params.channel);
+  const typeId = params.engagementTypeId ?? (await resolveEngagementTypeId(params.channel));
 
   const { data: user } = await supabase.auth.getUser();
   const userId = user.user?.id ?? null;
