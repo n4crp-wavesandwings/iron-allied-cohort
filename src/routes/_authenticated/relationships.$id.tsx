@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, SquarePen } from "lucide-react";
 import { relationshipQueryOptions, typeLabel } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 
@@ -35,6 +35,8 @@ import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByEntityQuery } from "@/lib/engagements";
 import { ProviderPrograms } from "@/components/relationships/ProviderPrograms";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
   component: RelationshipDetailPage,
@@ -52,6 +54,8 @@ function RelationshipDetailPage() {
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [engagementOpen, setEngagementOpen] = useState(false);
+  const [quickLogOpen, setQuickLogOpen] = useState(false);
+
   const engagements = useQuery(engagementsByEntityQuery(id));
 
   const deleteMutation = useMutation({
@@ -95,15 +99,21 @@ function RelationshipDetailPage() {
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirmDelete(true)}
-          className="gap-1"
-        >
-          <Trash2 className="h-4 w-4" /> Delete
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setQuickLogOpen(true)} className="gap-1">
+            <SquarePen className="h-4 w-4" /> Quick Log
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmDelete(true)}
+            className="gap-1"
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
+        </div>
       </div>
+
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{r.name}</h1>
@@ -218,6 +228,13 @@ function RelationshipDetailPage() {
         onOpenChange={setEngagementOpen}
         defaults={{ entityId: r.id }}
       />
+
+      <PostTouchNotePanel
+        open={quickLogOpen}
+        onOpenChange={setQuickLogOpen}
+        entityId={r.id}
+      />
+
 
 
       {/* Dialogs */}

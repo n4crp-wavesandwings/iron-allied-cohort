@@ -14,13 +14,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Trash2, SquarePen } from "lucide-react";
 import {
   orgContactsCanonicalQuery,
   contactDisplayName,
   type CanonicalOrgContact,
 } from "@/lib/contacts";
 import { ContactDialog } from "./ContactDialog";
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+
 
 export function ContactsList({ entityId }: { entityId: string }) {
   const queryClient = useQueryClient();
@@ -30,6 +32,9 @@ export function ContactsList({ entityId }: { entityId: string }) {
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<CanonicalOrgContact | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [quickLogContactId, setQuickLogContactId] = useState<string | null>(null);
+
+
 
 
   const deleteMutation = useMutation({
@@ -82,6 +87,15 @@ export function ContactsList({ entityId }: { entityId: string }) {
                     </div>
                   </Link>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Quick Log"
+                      onClick={() => setQuickLogContactId(c.id)}
+                    >
+                      <SquarePen className="h-4 w-4" />
+                    </Button>
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -152,6 +166,14 @@ export function ContactsList({ entityId }: { entityId: string }) {
       )}
 
       <ContactDialog open={addOpen} onOpenChange={setAddOpen} entityId={entityId} />
+
+      <PostTouchNotePanel
+        open={!!quickLogContactId}
+        onOpenChange={(o) => !o && setQuickLogContactId(null)}
+        contactId={quickLogContactId}
+        entityId={entityId}
+      />
+
 
 
       <AlertDialog

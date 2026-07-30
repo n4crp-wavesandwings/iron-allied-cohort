@@ -12,6 +12,8 @@ export type LogTouchParams = {
   programId?: string | null;
   note?: string | null;
   occurredAt?: string;
+  /** Explicit engagement_types.id — skips name-based resolution when provided. */
+  engagementTypeId?: string | null;
 };
 
 /** Preferred engagement_types names per channel, best match first. */
@@ -49,7 +51,7 @@ async function resolveEngagementTypeId(channel: TouchChannel): Promise<string | 
  * logQuickEngagement in src/lib/me.ts.
  */
 export async function logTouch(params: LogTouchParams): Promise<string> {
-  const typeId = await resolveEngagementTypeId(params.channel);
+  const typeId = params.engagementTypeId ?? (await resolveEngagementTypeId(params.channel));
 
   const { data: user } = await supabase.auth.getUser();
   const userId = user.user?.id ?? null;

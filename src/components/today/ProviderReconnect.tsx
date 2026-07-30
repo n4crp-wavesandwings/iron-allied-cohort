@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Phone, MessageSquare, Mail } from "lucide-react";
+import { ChevronDown, ChevronRight, Phone, MessageSquare, Mail, SquarePen } from "lucide-react";
 import {
   providersReconnectQuery,
   providerContactsWithMethodsQuery,
@@ -27,6 +27,9 @@ export function ProviderReconnect() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [noteEngagementId, setNoteEngagementId] = useState<string | null>(null);
   const [noteContactId, setNoteContactId] = useState<string | null>(null);
+  const [noteEntityId, setNoteEntityId] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+
 
   const rows = useMemo(() => {
     const all = (data ?? []) as ProviderReconnectRow[];
@@ -82,7 +85,15 @@ export function ProviderReconnect() {
                   providerName={p.name}
                   onLogged={(engagementId, contactId) => {
                     setNoteContactId(contactId);
+                    setNoteEntityId(p.id);
                     setNoteEngagementId(engagementId);
+                    setPanelOpen(true);
+                  }}
+                  onQuickLog={(contactId) => {
+                    setNoteEngagementId(null);
+                    setNoteContactId(contactId);
+                    setNoteEntityId(p.id);
+                    setPanelOpen(true);
                   }}
                 />
               )}
@@ -92,16 +103,20 @@ export function ProviderReconnect() {
       </ul>
 
       <PostTouchNotePanel
-        open={!!noteEngagementId}
+        open={panelOpen}
         onOpenChange={(o) => {
+          setPanelOpen(o);
           if (!o) {
             setNoteEngagementId(null);
             setNoteContactId(null);
+            setNoteEntityId(null);
           }
         }}
         engagementId={noteEngagementId}
         contactId={noteContactId}
+        entityId={noteEntityId}
       />
+
     </>
   );
 }
@@ -110,11 +125,14 @@ function ProviderContactList({
   providerId,
   providerName,
   onLogged,
+  onQuickLog,
 }: {
   providerId: string;
   providerName: string;
   onLogged: (engagementId: string, contactId: string) => void;
+  onQuickLog: (contactId: string) => void;
 }) {
+
   const { data, isLoading } = useQuery(providerContactsWithMethodsQuery(providerId));
   const qc = useQueryClient();
   const contacts = data ?? [];
@@ -181,6 +199,15 @@ function ProviderContactList({
             </div>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 gap-1"
+              onClick={() => onQuickLog(c.id)}
+            >
+              <SquarePen className="h-4 w-4" /> Log
+            </Button>
+
             {c.primary_phone && (
               <Button asChild size="sm" variant="outline" className="h-9 gap-1">
                 <a href={`tel:${c.primary_phone}`} onClick={() => void record("Call", c)}>
