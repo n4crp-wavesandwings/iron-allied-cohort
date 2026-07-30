@@ -16,16 +16,13 @@ import {
   providerContactsQuery,
   contactDisplayName,
   contactFirstName,
-  logQuickEngagement,
   type ProviderRow,
   type ProviderContactRow,
 } from "@/lib/me";
 import { quickStartsQuery, substituteQuickStart, type QuickStart } from "@/lib/tasks";
 import { EngagementDialog } from "@/components/engagements/EngagementDialog";
-
-type PendingLog =
-  | { kind: "call" | "text" | "quickstart"; provider: ProviderRow; contact: ProviderContactRow; note?: string }
-  | null;
+import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+import { logTouch, invalidateTouchQueries, type TouchChannel } from "@/lib/logTouch";
 
 export function ProviderQuickEngage() {
   const providers = useQuery(serviceProvidersQuery);
@@ -111,9 +108,45 @@ function ProviderContactsDialog({
     enabled: !!provider,
   });
   const quickStarts = useQuery(quickStartsQuery);
-  const [pending, setPending] = useState<PendingLog>(null);
   const [qsPickerFor, setQsPickerFor] = useState<ProviderContactRow | null>(null);
+  const [noteEngagementId, setNoteEngagementId] = useState<string | null>(null);
+  const [noteContactId, setNoteContactId] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  const verbLabel: Record<string, string> = {
+    Call: "call",
+    Text: "text",
+    Email: "email",
+  };
+
+  const record = async (
+    channel: TouchChannel,
+    c: ProviderContactRow,
+    opts?: { note?: string | null; label?: string },
+  ) => {
+    if (!provider) return;
+    try {
+      const engagementId = await logTouch({
+        channel,
+        contactId: c.id,
+        entityId: provider.id,
+        note: opts?.note ?? null,
+      });
+      invalidateTouchQueries(qc, { contactId: c.id, entityId: provider.id });
+      const what = opts?.label ?? verbLabel[channel] ?? channel.toLowerCase();
+      toast.success(`Logged — ${what} to ${contactDisplayName(c)}`, {
+        action: {
+          label: "Add note",
+          onClick: () => {
+            setNoteContactId(c.id);
+            setNoteEngagementId(engagementId);
+          },
+        },
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not log engagement");
+    }
+  };
 
   const handleCall = (c: ProviderContactRow) => {
     const phone = c.mobile_phone || c.office_phone;
@@ -121,8 +154,8 @@ function ProviderContactsDialog({
       toast.error("No phone number on file.");
       return;
     }
+    void record("Call", c);
     window.location.href = `tel:${phone}`;
-    if (provider) setPending({ kind: "call", provider, contact: c });
   };
 
   const handleText = (c: ProviderContactRow) => {
@@ -131,8 +164,8 @@ function ProviderContactsDialog({
       toast.error("No phone number on file.");
       return;
     }
+    void record("Text", c);
     window.location.href = `sms:${phone}`;
-    if (provider) setPending({ kind: "text", provider, contact: c });
   };
 
   const handleEmail = (c: ProviderContactRow) => {
@@ -140,6 +173,7 @@ function ProviderContactsDialog({
       toast.error("No email on file.");
       return;
     }
+    void record("Email", c);
     window.location.href = `mailto:${c.email}`;
   };
 
@@ -157,44 +191,7 @@ function ProviderContactsDialog({
       return;
     }
     setQsPickerFor(null);
-    if (provider) {
-      setPending({
-        kind: "quickstart",
-        provider,
-        contact: c,
-        note: `Quick Start: ${qs.name}`,
-      });
-    }
-  };
-
-  const logNow = async () => {
-    if (!pending) return;
-    try {
-      const typeName =
-        pending.kind === "call"
-          ? "Phone Call"
-          : pending.kind === "text"
-            ? "Phone Call"
-            : "Phone Call";
-      const note =
-        pending.note ??
-        (pending.kind === "call"
-          ? "Phone call"
-          : pending.kind === "text"
-            ? "Text message"
-            : null);
-      await logQuickEngagement({
-        typeName,
-        contactId: pending.contact.id,
-        entityId: pending.provider.id,
-        note,
-      });
-      toast.success("Engagement logged");
-      qc.invalidateQueries({ queryKey: ["engagements"] });
-      setPending(null);
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not log engagement");
-    }
+    void record("Text", c, { note: `Quick Start: ${qs.name}`, label: "Quick Start" });
   };
 
   const list = (contacts.data ?? []) as ProviderContactRow[];
@@ -310,31 +307,17 @@ function ProviderContactsDialog({
         </DialogContent>
       </Dialog>
 
-      {/* One-tap log prompt */}
-      <Dialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Log this engagement?</DialogTitle>
-          </DialogHeader>
-          {pending && (
-            <p className="text-sm text-muted-foreground">
-              {pending.kind === "call"
-                ? "Call"
-                : pending.kind === "text"
-                  ? "Text"
-                  : "Quick Start"}{" "}
-              with <span className="font-medium">{contactDisplayName(pending.contact)}</span> at{" "}
-              <span className="font-medium">{pending.provider.name}</span>.
-            </p>
-          )}
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="ghost" onClick={() => setPending(null)}>
-              Skip
-            </Button>
-            <Button onClick={logNow}>Log engagement</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PostTouchNotePanel
+        open={!!noteEngagementId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setNoteEngagementId(null);
+            setNoteContactId(null);
+          }
+        }}
+        engagementId={noteEngagementId}
+        contactId={noteContactId}
+      />
     </>
   );
 }
