@@ -37,6 +37,13 @@ import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
 import { ProviderReconnect } from "@/components/today/ProviderReconnect";
 import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
 import { logTouch, invalidateTouchQueries } from "@/lib/logTouch";
+import { activeProvidersQuery } from "@/lib/programs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -558,5 +565,64 @@ function TodayPage() {
       <EngagementDialog open={engOpen} onOpenChange={setEngOpen} />
       <RelationshipDialog open={relOpen} onOpenChange={setRelOpen} />
     </div>
+  );
+}
+
+// --- Provider picker → Quick Log ------------------------------------------
+function ProviderQuickLogPanel({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const providers = useQuery({ ...activeProvidersQuery, enabled: open });
+  const [entityId, setEntityId] = useState<string | null>(null);
+
+  return (
+    <>
+      <Dialog
+        open={open && !entityId}
+        onOpenChange={(o) => {
+          if (!o) onOpenChange(false);
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Quick Log — pick a provider</DialogTitle>
+          </DialogHeader>
+          {providers.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : (providers.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No providers yet.</p>
+          ) : (
+            <ul className="max-h-[50vh] divide-y overflow-y-auto rounded-md border">
+              {(providers.data ?? []).map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    className="w-full px-3 py-3 text-left hover:bg-accent"
+                    onClick={() => setEntityId(p.id)}
+                  >
+                    {p.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <PostTouchNotePanel
+        open={!!entityId}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEntityId(null);
+            onOpenChange(false);
+          }
+        }}
+        entityId={entityId}
+      />
+    </>
   );
 }
