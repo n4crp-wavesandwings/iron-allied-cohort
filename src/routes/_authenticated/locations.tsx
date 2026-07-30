@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { myStoresQuery } from "@/lib/me";
+import { logTouch, invalidateTouchQueries } from "@/lib/logTouch";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,6 +197,7 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
   const { data: markets = [] } = useQuery(marketsQuery);
   const { data: regions = [] } = useQuery(regionsQuery);
   const mut = useCrud("stores", ["stores"]);
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Store | null>(null);
   const [search, setSearch] = useState("");
@@ -225,6 +227,15 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
   }, [mine, filtered, districtMap]);
 
   const telHref = (p: string | null) => (p ? `tel:${p.replace(/[^\d+]/g, "")}` : undefined);
+  const recordStoreCall = async (storeId: string, storeNumber: string) => {
+    try {
+      await logTouch({ channel: "Call", storeId });
+      invalidateTouchQueries(qc, { storeId });
+      toast.success(`Logged — call to store #${storeNumber}`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not log engagement");
+    }
+  };
   const mapHref = (s: Store) => {
     const parts = [(s as any).address, s.city, s.state, (s as any).zip].filter(Boolean).join(", ");
     if (!parts) return undefined;
@@ -285,7 +296,7 @@ function StoresTab({ initialMine = false }: { initialMine?: boolean }) {
                           <div className="flex gap-2">
                             {tel && (
                               <Button asChild size="sm" variant="outline" className="h-10">
-                                <a href={tel}>Call</a>
+                                <a href={tel} onClick={() => void recordStoreCall(s.id, s.store_number)}>Call</a>
                               </Button>
                             )}
                             <Button size="sm" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>

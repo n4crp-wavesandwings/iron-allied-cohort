@@ -36,6 +36,7 @@ import { MyStoresCard } from "@/components/today/MyStoresCard";
 import { ProviderQuickEngage } from "@/components/today/ProviderQuickEngage";
 import { ProviderReconnect } from "@/components/today/ProviderReconnect";
 import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+import { logTouch, invalidateTouchQueries } from "@/lib/logTouch";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -167,7 +168,7 @@ function TaskRow({
   onStatus,
 }: {
   task: TaskItem;
-  onStatus: (id: string, s: TaskStatus) => void;
+  onStatus: (task: TaskItem, s: TaskStatus) => void;
 }) {
   const { label, overdue, today } = dueLabel(task.due_date);
   const summary = taskEntitySummary(task);
@@ -197,11 +198,11 @@ function TaskRow({
       </div>
       <div className="flex flex-shrink-0 gap-2">
         {task.status !== "in_progress" && (
-          <Button size="sm" variant="outline" onClick={() => onStatus(task.id, "in_progress")}>
+          <Button size="sm" variant="outline" onClick={() => onStatus(task, "in_progress")}>
             In Progress
           </Button>
         )}
-        <Button size="sm" onClick={() => onStatus(task.id, "completed")}>
+        <Button size="sm" onClick={() => onStatus(task, "completed")}>
           Complete
         </Button>
       </div>
@@ -231,18 +232,47 @@ function TodayPage() {
   };
 
   const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
+    mutationFn: async ({ task, status }: { task: TaskItem; status: TaskStatus }) => {
       const patch: any = { status };
-      if (status === "completed" || status === "done")
-        patch.completed_at = new Date().toISOString();
-      else patch.completed_at = null;
-      const { error } = await supabase.from("follow_ups").update(patch).eq("id", id);
+      const completing = status === "completed" || status === "done";
+      patch.completed_at = completing ? new Date().toISOString() : null;
+      const { error } = await supabase.from("follow_ups").update(patch).eq("id", task.id);
       if (error) throw error;
+      if (!completing) return { engagementId: null as string | null, contactId: null as string | null };
+
+      // Completing a follow-up is real work — it must leave a record.
+      const contactId = task.people?.[0]?.contact_id ?? null;
+      const entityId = task.organizations?.[0]?.entity_id ?? task.entity_id ?? null;
+      const storeId = task.stores?.[0]?.store_id ?? null;
+      const programId = task.programs?.[0]?.program_id ?? null;
+      let engagementId: string | null = null;
+      try {
+        engagementId = await logTouch({
+          channel: "Follow-up",
+          contactId,
+          entityId,
+          storeId,
+          programId,
+          note: null,
+        });
+        invalidateTouchQueries(qc, { contactId, entityId, storeId });
+      } catch (e: any) {
+        toast.error(e?.message ?? "Completed, but could not log the engagement");
+      }
+      return { engagementId, contactId };
     },
-    onSuccess: (_d, vars) => {
+    onSuccess: (res, vars) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
       qc.invalidateQueries({ queryKey: ["follow_ups"] });
-      toast.success(vars.status === "completed" ? "Marked complete" : "Marked in progress");
+      toast.success(
+        vars.status === "completed" || vars.status === "done"
+          ? "Marked complete"
+          : "Marked in progress",
+      );
+      if (res?.engagementId) {
+        setNotePanelContactId(res.contactId ?? null);
+        setNotePanelEngagementId(res.engagementId);
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -336,7 +366,7 @@ function TodayPage() {
                 <TaskRow
                   key={t.id}
                   task={t}
-                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                  onStatus={(t, s) => setStatus.mutate({ task: t, status: s })}
                 />
               ))}
             </ul>
@@ -346,7 +376,7 @@ function TodayPage() {
                 <TaskRow
                   key={t.id}
                   task={t}
-                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                  onStatus={(t, s) => setStatus.mutate({ task: t, status: s })}
                 />
               ))}
               {upcoming.length > 0 && overdueOrToday.length > 0 && (
@@ -358,7 +388,7 @@ function TodayPage() {
                 <TaskRow
                   key={t.id}
                   task={t}
-                  onStatus={(id, s) => setStatus.mutate({ id, status: s })}
+                  onStatus={(t, s) => setStatus.mutate({ task: t, status: s })}
                 />
               ))}
             </ul>
