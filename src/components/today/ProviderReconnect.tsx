@@ -125,11 +125,14 @@ function ProviderContactList({
   providerId,
   providerName,
   onLogged,
+  onQuickLog,
 }: {
   providerId: string;
   providerName: string;
   onLogged: (engagementId: string, contactId: string) => void;
+  onQuickLog: (contactId: string) => void;
 }) {
+
   const { data, isLoading } = useQuery(providerContactsWithMethodsQuery(providerId));
   const qc = useQueryClient();
   const contacts = data ?? [];
