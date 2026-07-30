@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, SquarePen } from "lucide-react";
 import { relationshipQueryOptions, typeLabel } from "@/lib/relationships";
 import { RelationshipDialog } from "@/components/relationships/RelationshipDialog";
 
