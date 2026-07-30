@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Phone, MessageSquare, Mail } from "lucide-react";
+import { ChevronDown, ChevronRight, Phone, MessageSquare, Mail, SquarePen } from "lucide-react";
 import {
   providersReconnectQuery,
   providerContactsWithMethodsQuery,
