@@ -85,7 +85,15 @@ export function ProviderReconnect() {
                   providerName={p.name}
                   onLogged={(engagementId, contactId) => {
                     setNoteContactId(contactId);
+                    setNoteEntityId(p.id);
                     setNoteEngagementId(engagementId);
+                    setPanelOpen(true);
+                  }}
+                  onQuickLog={(contactId) => {
+                    setNoteEngagementId(null);
+                    setNoteContactId(contactId);
+                    setNoteEntityId(p.id);
+                    setPanelOpen(true);
                   }}
                 />
               )}
@@ -95,16 +103,20 @@ export function ProviderReconnect() {
       </ul>
 
       <PostTouchNotePanel
-        open={!!noteEngagementId}
+        open={panelOpen}
         onOpenChange={(o) => {
+          setPanelOpen(o);
           if (!o) {
             setNoteEngagementId(null);
             setNoteContactId(null);
+            setNoteEntityId(null);
           }
         }}
         engagementId={noteEngagementId}
         contactId={noteContactId}
+        entityId={noteEntityId}
       />
+
     </>
   );
 }
