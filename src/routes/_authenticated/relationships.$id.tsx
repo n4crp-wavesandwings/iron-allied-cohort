@@ -229,11 +229,13 @@ function RelationshipDetailPage() {
         defaults={{ entityId: r.id }}
       />
 
-      <PostTouchNotePanel
+      <FastLogSheet
         open={quickLogOpen}
         onOpenChange={setQuickLogOpen}
-        entityId={r.id}
+        providerId={r.id}
+        providerName={r.name}
       />
+
 
 
 
