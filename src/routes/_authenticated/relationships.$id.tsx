@@ -35,7 +35,7 @@ import { EngagementDialog } from "@/components/engagements/EngagementDialog";
 import { EngagementTimeline } from "@/components/engagements/EngagementTimeline";
 import { engagementsByEntityQuery } from "@/lib/engagements";
 import { ProviderPrograms } from "@/components/relationships/ProviderPrograms";
-import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+import { FastLogSheet } from "@/components/engagements/FastLogSheet";
 
 
 export const Route = createFileRoute("/_authenticated/relationships/$id")({
@@ -101,7 +101,7 @@ function RelationshipDetailPage() {
         </Button>
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={() => setQuickLogOpen(true)} className="gap-1">
-            <SquarePen className="h-4 w-4" /> Quick Log
+            <SquarePen className="h-4 w-4" /> Log
           </Button>
           <Button
             variant="outline"
@@ -229,11 +229,13 @@ function RelationshipDetailPage() {
         defaults={{ entityId: r.id }}
       />
 
-      <PostTouchNotePanel
+      <FastLogSheet
         open={quickLogOpen}
         onOpenChange={setQuickLogOpen}
-        entityId={r.id}
+        providerId={r.id}
+        providerName={r.name}
       />
+
 
 
 

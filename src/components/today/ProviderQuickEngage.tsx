@@ -20,7 +20,7 @@ import {
   type ProviderContactRow,
 } from "@/lib/me";
 import { quickStartsQuery, substituteQuickStart, type QuickStart } from "@/lib/tasks";
-import { PostTouchNotePanel } from "@/components/contacts/PostTouchNotePanel";
+import { FastLogSheet, type FastLogChannel } from "@/components/engagements/FastLogSheet";
 import { logTouch, invalidateTouchQueries, type TouchChannel } from "@/lib/logTouch";
 
 export function ProviderQuickEngage() {
@@ -78,13 +78,16 @@ export function ProviderQuickEngage() {
         }}
       />
 
-      <PostTouchNotePanel
-        open={!!quickLogProviderId}
-        onOpenChange={(o) => {
-          if (!o) setQuickLogProviderId(null);
-        }}
-        entityId={quickLogProviderId}
-      />
+      {quickLogProviderId && (
+        <FastLogSheet
+          open
+          onOpenChange={(o) => {
+            if (!o) setQuickLogProviderId(null);
+          }}
+          providerId={quickLogProviderId}
+          providerName={items.find((p) => p.id === quickLogProviderId)?.name ?? null}
+        />
+      )}
     </>
   );
 }
@@ -105,8 +108,12 @@ function ProviderContactsDialog({
   });
   const quickStarts = useQuery(quickStartsQuery);
   const [qsPickerFor, setQsPickerFor] = useState<ProviderContactRow | null>(null);
-  const [noteEngagementId, setNoteEngagementId] = useState<string | null>(null);
-  const [noteContactId, setNoteContactId] = useState<string | null>(null);
+  const [fastLog, setFastLog] = useState<{
+    engagementId: string;
+    contactId: string;
+    contactName: string;
+    channel: FastLogChannel;
+  } | null>(null);
   const qc = useQueryClient();
 
   const verbLabel: Record<string, string> = {
@@ -130,13 +137,18 @@ function ProviderContactsDialog({
       });
       invalidateTouchQueries(qc, { contactId: c.id, entityId: provider.id });
       const what = opts?.label ?? verbLabel[channel] ?? channel.toLowerCase();
+      const fastChannel: FastLogChannel =
+        channel === "Text" ? "Text" : channel === "Email" ? "Email" : "Call";
       toast.success(`Logged — ${what} to ${contactDisplayName(c)}`, {
         action: {
-          label: "Add note",
-          onClick: () => {
-            setNoteContactId(c.id);
-            setNoteEngagementId(engagementId);
-          },
+          label: "Add details",
+          onClick: () =>
+            setFastLog({
+              engagementId,
+              contactId: c.id,
+              contactName: contactDisplayName(c),
+              channel: fastChannel,
+            }),
         },
       });
     } catch (e: any) {
@@ -303,17 +315,20 @@ function ProviderContactsDialog({
         </DialogContent>
       </Dialog>
 
-      <PostTouchNotePanel
-        open={!!noteEngagementId}
-        onOpenChange={(o) => {
-          if (!o) {
-            setNoteEngagementId(null);
-            setNoteContactId(null);
-          }
-        }}
-        engagementId={noteEngagementId}
-        contactId={noteContactId}
-      />
+      {fastLog && provider && (
+        <FastLogSheet
+          open
+          onOpenChange={(o) => {
+            if (!o) setFastLog(null);
+          }}
+          providerId={provider.id}
+          providerName={provider.name}
+          engagementId={fastLog.engagementId}
+          contactId={fastLog.contactId}
+          contactName={fastLog.contactName}
+          defaultChannel={fastLog.channel}
+        />
+      )}
     </>
   );
 }
