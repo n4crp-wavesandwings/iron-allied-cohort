@@ -210,7 +210,7 @@ function FastLogForm({
       const links: { table: string; row: Record<string, unknown> }[] = [
         {
           table: "engagement_organizations",
-          row: { id: `${rowId}`.slice(0, 0) || newId(), engagement_id: rowId, entity_id: providerId, org_id: orgId },
+          row: { engagement_id: rowId, entity_id: providerId, org_id: orgId },
         },
       ];
       if (person?.id)
