@@ -46,6 +46,8 @@ interface Props {
   contactName?: string | null;
   defaultChannel?: FastLogChannel;
   storeId?: string | null;
+  /** Upsert into an engagement that was already stamped (e.g. post-call prompt). */
+  engagementId?: string | null;
 }
 
 function isoDate(d: Date): string {
@@ -121,6 +123,7 @@ function FastLogForm({
   contactName,
   defaultChannel,
   storeId,
+  engagementId,
 }: Props) {
   const qc = useQueryClient();
 
@@ -134,7 +137,7 @@ function FastLogForm({
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString());
   const [showTime, setShowTime] = useState(false);
-  const [rowId] = useState(() => newId());
+  const [rowId] = useState(() => engagementId ?? newId());
   const [followUpId] = useState(() => newId());
 
   const tags = useQuery({ ...engagementTagsQuery, enabled: open });
