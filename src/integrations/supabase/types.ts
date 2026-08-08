@@ -2010,6 +2010,7 @@ export type Database = {
           po_number: string | null
           program_id: string | null
           service_provider_id: string | null
+          store_id: string | null
           updated_at: string
           visit_notes: string | null
           visit_type_id: string | null
@@ -2027,6 +2028,7 @@ export type Database = {
           po_number?: string | null
           program_id?: string | null
           service_provider_id?: string | null
+          store_id?: string | null
           updated_at?: string
           visit_notes?: string | null
           visit_type_id?: string | null
@@ -2044,6 +2046,7 @@ export type Database = {
           po_number?: string | null
           program_id?: string | null
           service_provider_id?: string | null
+          store_id?: string | null
           updated_at?: string
           visit_notes?: string | null
           visit_type_id?: string | null
@@ -2075,6 +2078,13 @@ export type Database = {
             columns: ["service_provider_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_site_visits_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
           {
