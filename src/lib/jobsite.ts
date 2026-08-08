@@ -59,6 +59,7 @@ export type JobSiteVisitDetail = {
   visit_type: { id: string; name: string } | null;
   program: { id: string; name: string } | null;
   service_provider: { id: string; name: string } | null;
+  store: { id: string; store_number: string; name: string | null } | null;
   checks: { checklist_item_id: string; checked: boolean; item: { id: string; name: string; group: string } | null }[];
   opportunities: { opportunity_item_id: string; note: string | null; item: { id: string; name: string } | null }[];
 };
