@@ -3103,6 +3103,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_job_site_visit_checks: {
+        Args: { p_checks: Json; p_visit_id: string }
+        Returns: undefined
+      }
+      set_job_site_visit_opportunities: {
+        Args: { p_opportunities: Json; p_visit_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
