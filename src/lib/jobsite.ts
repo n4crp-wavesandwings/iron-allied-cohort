@@ -71,11 +71,12 @@ export const jobSiteVisitByEngagementQuery = (engagementId: string) =>
       const { data, error } = await supabase
         .from("job_site_visits")
         .select(`
-          id, engagement_id, visit_type_id, program_id, service_provider_id,
+          id, engagement_id, visit_type_id, program_id, service_provider_id, store_id,
           customer_first_initial, customer_last_name, po_number, order_number, visit_notes,
           visit_type:job_site_visit_types(id,name),
           program:programs(id,name),
           service_provider:entities(id,name),
+          store:stores(id,store_number,name),
           checks:job_site_visit_checks(checklist_item_id, checked, item:job_site_checklist_items(id,name,"group")),
           opportunities:job_site_visit_opportunities(opportunity_item_id, note, item:job_site_opportunity_items(id,name))
         `)
