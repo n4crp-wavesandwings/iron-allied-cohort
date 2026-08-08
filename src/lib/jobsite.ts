@@ -50,6 +50,7 @@ export type JobSiteVisitDetail = {
   visit_type_id: string | null;
   program_id: string | null;
   service_provider_id: string | null;
+  store_id: string | null;
   customer_first_initial: string | null;
   customer_last_name: string | null;
   po_number: string | null;
